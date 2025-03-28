@@ -51,7 +51,7 @@ const Login = () => {
         <Card className="shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center text-hotel-primary">
-              RoomLynx
+              Sebin
             </CardTitle>
             <CardDescription className="text-center">
               Hotel Management System

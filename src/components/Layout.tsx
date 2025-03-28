@@ -70,7 +70,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </Button>
             <Link to="/dashboard" className="flex items-center">
-              <span className="text-xl font-bold text-hotel-primary">RoomLynx</span>
+              <span className="text-xl font-bold text-hotel-primary">Sebin</span>
             </Link>
           </div>
           <div className="flex items-center gap-4">
