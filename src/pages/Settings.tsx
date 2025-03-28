@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,16 +10,25 @@ import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
-  const [totalRooms, setTotalRooms] = useState(100);
   const [retentionDays, setRetentionDays] = useState(30);
   const [autoDeleteReports, setAutoDeleteReports] = useState(true);
   const [maxDevices, setMaxDevices] = useState(3);
   const { toast } = useToast();
 
+  // Load settings from localStorage on component mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('hotel_settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      setRetentionDays(settings.retentionDays || 30);
+      setAutoDeleteReports(settings.autoDeleteReports !== undefined ? settings.autoDeleteReports : true);
+      setMaxDevices(settings.maxDevices || 3);
+    }
+  }, []);
+
   const handleSaveSettings = () => {
-    // In a real app, we would save these to localStorage or a database
+    // Save settings to localStorage
     localStorage.setItem('hotel_settings', JSON.stringify({
-      totalRooms,
       retentionDays,
       autoDeleteReports,
       maxDevices
@@ -36,26 +45,6 @@ const Settings = () => {
       <h1 className="text-2xl font-bold text-gray-800">System Settings</h1>
 
       <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Room Configuration</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="total-rooms">Total Number of Rooms</Label>
-              <Input
-                id="total-rooms"
-                type="number"
-                value={totalRooms}
-                onChange={(e) => setTotalRooms(Number(e.target.value))}
-              />
-              <p className="text-sm text-gray-500">
-                This setting controls the total number of rooms in the system
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Report Settings</CardTitle>

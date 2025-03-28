@@ -1,8 +1,7 @@
-
 import { Room, Customer, Payment, CleaningRecord, RentReminder, DailyReport } from "@/types";
 
 // Mock data
-let rooms: Room[] = Array.from({ length: 100 }, (_, i) => ({
+let rooms: Room[] = Array.from({ length: 20 }, (_, i) => ({
   id: `room-${i + 1}`,
   roomNumber: `${i + 1}`.padStart(3, '0'),
   type: i % 4 === 0 ? 'suite' : i % 3 === 0 ? 'deluxe' : i % 2 === 0 ? 'double' : 'single',

@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import AddRoomForm from "@/components/AddRoomForm";
+import { Plus } from "lucide-react";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -17,16 +19,21 @@ const Rooms = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [cleanedBy, setCleanedBy] = useState("");
+  const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
+  const loadRooms = () => {
     setRooms(getRooms());
+  };
+
+  useEffect(() => {
+    loadRooms();
   }, []);
 
   const handleStatusChange = (roomId: string, newStatus: Room["status"]) => {
     const updatedRoom = updateRoom(roomId, { status: newStatus });
     if (updatedRoom) {
-      setRooms(getRooms());
+      loadRooms();
       toast({
         title: "Room Updated",
         description: `Room ${updatedRoom.roomNumber} status changed to ${newStatus}`,
@@ -51,7 +58,7 @@ const Rooms = () => {
     });
 
     if (updatedRoom) {
-      setRooms(getRooms());
+      loadRooms();
       setSelectedRoom(null);
       setCleanedBy("");
       toast({
@@ -86,7 +93,10 @@ const Rooms = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Rooms Management</h1>
-        <Button>Add New Room</Button>
+        <Button onClick={() => setIsAddRoomOpen(true)}>
+          <Plus className="mr-1" size={16} />
+          Add New Room
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -213,6 +223,34 @@ const Rooms = () => {
           </Card>
         ))}
       </div>
+
+      <AddRoomForm 
+        isOpen={isAddRoomOpen} 
+        onClose={() => setIsAddRoomOpen(false)}
+        onRoomAdded={loadRooms}
+      />
+
+      <Dialog>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark Room as Cleaned</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="cleaned-by-modal">Cleaned By</Label>
+              <Input
+                id="cleaned-by-modal"
+                placeholder="Enter name of cleaner"
+                value={cleanedBy}
+                onChange={(e) => setCleanedBy(e.target.value)}
+              />
+            </div>
+            <Button onClick={handleCleaningComplete}>
+              Mark as Clean
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
