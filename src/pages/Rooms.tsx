@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
 import { Room, Customer, Payment } from "@/types";
@@ -12,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
-import { Plus, User, UserPlus, CreditCard, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, User, UserPlus, CreditCard, MoreHorizontal, Pencil, Trash2, Banknote } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Rooms = () => {
