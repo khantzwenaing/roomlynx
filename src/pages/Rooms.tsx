@@ -116,7 +116,7 @@ const Rooms = () => {
           <Label htmlFor="search">Search Room</Label>
           <Input
             id="search"
-            placeholder="Search by room number..."
+            placeholder="Type here to search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
