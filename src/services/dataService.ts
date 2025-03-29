@@ -141,6 +141,17 @@ export const updateRoom = (id: string, updates: Partial<Room>): Room | null => {
   return updatedRoom;
 };
 
+export const deleteRoom = (id: string): boolean => {
+  const allRooms = loadFromLocalStorage("hotel_rooms", rooms);
+  const index = allRooms.findIndex(room => room.id === id);
+  
+  if (index === -1) return false;
+  
+  allRooms.splice(index, 1);
+  saveToLocalStorage("hotel_rooms", allRooms);
+  return true;
+};
+
 // Customer operations
 export const getCustomers = (): Customer[] => {
   return loadFromLocalStorage("hotel_customers", customers);

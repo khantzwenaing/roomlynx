@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment } from "@/services/dataService";
+import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
 import { Room, Customer, Payment } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
-import { Plus, User, UserPlus, CreditCard, Banknote } from "lucide-react";
+import { Plus, User, UserPlus, CreditCard, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Rooms = () => {
@@ -22,6 +24,7 @@ const Rooms = () => {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [roomCustomers, setRoomCustomers] = useState<{[key: string]: Customer | null}>({});
   const [newCustomer, setNewCustomer] = useState({
     name: "",
@@ -100,6 +103,38 @@ const Rooms = () => {
         description: `Room ${updatedRoom.roomNumber} has been marked as clean`,
       });
     }
+  };
+
+  const handleDeleteRoom = () => {
+    if (!selectedRoom) return;
+
+    if (selectedRoom.status === 'occupied') {
+      toast({
+        title: "Cannot Delete Room",
+        description: "This room is currently occupied. Check out the guest first.",
+        variant: "destructive",
+      });
+      setIsDeleteDialogOpen(false);
+      return;
+    }
+
+    const success = deleteRoom(selectedRoom.id);
+    
+    if (success) {
+      toast({
+        title: "Room Deleted",
+        description: `Room ${selectedRoom.roomNumber} has been removed`,
+      });
+      loadRooms();
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete the room",
+        variant: "destructive",
+      });
+    }
+    
+    setIsDeleteDialogOpen(false);
   };
 
   const handleAddCustomer = () => {
@@ -289,11 +324,32 @@ const Rooms = () => {
             <CardHeader className="p-5 bg-gray-50">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-2xl">Room {room.roomNumber}</CardTitle>
-                <Badge className={`px-3 py-1 text-lg ${getStatusColor(room.status)}`}>
-                  {room.status === "vacant" ? "Available" : 
-                   room.status === "occupied" ? "Occupied" : 
-                   "Needs Cleaning"}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className={`px-3 py-1 text-lg ${getStatusColor(room.status)}`}>
+                    {room.status === "vacant" ? "Available" : 
+                     room.status === "occupied" ? "Occupied" : 
+                     "Needs Cleaning"}
+                  </Badge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem 
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setSelectedRoom(room);
+                          setIsDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4 text-red-500" />
+                        <span className="text-red-500">Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-5">
@@ -622,6 +678,27 @@ const Rooms = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Room</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete Room {selectedRoom?.roomNumber}? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteRoom}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AddRoomForm 
         isOpen={isAddRoomOpen} 
