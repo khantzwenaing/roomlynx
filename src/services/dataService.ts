@@ -1,3 +1,4 @@
+
 import { Room, Customer, Payment, CleaningRecord, RentReminder, DailyReport } from "@/types";
 
 // Mock data
@@ -106,6 +107,98 @@ const initializeData = () => {
   saveToLocalStorage("hotel_cleaning", cleaningRecords);
   saveToLocalStorage("hotel_reminders", reminders);
   saveToLocalStorage("hotel_reports", dailyReports);
+};
+
+// Reset database to initial state
+export const resetDatabase = () => {
+  // Reset rooms to initial state
+  rooms = Array.from({ length: 20 }, (_, i) => ({
+    id: `room-${i + 1}`,
+    roomNumber: `${i + 1}`.padStart(3, '0'),
+    type: i % 4 === 0 ? 'suite' : i % 3 === 0 ? 'deluxe' : i % 2 === 0 ? 'double' : 'single',
+    rate: i % 4 === 0 ? 200 : i % 3 === 0 ? 150 : i % 2 === 0 ? 100 : 80,
+    status: 'vacant',
+    lastCleaned: i % 3 === 0 ? new Date(Date.now() - 86400000).toISOString() : new Date().toISOString(),
+    cleanedBy: i % 3 === 0 ? 'John Doe' : 'Jane Smith',
+  }));
+  
+  // Reset other data collections
+  customers = [];
+  payments = [];
+  
+  // Reset to initial sample data
+  cleaningRecords = [
+    {
+      id: "cleaning-1",
+      roomId: "room-5",
+      date: new Date(Date.now() - 3 * 86400000).toISOString(),
+      cleanedBy: "Cleaning Staff 1",
+      verified: true,
+      notes: "Thorough cleaning",
+    },
+    {
+      id: "cleaning-2",
+      roomId: "room-10",
+      date: new Date(Date.now() - 2 * 86400000).toISOString(),
+      cleanedBy: "Cleaning Staff 2",
+      verified: true,
+      notes: "Regular cleaning",
+    },
+  ];
+  
+  reminders = [
+    {
+      id: "reminder-1",
+      roomId: "room-5",
+      customerId: "customer-1",
+      checkOutDate: new Date(Date.now() + 3 * 86400000).toISOString(),
+      reminderDate: new Date(Date.now() + 1 * 86400000).toISOString(),
+      status: "pending",
+    },
+    {
+      id: "reminder-2",
+      roomId: "room-10",
+      customerId: "customer-2",
+      checkOutDate: new Date(Date.now() + 5 * 86400000).toISOString(),
+      reminderDate: new Date(Date.now() + 3 * 86400000).toISOString(),
+      status: "pending",
+    },
+  ];
+  
+  dailyReports = [
+    {
+      id: "report-1",
+      date: new Date(Date.now() - 1 * 86400000).toISOString(),
+      totalRooms: 100,
+      occupiedRooms: 20,
+      vacantRooms: 75,
+      roomsNeedCleaning: 5,
+      expectedCheckIns: 8,
+      expectedCheckOuts: 5,
+      totalRevenue: 2500,
+    },
+    {
+      id: "report-2",
+      date: new Date(Date.now() - 2 * 86400000).toISOString(),
+      totalRooms: 100,
+      occupiedRooms: 18,
+      vacantRooms: 77,
+      roomsNeedCleaning: 5,
+      expectedCheckIns: 5,
+      expectedCheckOuts: 3,
+      totalRevenue: 2200,
+    },
+  ];
+  
+  // Save reset data to localStorage
+  saveToLocalStorage("hotel_rooms", rooms);
+  saveToLocalStorage("hotel_customers", customers);
+  saveToLocalStorage("hotel_payments", payments);
+  saveToLocalStorage("hotel_cleaning", cleaningRecords);
+  saveToLocalStorage("hotel_reminders", reminders);
+  saveToLocalStorage("hotel_reports", dailyReports);
+  
+  return true;
 };
 
 // Call this when app starts
