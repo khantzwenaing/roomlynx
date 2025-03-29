@@ -6,60 +6,16 @@ let rooms: Room[] = Array.from({ length: 20 }, (_, i) => ({
   roomNumber: `${i + 1}`.padStart(3, '0'),
   type: i % 4 === 0 ? 'suite' : i % 3 === 0 ? 'deluxe' : i % 2 === 0 ? 'double' : 'single',
   rate: i % 4 === 0 ? 200 : i % 3 === 0 ? 150 : i % 2 === 0 ? 100 : 80,
-  status: i % 5 === 0 ? 'occupied' : i % 7 === 0 ? 'cleaning' : i % 11 === 0 ? 'maintenance' : 'vacant',
+  status: 'vacant', // Set all rooms to vacant
   lastCleaned: i % 3 === 0 ? new Date(Date.now() - 86400000).toISOString() : new Date().toISOString(),
   cleanedBy: i % 3 === 0 ? 'John Doe' : 'Jane Smith',
 }));
 
-let customers: Customer[] = [
-  {
-    id: "customer-1",
-    name: "John Smith",
-    email: "john@example.com",
-    phone: "123-456-7890",
-    address: "123 Main St, City",
-    idNumber: "ID12345",
-    checkInDate: new Date(Date.now() - 2 * 86400000).toISOString(),
-    checkOutDate: new Date(Date.now() + 3 * 86400000).toISOString(),
-    roomId: "room-5",
-  },
-  {
-    id: "customer-2",
-    name: "Emily Johnson",
-    email: "emily@example.com",
-    phone: "987-654-3210",
-    address: "456 Oak Ave, Town",
-    idNumber: "ID67890",
-    checkInDate: new Date(Date.now() - 1 * 86400000).toISOString(),
-    checkOutDate: new Date(Date.now() + 5 * 86400000).toISOString(),
-    roomId: "room-10",
-  },
-];
+// Empty initial customers list
+let customers: Customer[] = [];
 
-let payments: Payment[] = [
-  {
-    id: "payment-1",
-    customerId: "customer-1",
-    roomId: "room-5",
-    amount: 400,
-    date: new Date(Date.now() - 2 * 86400000).toISOString(),
-    method: "card",
-    collectedBy: "Staff User",
-    status: "paid",
-    notes: "Full payment",
-  },
-  {
-    id: "payment-2",
-    customerId: "customer-2",
-    roomId: "room-10",
-    amount: 300,
-    date: new Date(Date.now() - 1 * 86400000).toISOString(),
-    method: "cash",
-    collectedBy: "Admin User",
-    status: "paid",
-    notes: "Paid in cash",
-  },
-];
+// Empty initial payments list
+let payments: Payment[] = [];
 
 let cleaningRecords: CleaningRecord[] = [
   {

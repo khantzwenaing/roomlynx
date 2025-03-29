@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Home, 
   LogOut, 
-  User, 
   Settings, 
   Calendar, 
   DollarSign, 
@@ -49,7 +47,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <Home size={20} /> },
     { path: "/rooms", label: "Rooms", icon: <Calendar size={20} /> },
-    { path: "/customers", label: "Customers", icon: <User size={20} /> },
     { path: "/payments", label: "Payments", icon: <DollarSign size={20} /> },
     { path: "/reports", label: "Reports", icon: <FileText size={20} /> },
     { path: "/settings", label: "Settings", icon: <Settings size={20} /> },

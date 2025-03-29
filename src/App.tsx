@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +9,6 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Rooms from "./pages/Rooms";
-import Customers from "./pages/Customers";
 import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
@@ -59,14 +57,6 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <Layout>
             <Rooms />
-          </Layout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/customers" element={
-        <ProtectedRoute>
-          <Layout>
-            <Customers />
           </Layout>
         </ProtectedRoute>
       } />
