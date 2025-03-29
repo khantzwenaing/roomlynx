@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";  // Add this import
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
@@ -15,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
 import RoomDetailsDialog from "@/components/RoomDetailsDialog";
-import { Plus, User, UserPlus, CreditCard, MoreHorizontal, Pencil, Trash2, Banknote } from "lucide-react";
+import { Plus, User, UserPlus, CreditCard, MoreHorizontal, Pencil, Trash2, Banknote, Info } from "lucide-react";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -334,8 +333,7 @@ const Rooms = () => {
         {filteredRooms.map((room) => (
           <Card 
             key={room.id} 
-            className="overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
-            onClick={() => handleRoomClick(room)}
+            className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
           >
             <CardHeader className="p-5 bg-gray-50">
               <div className="flex justify-between items-center">
@@ -415,6 +413,18 @@ const Rooms = () => {
                 )}
                 
                 <div className="pt-4 space-y-3">
+                  <Button 
+                    className="w-full py-6 text-lg bg-gray-600 hover:bg-gray-700"
+                    variant="default"
+                    onClick={() => {
+                      setSelectedRoom(room);
+                      setIsRoomDetailsOpen(true);
+                    }}
+                  >
+                    <Info className="mr-2" size={20} />
+                    View Room Details
+                  </Button>
+                
                   {room.status === "vacant" && (
                     <Button 
                       className="w-full py-6 text-lg"
