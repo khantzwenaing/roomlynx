@@ -62,28 +62,29 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Room</DialogTitle>
+          <DialogTitle className="text-xl">Add New Room</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label htmlFor="roomNumber">Room Number</Label>
+            <Label htmlFor="roomNumber" className="text-lg">Room Number</Label>
             <Input
               id="roomNumber"
               value={roomNumber}
               onChange={(e) => setRoomNumber(e.target.value)}
               placeholder="e.g. 101"
+              className="text-lg h-12"
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="roomType">Room Type</Label>
+            <Label htmlFor="roomType" className="text-lg">Room Type</Label>
             <Select value={roomType} onValueChange={(value: 'single' | 'double' | 'suite' | 'deluxe') => setRoomType(value)}>
-              <SelectTrigger>
+              <SelectTrigger className="text-lg h-12">
                 <SelectValue placeholder="Select room type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="text-lg">
                 <SelectItem value="single">Single</SelectItem>
                 <SelectItem value="double">Double</SelectItem>
                 <SelectItem value="suite">Suite</SelectItem>
@@ -92,21 +93,32 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="rate">Rate per Night ($)</Label>
+            <Label htmlFor="rate" className="text-lg">Rate per Night ($)</Label>
             <Input
               id="rate"
               type="number"
               value={rate}
               onChange={(e) => setRate(Number(e.target.value))}
               min={1}
+              className="text-lg h-12"
               required
             />
           </div>
           <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="text-lg h-12"
+            >
               Cancel
             </Button>
-            <Button type="submit">Add Room</Button>
+            <Button 
+              type="submit"
+              className="text-lg h-12"
+            >
+              Add Room
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

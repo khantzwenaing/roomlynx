@@ -89,99 +89,98 @@ const Rooms = () => {
   const getStatusColor = (status: Room["status"]) => {
     switch (status) {
       case "vacant":
-        return "bg-hotel-success";
+        return "bg-green-100 text-green-800";
       case "occupied":
-        return "bg-hotel-primary";
-      case "maintenance":
-        return "bg-hotel-danger";
+        return "bg-blue-100 text-blue-800";
       case "cleaning":
-        return "bg-hotel-warning";
+        return "bg-yellow-100 text-yellow-800";
       default:
-        return "bg-gray-500";
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Rooms Management</h1>
-        <Button onClick={() => setIsAddRoomOpen(true)}>
-          <Plus className="mr-1" size={16} />
+        <h1 className="text-3xl font-bold text-gray-800">Rooms</h1>
+        <Button onClick={() => setIsAddRoomOpen(true)} size="lg">
+          <Plus className="mr-2" size={20} />
           Add New Room
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <Label htmlFor="search">Search Room</Label>
+          <Label htmlFor="search" className="text-lg mb-2 block">Search Room</Label>
           <Input
             id="search"
             placeholder="Type here to search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="text-lg h-12"
           />
         </div>
         <div>
-          <Label htmlFor="status-filter">Filter by Status</Label>
+          <Label htmlFor="status-filter" className="text-lg mb-2 block">Room Status</Label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
+            <SelectTrigger className="text-lg h-12">
+              <SelectValue placeholder="All Rooms" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="vacant">Vacant</SelectItem>
-              <SelectItem value="occupied">Occupied</SelectItem>
-              <SelectItem value="cleaning">Needs Cleaning</SelectItem>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
+            <SelectContent className="text-lg">
+              <SelectItem value="all">All Rooms</SelectItem>
+              <SelectItem value="vacant">Available Rooms</SelectItem>
+              <SelectItem value="occupied">Occupied Rooms</SelectItem>
+              <SelectItem value="cleaning">Rooms To Clean</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRooms.map((room) => (
-          <Card key={room.id} className="overflow-hidden">
-            <CardHeader className="p-4 bg-gray-50">
+          <Card key={room.id} className="overflow-hidden shadow-lg">
+            <CardHeader className="p-5 bg-gray-50">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-lg">Room {room.roomNumber}</CardTitle>
-                <Badge className={getStatusColor(room.status)}>
-                  {room.status.charAt(0).toUpperCase() + room.status.slice(1)}
+                <CardTitle className="text-2xl">Room {room.roomNumber}</CardTitle>
+                <Badge className={`px-3 py-1 text-lg ${getStatusColor(room.status)}`}>
+                  {room.status === "vacant" ? "Available" : 
+                   room.status === "occupied" ? "Occupied" : 
+                   "Needs Cleaning"}
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-500">Type:</span>
-                  <span className="text-sm font-medium">
+            <CardContent className="p-5">
+              <div className="space-y-4">
+                <div className="flex justify-between text-lg">
+                  <span className="text-gray-600">Type:</span>
+                  <span className="font-medium">
                     {room.type.charAt(0).toUpperCase() + room.type.slice(1)}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-500">Rate:</span>
-                  <span className="text-sm font-medium">${room.rate}/night</span>
+                <div className="flex justify-between text-lg">
+                  <span className="text-gray-600">Rate:</span>
+                  <span className="font-medium">${room.rate}/night</span>
                 </div>
                 {room.lastCleaned && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">Last Cleaned:</span>
-                    <span className="text-sm">
+                  <div className="flex justify-between text-lg">
+                    <span className="text-gray-600">Last Cleaned:</span>
+                    <span>
                       {new Date(room.lastCleaned).toLocaleDateString()}
                     </span>
                   </div>
                 )}
-                <div className="pt-2 flex flex-wrap gap-2">
+                <div className="pt-4 space-y-3">
                   {room.status !== "occupied" && (
                     <Button 
-                      size="sm" 
-                      variant="outline"
+                      className="w-full py-6 text-lg"
                       onClick={() => handleStatusChange(room.id, "occupied")}
                     >
-                      Mark Occupied
+                      Mark as Occupied
                     </Button>
                   )}
-                  {room.status !== "vacant" && room.status !== "cleaning" && (
+                  {room.status !== "cleaning" && room.status !== "vacant" && (
                     <Button 
-                      size="sm" 
+                      className="w-full py-6 text-lg"
                       variant="outline"
                       onClick={() => handleStatusChange(room.id, "cleaning")}
                     >
@@ -192,42 +191,36 @@ const Rooms = () => {
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button 
-                          size="sm" 
+                          className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
                           onClick={() => setSelectedRoom(room)}
                         >
                           Complete Cleaning
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle>Mark Room as Cleaned</DialogTitle>
+                          <DialogTitle className="text-xl">Mark Room as Cleaned</DialogTitle>
                         </DialogHeader>
-                        <div className="space-y-4 py-4">
+                        <div className="space-y-6 py-6">
                           <div className="space-y-2">
-                            <Label htmlFor="cleaned-by">Cleaned By</Label>
+                            <Label htmlFor="cleaned-by" className="text-lg">Cleaned By</Label>
                             <Input
                               id="cleaned-by"
                               placeholder="Enter name of cleaner"
                               value={cleanedBy}
                               onChange={(e) => setCleanedBy(e.target.value)}
+                              className="text-lg h-12"
                             />
                           </div>
-                          <Button onClick={handleCleaningComplete}>
+                          <Button 
+                            onClick={handleCleaningComplete} 
+                            className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
+                          >
                             Mark as Clean
                           </Button>
                         </div>
                       </DialogContent>
                     </Dialog>
-                  )}
-                  {room.status !== "maintenance" && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="border-hotel-danger text-hotel-danger hover:bg-hotel-danger/10"
-                      onClick={() => handleStatusChange(room.id, "maintenance")}
-                    >
-                      Maintenance
-                    </Button>
                   )}
                 </div>
               </div>
@@ -241,28 +234,6 @@ const Rooms = () => {
         onClose={() => setIsAddRoomOpen(false)}
         onRoomAdded={loadRooms}
       />
-
-      <Dialog>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Mark Room as Cleaned</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="cleaned-by-modal">Cleaned By</Label>
-              <Input
-                id="cleaned-by-modal"
-                placeholder="Enter name of cleaner"
-                value={cleanedBy}
-                onChange={(e) => setCleanedBy(e.target.value)}
-              />
-            </div>
-            <Button onClick={handleCleaningComplete}>
-              Mark as Clean
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
