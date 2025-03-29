@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment } from "@/services/dataService";
 import { Room, Customer, Payment } from "@/types";
@@ -48,8 +49,8 @@ const Rooms = () => {
     const customerMap: {[key: string]: Customer | null} = {};
     
     allRooms.forEach(room => {
-      const details = getRoomDetails(room.id);
       if (room.status === "occupied") {
+        const details = getRoomDetails(room.id);
         customerMap[room.id] = details?.currentCustomer || null;
       }
     });
@@ -66,6 +67,7 @@ const Rooms = () => {
     const updatedRoom = updateRoom(roomId, { status: newStatus });
     if (updatedRoom) {
       loadRooms();
+      loadCustomersForRooms();
       toast({
         title: "Room Updated",
         description: `Room ${updatedRoom.roomNumber} status changed to ${newStatus}`,
@@ -91,6 +93,7 @@ const Rooms = () => {
 
     if (updatedRoom) {
       loadRooms();
+      loadCustomersForRooms();
       setSelectedRoom(null);
       setCleanedBy("");
       toast({
@@ -136,6 +139,7 @@ const Rooms = () => {
     
     setIsAddCustomerOpen(false);
     loadRooms();
+    loadCustomersForRooms();
     
     toast({
       title: "Customer Added",
@@ -196,6 +200,7 @@ const Rooms = () => {
       
       setIsCheckoutOpen(false);
       loadRooms();
+      loadCustomersForRooms();
       
       toast({
         title: "Checkout Complete",
@@ -222,7 +227,18 @@ const Rooms = () => {
   });
 
   const getStatusColor = (status: Room["status"]) => {
-    return "bg-gray-100 text-gray-800";
+    switch (status) {
+      case "vacant":
+        return "bg-green-100 text-green-800";
+      case "occupied":
+        return "bg-blue-100 text-blue-800";
+      case "cleaning":
+        return "bg-yellow-100 text-yellow-800";
+      case "maintenance":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
   return (
@@ -308,8 +324,8 @@ const Rooms = () => {
                       <div className="text-sm text-gray-600">
                         Check-in: {new Date(roomCustomers[room.id]?.checkInDate || "").toLocaleDateString()}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        <strong>Check-out: {new Date(roomCustomers[room.id]?.checkOutDate || "").toLocaleDateString()}</strong>
+                      <div className="text-sm font-semibold text-blue-800">
+                        Check-out: {new Date(roomCustomers[room.id]?.checkOutDate || "").toLocaleDateString()}
                       </div>
                       <Link 
                         to={`/customers?id=${roomCustomers[room.id]?.id}`} 

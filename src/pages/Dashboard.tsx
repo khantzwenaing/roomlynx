@@ -1,30 +1,21 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getRooms, getCustomers, getReminders, getDailyReports } from "@/services/dataService";
-import { Room, Customer, RentReminder, DailyReport } from "@/types";
+import { getRooms, getDailyReports } from "@/services/dataService";
+import { Room, DailyReport } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [reminders, setReminders] = useState<RentReminder[]>([]);
   const [reports, setReports] = useState<DailyReport[]>([]);
   const isMobile = useIsMobile();
 
   useEffect(() => {
     setRooms(getRooms());
-    setCustomers(getCustomers());
-    setReminders(getReminders());
     setReports(getDailyReports());
   }, []);
-
-  const upcomingCheckouts = customers.filter(
-    (c) => new Date(c.checkOutDate) > new Date() && 
-           new Date(c.checkOutDate) < new Date(Date.now() + 2 * 86400000)
-  );
 
   const roomStatusCounts = {
     vacant: rooms.filter((r) => r.status === "vacant").length,
@@ -32,8 +23,6 @@ const Dashboard = () => {
     maintenance: rooms.filter((r) => r.status === "maintenance").length,
     cleaning: rooms.filter((r) => r.status === "cleaning").length,
   };
-
-  const pendingReminders = reminders.filter((r) => r.status === "pending");
 
   const chartData = reports.slice(0, 7).map((report) => ({
     date: new Date(report.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
@@ -104,7 +93,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Occupancy Chart */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Room Occupancy Trend</CardTitle>
           </CardHeader>
@@ -120,53 +109,6 @@ const Dashboard = () => {
                   <Bar dataKey="vacantRooms" name="Vacant" fill="#10B981" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Checkout Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Checkouts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {upcomingCheckouts.length > 0 ? (
-                upcomingCheckouts.map((customer) => (
-                  <div
-                    key={customer.id}
-                    className="flex justify-between items-center border-b pb-2"
-                  >
-                    <div>
-                      <div className="font-medium">{customer.name}</div>
-                      <div className="text-sm text-gray-500">
-                        Room {rooms.find((r) => r.id === customer.roomId)?.roomNumber}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">
-                        {new Date(customer.checkOutDate).toLocaleDateString()}
-                      </div>
-                      <Badge 
-                        className={
-                          new Date(customer.checkOutDate).getTime() - Date.now() < 86400000 
-                            ? "bg-hotel-danger" 
-                            : "bg-hotel-warning"
-                        }
-                      >
-                        {new Date(customer.checkOutDate).toLocaleDateString() === 
-                         new Date().toLocaleDateString() 
-                          ? "Today" 
-                          : "Soon"}
-                      </Badge>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-4 text-gray-500">
-                  No upcoming checkouts in the next 48 hours
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
