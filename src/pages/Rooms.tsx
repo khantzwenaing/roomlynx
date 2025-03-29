@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";  // Add this import
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
 import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
