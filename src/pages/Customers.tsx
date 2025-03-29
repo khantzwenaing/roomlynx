@@ -82,7 +82,17 @@ const Customers = () => {
 
   const onSubmit = (data: CustomerFormValues) => {
     try {
-      const newCustomer = addCustomer(data);
+      // Make sure all required fields are explicitly set even if they're undefined in the form data
+      const newCustomer = addCustomer({
+        name: data.name,
+        phone: data.phone,
+        email: data.email || undefined,
+        address: data.address || undefined,
+        idNumber: data.idNumber || undefined,
+        roomId: data.roomId,
+        checkInDate: data.checkInDate,
+        checkOutDate: data.checkOutDate
+      });
 
       setCustomers([...customers, newCustomer]);
       setOpenAddDialog(false);

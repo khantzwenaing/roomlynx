@@ -109,9 +109,14 @@ const Payments = () => {
   const onSubmit = (data: PaymentFormValues) => {
     try {
       const newPayment = addPayment({
-        ...data,
+        customerId: data.customerId,
+        roomId: data.roomId,
         amount: Number(data.amount),
         date: new Date().toISOString(),
+        method: data.method,
+        status: data.status,
+        collectedBy: data.collectedBy,
+        notes: data.notes || undefined
       });
 
       setPayments([...payments, newPayment]);
