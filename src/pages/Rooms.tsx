@@ -41,7 +41,6 @@ const Rooms = () => {
 
   const loadRooms = () => {
     setRooms(getRooms());
-    loadCustomersForRooms();
   };
 
   const loadCustomersForRooms = () => {
@@ -50,7 +49,9 @@ const Rooms = () => {
     
     allRooms.forEach(room => {
       const details = getRoomDetails(room.id);
-      customerMap[room.id] = details?.currentCustomer || null;
+      if (room.status === "occupied") {
+        customerMap[room.id] = details?.currentCustomer || null;
+      }
     });
     
     setRoomCustomers(customerMap);
@@ -58,6 +59,7 @@ const Rooms = () => {
 
   useEffect(() => {
     loadRooms();
+    loadCustomersForRooms();
   }, []);
 
   const handleStatusChange = (roomId: string, newStatus: Room["status"]) => {
