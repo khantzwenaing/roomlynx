@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment } from "@/services/dataService";
 import { Room, Customer, Payment } from "@/types";
@@ -168,6 +167,12 @@ const Rooms = () => {
         collectedBy: "",
       });
       setIsCheckoutOpen(true);
+    } else {
+      toast({
+        title: "Error",
+        description: "Could not find customer information for this room.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -353,6 +358,7 @@ const Rooms = () => {
                     <Button 
                       className="w-full py-6 text-lg bg-red-600 hover:bg-red-700"
                       onClick={() => openCheckoutDialog(room)}
+                      type="button"
                     >
                       <CreditCard className="mr-2" size={20} />
                       Check-out & Payment
