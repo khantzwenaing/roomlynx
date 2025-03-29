@@ -69,7 +69,19 @@ const Rooms = () => {
   };
 
   const filteredRooms = rooms.filter((room) => {
-    const matchesSearch = room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    // Enhanced search functionality to search by room number, type, rate, and status
+    const roomNumber = room.roomNumber.toLowerCase();
+    const roomType = room.type.toLowerCase();
+    const roomRate = room.rate.toString();
+    const roomStatus = room.status.toLowerCase();
+    const searchTermLower = searchTerm.toLowerCase();
+    
+    const matchesSearch = 
+      roomNumber.includes(searchTermLower) || 
+      roomType.includes(searchTermLower) || 
+      roomRate.includes(searchTermLower) || 
+      roomStatus.includes(searchTermLower);
+      
     const matchesFilter = statusFilter === "all" || room.status === statusFilter;
     return matchesSearch && matchesFilter;
   });
