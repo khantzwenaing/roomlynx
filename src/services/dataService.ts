@@ -195,6 +195,15 @@ export const getCustomer = (id: string): Customer | undefined => {
   return allCustomers.find(customer => customer.id === id);
 };
 
+export const getCustomerByRoomId = (roomId: string): Customer | null => {
+  const allCustomers = loadFromLocalStorage("hotel_customers", customers);
+  // Find any customer currently checked into the room (whose checkout date is in the future)
+  const now = new Date();
+  return allCustomers.find(customer => 
+    customer.roomId === roomId && new Date(customer.checkOutDate) > now
+  ) || null;
+};
+
 export const addCustomer = (customer: Omit<Customer, "id">): Customer => {
   const newCustomer = { ...customer, id: `customer-${Date.now()}` };
   const allCustomers = loadFromLocalStorage("hotel_customers", customers);
@@ -319,9 +328,8 @@ export const getRoomDetails = (roomId: string) => {
   const room = getRoom(roomId);
   if (!room) return null;
   
-  const allCustomers = getCustomers();
-  const currentCustomer = allCustomers.find(c => c.roomId === roomId && 
-    new Date(c.checkOutDate) > new Date());
+  // Find the current customer (not checked out yet)
+  const currentCustomer = getCustomerByRoomId(roomId);
   
   const allPayments = getPayments();
   const roomPayments = allPayments.filter(p => p.roomId === roomId);

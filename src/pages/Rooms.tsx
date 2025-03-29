@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect } from "react";
-import { getRooms, updateRoom } from "@/services/dataService";
-import { Room } from "@/types";
+import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails } from "@/services/dataService";
+import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
-import { Plus } from "lucide-react";
+import { Plus, User, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -20,10 +21,33 @@ const Rooms = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [cleanedBy, setCleanedBy] = useState("");
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+  const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+  const [roomCustomers, setRoomCustomers] = useState<{[key: string]: Customer | null}>({});
+  const [newCustomer, setNewCustomer] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    idNumber: "",
+    checkInDate: new Date().toISOString().split('T')[0],
+    checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0]
+  });
   const { toast } = useToast();
 
   const loadRooms = () => {
     setRooms(getRooms());
+    loadCustomersForRooms();
+  };
+
+  const loadCustomersForRooms = () => {
+    const allRooms = getRooms();
+    const customerMap: {[key: string]: Customer | null} = {};
+    
+    allRooms.forEach(room => {
+      const details = getRoomDetails(room.id);
+      customerMap[room.id] = details?.currentCustomer || null;
+    });
+    
+    setRoomCustomers(customerMap);
   };
 
   useEffect(() => {
@@ -66,6 +90,57 @@ const Rooms = () => {
         description: `Room ${updatedRoom.roomNumber} has been marked as clean`,
       });
     }
+  };
+
+  const handleAddCustomer = () => {
+    if (!selectedRoom) return;
+    
+    if (!newCustomer.name || !newCustomer.phone) {
+      toast({
+        title: "Error",
+        description: "Name and phone number are required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Add the customer with all required fields
+    const customer = addCustomer({
+      name: newCustomer.name,
+      email: newCustomer.email || "",
+      phone: newCustomer.phone,
+      idNumber: newCustomer.idNumber || "",
+      address: "",
+      checkInDate: newCustomer.checkInDate,
+      checkOutDate: newCustomer.checkOutDate,
+      roomId: selectedRoom.id,
+    });
+    
+    // Update room status
+    updateRoom(selectedRoom.id, { status: "occupied" });
+    
+    // Reset form and reload data
+    setNewCustomer({
+      name: "",
+      email: "",
+      phone: "",
+      idNumber: "",
+      checkInDate: new Date().toISOString().split('T')[0],
+      checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0]
+    });
+    
+    setIsAddCustomerOpen(false);
+    loadRooms();
+    
+    toast({
+      title: "Customer Added",
+      description: `${customer.name} has been checked into Room ${selectedRoom.roomNumber}`,
+    });
+  };
+
+  const openAddCustomerDialog = (room: Room) => {
+    setSelectedRoom(room);
+    setIsAddCustomerOpen(true);
   };
 
   const filteredRooms = rooms.filter((room) => {
@@ -169,24 +244,45 @@ const Rooms = () => {
                     </span>
                   </div>
                 )}
+                
+                {/* Customer Information Section */}
+                {roomCustomers[room.id] ? (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <h3 className="text-lg font-semibold mb-2 flex items-center">
+                      <User className="mr-2" size={20} />
+                      Current Guest
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="font-medium text-lg">{roomCustomers[room.id]?.name}</div>
+                      <div>{roomCustomers[room.id]?.phone}</div>
+                      <div className="text-sm text-gray-600">
+                        Check-in: {new Date(roomCustomers[room.id]?.checkInDate || "").toLocaleDateString()}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Check-out: {new Date(roomCustomers[room.id]?.checkOutDate || "").toLocaleDateString()}
+                      </div>
+                      <Link 
+                        to={`/customers?id=${roomCustomers[room.id]?.id}`} 
+                        className="text-blue-600 hover:underline block text-lg font-medium mt-2"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                ) : null}
+                
                 <div className="pt-4 space-y-3">
-                  {room.status !== "occupied" && (
+                  {room.status === "vacant" && (
                     <Button 
                       className="w-full py-6 text-lg"
-                      onClick={() => handleStatusChange(room.id, "occupied")}
+                      variant="default"
+                      onClick={() => openAddCustomerDialog(room)}
                     >
-                      Mark as Occupied
+                      <UserPlus className="mr-2" size={20} />
+                      Check-in Guest
                     </Button>
                   )}
-                  {room.status !== "cleaning" && room.status !== "vacant" && (
-                    <Button 
-                      className="w-full py-6 text-lg"
-                      variant="outline"
-                      onClick={() => handleStatusChange(room.id, "cleaning")}
-                    >
-                      Needs Cleaning
-                    </Button>
-                  )}
+                  
                   {room.status === "cleaning" && (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -222,12 +318,123 @@ const Rooms = () => {
                       </DialogContent>
                     </Dialog>
                   )}
+                  
+                  {room.status === "occupied" && (
+                    <Button 
+                      className="w-full py-6 text-lg"
+                      variant="outline"
+                      onClick={() => handleStatusChange(room.id, "cleaning")}
+                    >
+                      Needs Cleaning
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Add Customer Dialog */}
+      <Dialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              Check-in Guest for Room {selectedRoom?.roomNumber}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="customer-name" className="text-lg">Guest Name*</Label>
+              <Input
+                id="customer-name"
+                placeholder="Enter full name"
+                value={newCustomer.name}
+                onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
+                className="text-lg h-12"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="customer-phone" className="text-lg">Phone Number*</Label>
+              <Input
+                id="customer-phone"
+                placeholder="Enter phone number"
+                value={newCustomer.phone}
+                onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                className="text-lg h-12"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="customer-email" className="text-lg">Email Address</Label>
+              <Input
+                id="customer-email"
+                type="email"
+                placeholder="Enter email address"
+                value={newCustomer.email}
+                onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
+                className="text-lg h-12"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="customer-id" className="text-lg">ID Number</Label>
+              <Input
+                id="customer-id"
+                placeholder="Enter ID number"
+                value={newCustomer.idNumber}
+                onChange={(e) => setNewCustomer({...newCustomer, idNumber: e.target.value})}
+                className="text-lg h-12"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="check-in-date" className="text-lg">Check-in Date</Label>
+                <Input
+                  id="check-in-date"
+                  type="date"
+                  value={newCustomer.checkInDate}
+                  onChange={(e) => setNewCustomer({...newCustomer, checkInDate: e.target.value})}
+                  className="text-lg h-12"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="check-out-date" className="text-lg">Check-out Date</Label>
+                <Input
+                  id="check-out-date"
+                  type="date"
+                  value={newCustomer.checkOutDate}
+                  onChange={(e) => setNewCustomer({...newCustomer, checkOutDate: e.target.value})}
+                  className="text-lg h-12"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsAddCustomerOpen(false)}
+              className="text-lg h-12"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAddCustomer}
+              className="text-lg h-12"
+            >
+              Check-in Guest
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AddRoomForm 
         isOpen={isAddRoomOpen} 
