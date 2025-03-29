@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from "react";
-import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails } from "@/services/dataService";
-import { Room, Customer } from "@/types";
+import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment } from "@/services/dataService";
+import { Room, Customer, Payment } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
-import { Plus, User, UserPlus } from "lucide-react";
+import { Plus, User, UserPlus, CreditCard, Banknote } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Rooms = () => {
@@ -21,6 +22,7 @@ const Rooms = () => {
   const [cleanedBy, setCleanedBy] = useState("");
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [roomCustomers, setRoomCustomers] = useState<{[key: string]: Customer | null}>({});
   const [newCustomer, setNewCustomer] = useState({
     name: "",
@@ -29,6 +31,12 @@ const Rooms = () => {
     idNumber: "",
     checkInDate: new Date().toISOString().split('T')[0],
     checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0]
+  });
+  const [paymentInfo, setPaymentInfo] = useState({
+    amount: 0,
+    method: "cash",
+    bankRefNo: "",
+    collectedBy: "",
   });
   const { toast } = useToast();
 
@@ -137,6 +145,65 @@ const Rooms = () => {
   const openAddCustomerDialog = (room: Room) => {
     setSelectedRoom(room);
     setIsAddCustomerOpen(true);
+  };
+
+  const openCheckoutDialog = (room: Room) => {
+    setSelectedRoom(room);
+    const customer = roomCustomers[room.id];
+    if (customer) {
+      // Calculate the default amount based on room rate and days stayed
+      const checkInDate = new Date(customer.checkInDate);
+      const today = new Date();
+      const daysStayed = Math.max(1, Math.ceil((today.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)));
+      const amount = room.rate * daysStayed;
+      
+      setPaymentInfo({
+        amount,
+        method: "cash",
+        bankRefNo: "",
+        collectedBy: "",
+      });
+      setIsCheckoutOpen(true);
+    }
+  };
+
+  const handleCheckout = () => {
+    if (!selectedRoom || !roomCustomers[selectedRoom.id]) return;
+    
+    if (!paymentInfo.collectedBy.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter who collected the payment",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Process payment
+    const customer = roomCustomers[selectedRoom.id];
+    if (customer) {
+      addPayment({
+        customerId: customer.id,
+        roomId: selectedRoom.id,
+        amount: paymentInfo.amount,
+        date: new Date().toISOString(),
+        method: paymentInfo.method as "cash" | "bank_transfer",
+        collectedBy: paymentInfo.collectedBy,
+        status: "paid",
+        notes: paymentInfo.method === "bank_transfer" ? `Bank Ref: ${paymentInfo.bankRefNo}` : "Cash payment",
+      });
+      
+      // Update room status to cleaning
+      updateRoom(selectedRoom.id, { status: "cleaning" });
+      
+      setIsCheckoutOpen(false);
+      loadRooms();
+      
+      toast({
+        title: "Checkout Complete",
+        description: `${customer.name} has checked out of Room ${selectedRoom.roomNumber}`,
+      });
+    }
   };
 
   const filteredRooms = rooms.filter((room) => {
@@ -277,6 +344,16 @@ const Rooms = () => {
                     </Button>
                   )}
                   
+                  {room.status === "occupied" && (
+                    <Button 
+                      className="w-full py-6 text-lg bg-red-600 hover:bg-red-700"
+                      onClick={() => openCheckoutDialog(room)}
+                    >
+                      <CreditCard className="mr-2" size={20} />
+                      Check-out & Payment
+                    </Button>
+                  )}
+                  
                   {room.status === "cleaning" && (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -314,16 +391,6 @@ const Rooms = () => {
                         </div>
                       </DialogContent>
                     </Dialog>
-                  )}
-                  
-                  {room.status === "occupied" && (
-                    <Button 
-                      className="w-full py-6 text-lg"
-                      variant="outline"
-                      onClick={() => handleStatusChange(room.id, "cleaning")}
-                    >
-                      Needs Cleaning
-                    </Button>
                   )}
                 </div>
               </div>
@@ -430,6 +497,116 @@ const Rooms = () => {
               className="text-lg h-12"
             >
               Add Customer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              Check-out & Payment for Room {selectedRoom?.roomNumber}
+            </DialogTitle>
+            <DialogDescription>
+              Complete the payment process to check-out the guest.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-blue-50 rounded-lg mb-4">
+              <h3 className="text-lg font-semibold mb-2">Guest Information</h3>
+              {selectedRoom && roomCustomers[selectedRoom.id] && (
+                <div>
+                  <p className="text-lg"><strong>Name:</strong> {roomCustomers[selectedRoom.id]?.name}</p>
+                  <p><strong>Check-in:</strong> {new Date(roomCustomers[selectedRoom.id]?.checkInDate || "").toLocaleDateString()}</p>
+                  <p><strong>Check-out:</strong> {new Date().toLocaleDateString()}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="payment-amount" className="text-lg">Payment Amount*</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-500">$</span>
+                <Input
+                  id="payment-amount"
+                  type="number"
+                  value={paymentInfo.amount}
+                  onChange={(e) => setPaymentInfo({...paymentInfo, amount: Number(e.target.value)})}
+                  className="text-lg h-12 pl-8"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="payment-method" className="text-lg">Payment Method*</Label>
+              <Select 
+                value={paymentInfo.method} 
+                onValueChange={(value) => setPaymentInfo({...paymentInfo, method: value})}
+              >
+                <SelectTrigger className="text-lg h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">
+                    <div className="flex items-center">
+                      <Banknote className="mr-2" size={18} />
+                      Cash
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="bank_transfer">
+                    <div className="flex items-center">
+                      <CreditCard className="mr-2" size={18} />
+                      Bank Transfer
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {paymentInfo.method === "bank_transfer" && (
+              <div className="space-y-2">
+                <Label htmlFor="bank-ref" className="text-lg">Bank Reference Number*</Label>
+                <Input
+                  id="bank-ref"
+                  placeholder="Enter bank reference number"
+                  value={paymentInfo.bankRefNo}
+                  onChange={(e) => setPaymentInfo({...paymentInfo, bankRefNo: e.target.value})}
+                  className="text-lg h-12"
+                  required
+                />
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="collected-by" className="text-lg">Collected By*</Label>
+              <Input
+                id="collected-by"
+                placeholder="Enter staff name"
+                value={paymentInfo.collectedBy}
+                onChange={(e) => setPaymentInfo({...paymentInfo, collectedBy: e.target.value})}
+                className="text-lg h-12"
+                required
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCheckoutOpen(false)}
+              className="text-lg h-12"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCheckout}
+              className="text-lg h-12 bg-red-600 hover:bg-red-700"
+            >
+              Complete Checkout
             </Button>
           </DialogFooter>
         </DialogContent>
