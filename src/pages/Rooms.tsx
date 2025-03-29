@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails } from "@/services/dataService";
 import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -104,7 +103,6 @@ const Rooms = () => {
       return;
     }
     
-    // Add the customer with all required fields
     const customer = addCustomer({
       name: newCustomer.name,
       email: newCustomer.email || "",
@@ -116,10 +114,8 @@ const Rooms = () => {
       roomId: selectedRoom.id,
     });
     
-    // Update room status
     updateRoom(selectedRoom.id, { status: "occupied" });
     
-    // Reset form and reload data
     setNewCustomer({
       name: "",
       email: "",
@@ -144,7 +140,6 @@ const Rooms = () => {
   };
 
   const filteredRooms = rooms.filter((room) => {
-    // Enhanced search functionality to search by room number, type, rate, and status
     const roomNumber = room.roomNumber.toLowerCase();
     const roomType = room.type.toLowerCase();
     const roomRate = room.rate.toString();
@@ -245,7 +240,6 @@ const Rooms = () => {
                   </div>
                 )}
                 
-                {/* Customer Information Section */}
                 {roomCustomers[room.id] ? (
                   <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
                     <h3 className="text-lg font-semibold mb-2 flex items-center">
@@ -279,7 +273,7 @@ const Rooms = () => {
                       onClick={() => openAddCustomerDialog(room)}
                     >
                       <UserPlus className="mr-2" size={20} />
-                      Check-in Guest
+                      Add Customer
                     </Button>
                   )}
                   
@@ -296,6 +290,9 @@ const Rooms = () => {
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                           <DialogTitle className="text-xl">Mark Room as Cleaned</DialogTitle>
+                          <DialogDescription>
+                            Enter the name of the person who cleaned the room.
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-6 py-6">
                           <div className="space-y-2">
@@ -335,13 +332,15 @@ const Rooms = () => {
         ))}
       </div>
 
-      {/* Add Customer Dialog */}
       <Dialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl">
-              Check-in Guest for Room {selectedRoom?.roomNumber}
+              Add Customer for Room {selectedRoom?.roomNumber}
             </DialogTitle>
+            <DialogDescription>
+              Enter customer details to assign them to this room.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -430,7 +429,7 @@ const Rooms = () => {
               onClick={handleAddCustomer}
               className="text-lg h-12"
             >
-              Check-in Guest
+              Add Customer
             </Button>
           </DialogFooter>
         </DialogContent>
