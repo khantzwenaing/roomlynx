@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
-import { Room, Customer, Payment } from "@/types";
+import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,8 +12,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
+import RoomDetailsDialog from "@/components/RoomDetailsDialog";
 import { Plus, User, UserPlus, CreditCard, MoreHorizontal, Pencil, Trash2, Banknote } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -41,6 +40,7 @@ const Rooms = () => {
     bankRefNo: "",
     collectedBy: "",
   });
+  const [isRoomDetailsOpen, setIsRoomDetailsOpen] = useState(false);
   const { toast } = useToast();
 
   const loadRooms = () => {
@@ -250,6 +250,15 @@ const Rooms = () => {
     }
   };
 
+  const handleRoomClick = (room: Room) => {
+    setSelectedRoom(room);
+    setIsRoomDetailsOpen(true);
+  };
+
+  const handleEditRoom = () => {
+    setIsRoomDetailsOpen(false);
+  };
+
   const filteredRooms = rooms.filter((room) => {
     const roomNumber = room.roomNumber.toLowerCase();
     const roomType = room.type.toLowerCase();
@@ -321,7 +330,11 @@ const Rooms = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRooms.map((room) => (
-          <Card key={room.id} className="overflow-hidden shadow-lg">
+          <Card 
+            key={room.id} 
+            className="overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+            onClick={() => handleRoomClick(room)}
+          >
             <CardHeader className="p-5 bg-gray-50">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-2xl">Room {room.roomNumber}</CardTitle>
@@ -466,6 +479,18 @@ const Rooms = () => {
           </Card>
         ))}
       </div>
+
+      <RoomDetailsDialog
+        room={selectedRoom}
+        customer={selectedRoom ? roomCustomers[selectedRoom.id] : null}
+        isOpen={isRoomDetailsOpen}
+        onClose={() => setIsRoomDetailsOpen(false)}
+        onCheckout={() => {
+          setIsRoomDetailsOpen(false);
+          openCheckoutDialog(selectedRoom!);
+        }}
+        onEdit={handleEditRoom}
+      />
 
       <Dialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
         <DialogContent className="sm:max-w-md">
