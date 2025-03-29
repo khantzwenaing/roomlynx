@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment } from "@/services/dataService";
 import { Room, Customer, Payment } from "@/types";
@@ -151,7 +150,6 @@ const Rooms = () => {
     setSelectedRoom(room);
     const customer = roomCustomers[room.id];
     if (customer) {
-      // Calculate the default amount based on room rate and days stayed
       const checkInDate = new Date(customer.checkInDate);
       const today = new Date();
       const daysStayed = Math.max(1, Math.ceil((today.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)));
@@ -179,7 +177,6 @@ const Rooms = () => {
       return;
     }
     
-    // Process payment
     const customer = roomCustomers[selectedRoom.id];
     if (customer) {
       addPayment({
@@ -193,7 +190,6 @@ const Rooms = () => {
         notes: paymentInfo.method === "bank_transfer" ? `Bank Ref: ${paymentInfo.bankRefNo}` : "Cash payment",
       });
       
-      // Update room status to cleaning
       updateRoom(selectedRoom.id, { status: "cleaning" });
       
       setIsCheckoutOpen(false);
@@ -224,16 +220,7 @@ const Rooms = () => {
   });
 
   const getStatusColor = (status: Room["status"]) => {
-    switch (status) {
-      case "vacant":
-        return "bg-green-100 text-green-800";
-      case "occupied":
-        return "bg-blue-100 text-blue-800";
-      case "cleaning":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+    return "bg-gray-100 text-gray-800";
   };
 
   return (
@@ -307,7 +294,7 @@ const Rooms = () => {
                   </div>
                 )}
                 
-                {roomCustomers[room.id] ? (
+                {room.status === "occupied" && roomCustomers[room.id] && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
                     <h3 className="text-lg font-semibold mb-2 flex items-center">
                       <User className="mr-2" size={20} />
@@ -320,17 +307,17 @@ const Rooms = () => {
                         Check-in: {new Date(roomCustomers[room.id]?.checkInDate || "").toLocaleDateString()}
                       </div>
                       <div className="text-sm text-gray-600">
-                        Check-out: {new Date(roomCustomers[room.id]?.checkOutDate || "").toLocaleDateString()}
+                        <strong>Check-out: {new Date(roomCustomers[room.id]?.checkOutDate || "").toLocaleDateString()}</strong>
                       </div>
                       <Link 
                         to={`/customers?id=${roomCustomers[room.id]?.id}`} 
                         className="text-blue-600 hover:underline block text-lg font-medium mt-2"
                       >
-                        View Details
+                        View Customer Details
                       </Link>
                     </div>
                   </div>
-                ) : null}
+                )}
                 
                 <div className="pt-4 space-y-3">
                   {room.status === "vacant" && (
