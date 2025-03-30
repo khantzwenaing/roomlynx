@@ -23,7 +23,7 @@ type AddRoomFormProps = {
 const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
   const [roomNumber, setRoomNumber] = useState("");
   const [roomType, setRoomType] = useState<'single' | 'double' | 'suite' | 'deluxe'>('single');
-  const [rate, setRate] = useState("");  // Changed to empty string
+  const [rate, setRate] = useState("");  // Keep as empty string for the input
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -39,7 +39,7 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
       return;
     }
 
-    // Convert rate to number only if it's not empty
+    // Convert rate to number with a proper default
     const roomRate = rate.trim() ? Number(rate) : 80;  // Default to 80 if empty
     
     setIsSubmitting(true);
@@ -63,7 +63,7 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
         // Reset form and close dialog
         setRoomNumber("");
         setRoomType('single');
-        setRate("");  // Reset to empty string
+        setRate("");
         onRoomAdded();
         onClose();
       } else {
@@ -124,7 +124,7 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
               type="number"
               value={rate}
               onChange={(e) => setRate(e.target.value)}
-              placeholder="Enter room rate"  // Add placeholder
+              placeholder="Enter room rate (default: $80)"
               min={1}
               className="text-lg h-12"
             />
