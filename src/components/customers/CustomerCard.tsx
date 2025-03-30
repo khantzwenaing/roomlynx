@@ -3,11 +3,12 @@ import { Customer, Room } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Banknote, CreditCard, Eye, Clock } from "lucide-react";
+import { CreditCard, Eye, Clock, Banknote } from "lucide-react";
 import CustomerDetailsDialog from "./CustomerDetailsDialog";
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 
 interface CustomerCardProps {
   customer: Customer;
@@ -17,6 +18,7 @@ interface CustomerCardProps {
 export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const getRoomNumber = (roomId: string) => {
     const room = rooms.find((r) => r.id === roomId);
@@ -44,7 +46,7 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
 
   const handleCheckoutClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.location.href = `/rooms?roomId=${customer.roomId}&action=checkout`;
+    navigate(`/rooms?roomId=${customer.roomId}&action=checkout`);
   };
 
   return (
@@ -114,12 +116,29 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
         </div>
       </CardContent>
 
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <CustomerDetailsDialog 
-          customer={selectedCustomer} 
-          getRoomNumber={getRoomNumber} 
-        />
-      </Dialog>
+      <Drawer open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DrawerContent className="max-h-[90vh] overflow-y-auto">
+          <DrawerHeader className="border-b border-gray-200 sticky top-0 bg-white z-10">
+            <div className="flex items-center justify-between">
+              <DrawerTitle className="text-xl">
+                Customer Details
+              </DrawerTitle>
+              <DrawerClose asChild>
+                <Button variant="ghost" size="sm">Close</Button>
+              </DrawerClose>
+            </div>
+          </DrawerHeader>
+          <div className="p-6">
+            {selectedCustomer && (
+              <CustomerDetailsDialog 
+                customer={selectedCustomer} 
+                getRoomNumber={getRoomNumber}
+                showAsDrawer={true}
+              />
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </Card>
   );
 };
