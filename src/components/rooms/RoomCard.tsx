@@ -91,6 +91,7 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDeleteRoom}
+        roomNumber={room.roomNumber}
       />
 
       <CheckoutDialog 

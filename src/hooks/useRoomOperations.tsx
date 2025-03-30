@@ -34,6 +34,14 @@ export const useRoomOperations = (room: Room, customer: Customer | null, onRoomU
   };
 
   const handleDeleteRoom = async () => {
+    if (!room || !room.id) {
+      toast.error("Cannot Delete Room", {
+        description: "Room ID is missing"
+      });
+      setIsDeleteDialogOpen(false);
+      return;
+    }
+
     if (room.status === 'occupied') {
       toast.error("Cannot Delete Room", {
         description: "This room is currently occupied. Check out the guest first."
@@ -43,6 +51,7 @@ export const useRoomOperations = (room: Room, customer: Customer | null, onRoomU
     }
 
     try {
+      console.log(`Attempting to delete room with ID: ${room.id}`);
       const success = await deleteRoom(room.id);
       
       if (success) {
@@ -53,7 +62,7 @@ export const useRoomOperations = (room: Room, customer: Customer | null, onRoomU
         window.location.reload();
       } else {
         toast.error("Error", {
-          description: "Failed to delete the room"
+          description: "Failed to delete the room. It may have associated customers or payments."
         });
       }
     } catch (error) {
