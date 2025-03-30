@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +11,7 @@ import { Room, Customer } from "@/types";
 import { addCustomer } from "@/services/dataService";
 import { useToast } from "@/hooks/use-toast";
 import { DatePicker } from "@/components/ui/date-picker";
+import { DrawerClose, DrawerFooter } from "@/components/ui/drawer";
 
 const customerSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -80,7 +80,6 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
 
       if (newCustomer) {
         onCustomerAdded(newCustomer);
-        onClose();
         form.reset();
 
         toast({
@@ -106,18 +105,18 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-8">
+        <div className="grid grid-cols-1 gap-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg">Name</FormLabel>
+                <FormLabel className="text-base">Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} className="text-lg h-12" />
+                  <Input placeholder="John Doe" {...field} className="text-base h-10" />
                 </FormControl>
-                <FormMessage className="text-base" />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -126,11 +125,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg">Phone</FormLabel>
+                <FormLabel className="text-base">Phone</FormLabel>
                 <FormControl>
-                  <Input placeholder="123-456-7890" {...field} className="text-lg h-12" />
+                  <Input placeholder="123-456-7890" {...field} className="text-base h-10" />
                 </FormControl>
-                <FormMessage className="text-base" />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -139,11 +138,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg">Email (Optional)</FormLabel>
+                <FormLabel className="text-base">Email (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="email@example.com" {...field} className="text-lg h-12" />
+                  <Input placeholder="email@example.com" {...field} className="text-base h-10" />
                 </FormControl>
-                <FormMessage className="text-base" />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -152,11 +151,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
             name="idNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg">ID Number (Optional)</FormLabel>
+                <FormLabel className="text-base">ID Number (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="ID12345" {...field} className="text-lg h-12" />
+                  <Input placeholder="ID12345" {...field} className="text-base h-10" />
                 </FormControl>
-                <FormMessage className="text-base" />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -164,12 +163,12 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
             control={form.control}
             name="address"
             render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel className="text-lg">Address (Optional)</FormLabel>
+              <FormItem>
+                <FormLabel className="text-base">Address (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="123 Main St, City" {...field} className="text-lg h-12" />
+                  <Input placeholder="123 Main St, City" {...field} className="text-base h-10" />
                 </FormControl>
-                <FormMessage className="text-base" />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -178,29 +177,29 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
             name="roomId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-lg">Room</FormLabel>
+                <FormLabel className="text-base">Room</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="text-lg h-12">
+                    <SelectTrigger className="text-base h-10">
                       <SelectValue placeholder="Select a room" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="text-lg">
+                  <SelectContent className="text-base">
                     {availableRooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id} className="text-lg py-3">
+                      <SelectItem key={room.id} value={room.id} className="text-base py-2">
                         Room {room.roomNumber} ({room.type})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage className="text-base" />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
-          <div className="col-span-2 grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="checkInDate"
@@ -213,7 +212,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                       label="Check-in Date"
                     />
                   </FormControl>
-                  <FormMessage className="text-base" />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -229,7 +228,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                       label="Check-out Date"
                     />
                   </FormControl>
-                  <FormMessage className="text-base" />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -241,13 +240,13 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
           name="depositAmount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg">Deposit Amount (Optional)</FormLabel>
+              <FormLabel className="text-base">Deposit Amount (Optional)</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
                   placeholder="Enter deposit amount" 
                   min="0"
-                  className="text-lg h-12"
+                  className="text-base h-10"
                   {...field} 
                   onChange={(e) => {
                     const value = e.target.value === '' ? '' : e.target.value;
@@ -255,7 +254,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                   }}
                 />
               </FormControl>
-              <FormMessage className="text-base" />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -267,13 +266,13 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
               name="depositPaymentMethod"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Deposit Payment Method</FormLabel>
+                  <FormLabel className="text-base">Deposit Payment Method</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-base h-10">
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
                     </FormControl>
@@ -284,7 +283,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -294,14 +293,15 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
               name="depositCollectedBy"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Collected By</FormLabel>
+                  <FormLabel className="text-base">Collected By</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Enter staff name who collected the deposit" 
                       {...field} 
+                      className="text-base h-10"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -312,14 +312,15 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                 name="bankRefNo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bank Reference Number</FormLabel>
+                    <FormLabel className="text-base">Bank Reference Number</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="Enter bank transaction reference" 
                         {...field} 
+                        className="text-base h-10"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -327,9 +328,12 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
           </>
         )}
 
-        <DialogFooter>
-          <Button type="submit" className="text-lg py-6 px-8">Add Customer</Button>
-        </DialogFooter>
+        <DrawerFooter className="px-0 pt-2">
+          <Button type="submit" className="w-full">Add Customer</Button>
+          <DrawerClose asChild>
+            <Button variant="outline" onClick={onClose} className="w-full">Cancel</Button>
+          </DrawerClose>
+        </DrawerFooter>
       </form>
     </Form>
   );
