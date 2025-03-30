@@ -5,7 +5,7 @@ import { getRoomDetails, updateRoom } from "@/services/roomsService";
 import { Room, Customer } from "@/types";
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
-import { User, Phone, Home, Calendar, ArrowLeft, Pencil, Save } from "lucide-react";
+import { User, Phone, Home, Calendar, ArrowLeft, Pencil, Save, Brush } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import RoomEditForm from "@/components/room-details/RoomEditForm";
@@ -181,12 +181,23 @@ const RoomDetailsPage = () => {
                   </Badge>
                 </div>
                 {room.lastCleaned && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Last Cleaned:</span>
-                    <span className="font-medium">
-                      {format(new Date(room.lastCleaned), "MMM dd, yyyy")}
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Last Cleaned:</span>
+                      <span className="font-medium">
+                        {format(new Date(room.lastCleaned), "MMM dd, yyyy")}
+                      </span>
+                    </div>
+                    {room.cleanedBy && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Cleaned By:</span>
+                        <span className="font-medium flex items-center">
+                          <Brush className="mr-2 h-4 w-4 text-purple-500" />
+                          {room.cleanedBy}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}

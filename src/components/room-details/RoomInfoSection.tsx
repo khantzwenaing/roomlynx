@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Room } from "@/types";
-import { Bed, DollarSign, Info, Calendar } from "lucide-react";
+import { Bed, DollarSign, Info, Calendar, Brush } from "lucide-react";
 
 interface RoomInfoSectionProps {
   room: Room;
@@ -61,7 +61,11 @@ const RoomInfoSection = ({ room }: RoomInfoSectionProps) => {
             <div>
               <h3 className="text-lg font-medium">Last Cleaned</h3>
               <p className="text-xl font-semibold">{new Date(room.lastCleaned).toLocaleDateString()}</p>
-              <p className="text-sm text-gray-500">by {room.cleanedBy}</p>
+              {room.cleanedBy && (
+                <p className="text-sm flex items-center text-gray-600">
+                  <Brush className="h-4 w-4 mr-1" /> {room.cleanedBy}
+                </p>
+              )}
             </div>
           </div>
         </div>
