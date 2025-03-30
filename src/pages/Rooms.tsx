@@ -244,8 +244,8 @@ const Rooms = () => {
         phone: newCustomer.phone,
         idNumber: newCustomer.idNumber || "",
         address: "",
-        checkInDate: newCustomer.checkInDate,
-        checkOutDate: newCustomer.checkOutDate,
+        checkInDate: newCustomer.checkInDate.toISOString(),
+        checkOutDate: newCustomer.checkOutDate.toISOString(),
         roomId: selectedRoom.id,
         depositAmount: newCustomer.depositAmount || 0,
         depositPaymentMethod: newCustomer.depositAmount > 0 ? newCustomer.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other' : undefined,
@@ -273,8 +273,8 @@ const Rooms = () => {
           email: "",
           phone: "",
           idNumber: "",
-          checkInDate: new Date().toISOString().split('T')[0],
-          checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          checkInDate: new Date(),
+          checkOutDate: new Date(Date.now() + 86400000),
           depositAmount: 0,
           depositPaymentMethod: "cash",
           bankRefNo: ""
@@ -302,19 +302,19 @@ const Rooms = () => {
   const openAddCustomerDialog = (room: Room) => {
     setSelectedRoom(room);
     
-    const todayStr = new Date().toISOString().split('T')[0];
-    const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    const today = new Date();
+    const tomorrow = new Date(Date.now() + 86400000);
     
     setNewCustomer({
       ...newCustomer,
-      checkInDate: todayStr,
-      checkOutDate: tomorrowStr,
+      checkInDate: today,
+      checkOutDate: tomorrow,
       depositAmount: 0,
       depositPaymentMethod: "cash",
       bankRefNo: ""
     });
     
-    const total = calculateTotalStay(room.id, todayStr, tomorrowStr);
+    const total = calculateTotalStay(room.id, today.toISOString(), tomorrow.toISOString());
     setCalculatedTotalStay(total);
     
     setIsAddCustomerOpen(true);
@@ -466,8 +466,8 @@ const Rooms = () => {
       
       const totalAmount = calculateTotalStay(
         selectedRoom.id, 
-        checkInDate.toISOString().split('T')[0],
-        checkOutDate.toISOString().split('T')[0]
+        checkInDate.toISOString(),
+        checkOutDate.toISOString()
       );
       
       setCalculatedTotalStay(totalAmount);
