@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { User, UserPlus, CreditCard, Trash2, Info, Clock, Home } from "lucide-react";
 import { updateRoom, deleteRoom } from "@/services/dataService";
 import { processCheckout, addPayment } from "@/services/paymentsService";
+import AddCustomerForm from "@/components/customers/AddCustomerForm";
 
 interface RoomCardProps {
   room: Room;
@@ -29,6 +30,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
     bankRefNo: "",
     collectedBy: "",
   });
+  const [isAddCustomerDialogOpen, setIsAddCustomerDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -134,7 +136,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
   };
 
   const openAddCustomerDialog = () => {
-    navigate(`/room-details?roomId=${room.id}&action=checkin`);
+    setIsAddCustomerDialogOpen(true);
   };
 
   const calculateTotalStay = (): number => {
@@ -393,7 +395,6 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Checkout Dialog */}
       <Dialog open={isCheckoutDialogOpen} onOpenChange={setIsCheckoutDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -458,6 +459,26 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
               Complete Checkout
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddCustomerDialogOpen} onOpenChange={setIsAddCustomerDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Add Customer to Room {room.roomNumber}</DialogTitle>
+            <DialogDescription>
+              Enter customer details for check-in
+            </DialogDescription>
+          </DialogHeader>
+          <AddCustomerForm 
+            rooms={[room]} 
+            onCustomerAdded={(newCustomer) => {
+              setIsAddCustomerDialogOpen(false);
+              window.location.reload();
+            }} 
+            onClose={() => setIsAddCustomerDialogOpen(false)}
+            preselectedRoomId={room.id}
+          />
         </DialogContent>
       </Dialog>
     </Card>

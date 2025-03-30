@@ -35,9 +35,10 @@ interface AddCustomerFormProps {
   rooms: Room[];
   onCustomerAdded: (customer: Customer) => void;
   onClose: () => void;
+  preselectedRoomId?: string;
 }
 
-const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormProps) => {
+const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }: AddCustomerFormProps) => {
   const { toast } = useToast();
   const availableRooms = rooms.filter(room => room.status === 'vacant');
 
@@ -49,7 +50,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
       email: "",
       address: "",
       idNumber: "",
-      roomId: "",
+      roomId: preselectedRoomId || "",
       checkInDate: new Date(),
       checkOutDate: new Date(Date.now() + 86400000),
       depositAmount: "",
