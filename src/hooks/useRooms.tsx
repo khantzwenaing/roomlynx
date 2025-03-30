@@ -63,13 +63,30 @@ export const useRooms = () => {
     const roomStatus = room.status.toLowerCase();
     const searchTermLower = searchTerm.toLowerCase();
     
-    const matchesSearch = 
+    // Basic room property matching
+    const matchesRoomProperties = 
       roomNumber.includes(searchTermLower) || 
       roomType.includes(searchTermLower) || 
       roomRate.includes(searchTermLower) || 
       roomStatus.includes(searchTermLower);
+    
+    // Customer matching (for occupied rooms)
+    let matchesCustomer = false;
+    if (room.status === "occupied" && roomCustomers[room.id]) {
+      const customer = roomCustomers[room.id];
+      if (customer) {
+        const customerName = customer.name.toLowerCase();
+        const customerPhone = customer.phone.toLowerCase();
+        
+        matchesCustomer = 
+          customerName.includes(searchTermLower) || 
+          customerPhone.includes(searchTermLower);
+      }
+    }
       
+    const matchesSearch = matchesRoomProperties || matchesCustomer;
     const matchesFilter = statusFilter === "all" || room.status === statusFilter;
+    
     return matchesSearch && matchesFilter;
   });
 

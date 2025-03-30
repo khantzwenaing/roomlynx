@@ -21,7 +21,9 @@ const AddCustomerDialog = ({
       rooms={[room]}
       onCustomerAdded={(newCustomer) => {
         onOpenChange(false);
-        window.location.reload();
+        if (onCustomerAdded) {
+          onCustomerAdded(newCustomer);
+        }
       }}
       preselectedRoomId={room.id}
       open={isOpen}
