@@ -23,7 +23,7 @@ type AddRoomFormProps = {
 const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
   const [roomNumber, setRoomNumber] = useState("");
   const [roomType, setRoomType] = useState<'single' | 'double' | 'suite' | 'deluxe'>('single');
-  const [rate, setRate] = useState(80);
+  const [rate, setRate] = useState("");  // Change to empty string
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,10 +38,13 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
       return;
     }
 
+    // Convert rate to number only if it's not empty
+    const roomRate = rate.trim() ? Number(rate) : 80;  // Default to 80 if empty
+
     const newRoom = addRoom({
       roomNumber,
       type: roomType,
-      rate,
+      rate: roomRate,
       status: 'vacant',
       lastCleaned: new Date().toISOString(),
       cleanedBy: 'System',
@@ -55,7 +58,7 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
     // Reset form and close dialog
     setRoomNumber("");
     setRoomType('single');
-    setRate(80);
+    setRate("");  // Reset to empty string
     onRoomAdded();
     onClose();
   };
@@ -98,7 +101,8 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
               id="rate"
               type="number"
               value={rate}
-              onChange={(e) => setRate(Number(e.target.value))}
+              onChange={(e) => setRate(e.target.value)}
+              placeholder="Enter room rate"  // Add placeholder
               min={1}
               className="text-lg h-12"
               required
