@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Room, Customer } from "@/types";
@@ -9,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { User, UserPlus, CreditCard, Trash2, Info, Clock, Home } from "lucide-react";
 import { updateRoom, deleteRoom } from "@/services/dataService";
@@ -33,7 +32,6 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
   });
   const [isAddCustomerDialogOpen, setIsAddCustomerDialogOpen] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const getStatusColor = (status: Room["status"]) => {
     switch (status) {
@@ -64,11 +62,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
 
   const handleDeleteRoom = async () => {
     if (room.status === 'occupied') {
-      toast({
-        title: "Cannot Delete Room",
-        description: "This room is currently occupied. Check out the guest first.",
-        variant: "destructive",
-      });
+      toast.error("Cannot Delete Room", "This room is currently occupied. Check out the guest first.");
       setIsDeleteDialogOpen(false);
       return;
     }
@@ -77,26 +71,15 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
       const success = await deleteRoom(room.id);
       
       if (success) {
-        toast({
-          title: "Room Deleted",
-          description: `Room ${room.roomNumber} has been removed`,
-        });
+        toast.success("Room Deleted", `Room ${room.roomNumber} has been removed`);
         // Reload the page to refresh the room list
         window.location.reload();
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete the room",
-          variant: "destructive",
-        });
+        toast.error("Error", "Failed to delete the room");
       }
     } catch (error) {
       console.error("Error deleting room:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while deleting the room",
-        variant: "destructive",
-      });
+      toast.error("Error", "An unexpected error occurred while deleting the room");
     }
     
     setIsDeleteDialogOpen(false);
@@ -104,11 +87,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
 
   const handleCleaningComplete = async () => {
     if (!cleanedBy.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter who cleaned the room",
-        variant: "destructive",
-      });
+      toast.error("Error", "Please enter who cleaned the room");
       return;
     }
 
@@ -121,18 +100,11 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
 
       if (updatedRoom) {
         window.location.reload();
-        toast({
-          title: "Cleaning Completed",
-          description: `Room ${updatedRoom.roomNumber} has been marked as clean`,
-        });
+        toast.success("Cleaning Completed", `Room ${updatedRoom.roomNumber} has been marked as clean`);
       }
     } catch (error) {
       console.error("Error completing cleaning:", error);
-      toast({
-        title: "Error",
-        description: "Failed to mark room as clean",
-        variant: "destructive",
-      });
+      toast.error("Error", "Failed to mark room as clean");
     }
   };
 
@@ -160,20 +132,12 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
     if (!customer) return;
     
     if (!checkoutDetails.collectedBy) {
-      toast({
-        title: "Error",
-        description: "Please enter who collected the payment",
-        variant: "destructive"
-      });
+      toast.error("Error", "Please enter who collected the payment");
       return;
     }
 
     if (checkoutDetails.paymentMethod === "bank_transfer" && !checkoutDetails.bankRefNo) {
-      toast({
-        title: "Error",
-        description: "Please enter bank reference number",
-        variant: "destructive"
-      });
+      toast.error("Error", "Please enter bank reference number");
       return;
     }
 
@@ -202,10 +166,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
       if (!updatedRoom) throw new Error("Failed to update room status");
       
       // 3. Show success message
-      toast({
-        title: "Checkout Complete",
-        description: `Room ${room.roomNumber} has been checked out and payment processed`,
-      });
+      toast.success("Checkout Complete", `Room ${room.roomNumber} has been checked out and payment processed`);
       
       // 4. Close dialog and reload page
       setIsCheckoutDialogOpen(false);
@@ -213,11 +174,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
       
     } catch (error) {
       console.error("Error during checkout:", error);
-      toast({
-        title: "Checkout Failed",
-        description: "An unexpected error occurred during checkout",
-        variant: "destructive",
-      });
+      toast.error("Checkout Failed", "An unexpected error occurred during checkout");
     }
   };
 
