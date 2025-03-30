@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
+import { getRooms, updateRoom, getCustomers, getRoomDetails, deleteRoom } from "@/services/dataService";
 import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import AddRoomForm from "@/components/AddRoomForm";
 import RoomDetailsDialog from "@/components/RoomDetailsDialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Plus, User, UserPlus, CreditCard, Pencil, Trash2, Banknote, Info, CreditCard as CardIcon, Clock } from "lucide-react";
+import { addCustomer, addPayment } from "@/services/dataService";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -46,30 +47,52 @@ const Rooms = () => {
   });
   const [isRoomDetailsOpen, setIsRoomDetailsOpen] = useState(false);
   const [calculatedTotalStay, setCalculatedTotalStay] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const loadRooms = () => {
-    setRooms(getRooms());
-  };
+  const loadRooms = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const roomsData = await getRooms();
+      setRooms(roomsData);
+    } catch (error) {
+      console.error("Error loading rooms:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load rooms. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
-  const loadCustomersForRooms = () => {
-    const allRooms = getRooms();
-    const customerMap: {[key: string]: Customer | null} = {};
-    
-    allRooms.forEach(room => {
-      if (room.status === "occupied") {
-        const details = getRoomDetails(room.id);
-        customerMap[room.id] = details?.currentCustomer || null;
+  const loadCustomersForRooms = useCallback(async () => {
+    try {
+      const allRooms = await getRooms();
+      const customerMap: {[key: string]: Customer | null} = {};
+      
+      for (const room of allRooms) {
+        if (room.status === "occupied") {
+          const details = await getRoomDetails(room.id);
+          if (details && details.currentCustomer) {
+            customerMap[room.id] = details.currentCustomer;
+          } else {
+            customerMap[room.id] = null;
+          }
+        }
       }
-    });
-    
-    setRoomCustomers(customerMap);
-  };
+      
+      setRoomCustomers(customerMap);
+    } catch (error) {
+      console.error("Error loading customers for rooms:", error);
+    }
+  }, []);
 
   useEffect(() => {
     loadRooms();
     loadCustomersForRooms();
-  }, []);
+  }, [loadRooms, loadCustomersForRooms]);
 
   const calculateRemainingDays = (checkOutDate: string): number => {
     const today = new Date();
@@ -83,19 +106,28 @@ const Rooms = () => {
     return Math.max(0, daysDiff); // Ensure we don't return negative days
   };
 
-  const handleStatusChange = (roomId: string, newStatus: Room["status"]) => {
-    const updatedRoom = updateRoom(roomId, { status: newStatus });
-    if (updatedRoom) {
-      loadRooms();
-      loadCustomersForRooms();
+  const handleStatusChange = async (roomId: string, newStatus: Room["status"]) => {
+    try {
+      const updatedRoom = await updateRoom(roomId, { status: newStatus });
+      if (updatedRoom) {
+        await loadRooms();
+        await loadCustomersForRooms();
+        toast({
+          title: "Room Updated",
+          description: `Room ${updatedRoom.roomNumber} status changed to ${newStatus}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating room status:", error);
       toast({
-        title: "Room Updated",
-        description: `Room ${updatedRoom.roomNumber} status changed to ${newStatus}`,
+        title: "Error",
+        description: "Failed to update room status",
+        variant: "destructive",
       });
     }
   };
 
-  const handleCleaningComplete = () => {
+  const handleCleaningComplete = async () => {
     if (!selectedRoom || !cleanedBy.trim()) {
       toast({
         title: "Error",
@@ -105,25 +137,34 @@ const Rooms = () => {
       return;
     }
 
-    const updatedRoom = updateRoom(selectedRoom.id, {
-      status: "vacant",
-      lastCleaned: new Date().toISOString(),
-      cleanedBy,
-    });
+    try {
+      const updatedRoom = await updateRoom(selectedRoom.id, {
+        status: "vacant",
+        lastCleaned: new Date().toISOString(),
+        cleanedBy,
+      });
 
-    if (updatedRoom) {
-      loadRooms();
-      loadCustomersForRooms();
-      setSelectedRoom(null);
-      setCleanedBy("");
+      if (updatedRoom) {
+        await loadRooms();
+        await loadCustomersForRooms();
+        setSelectedRoom(null);
+        setCleanedBy("");
+        toast({
+          title: "Cleaning Completed",
+          description: `Room ${updatedRoom.roomNumber} has been marked as clean`,
+        });
+      }
+    } catch (error) {
+      console.error("Error completing cleaning:", error);
       toast({
-        title: "Cleaning Completed",
-        description: `Room ${updatedRoom.roomNumber} has been marked as clean`,
+        title: "Error",
+        description: "Failed to mark room as clean",
+        variant: "destructive",
       });
     }
   };
 
-  const handleDeleteRoom = () => {
+  const handleDeleteRoom = async () => {
     if (!selectedRoom) return;
 
     if (selectedRoom.status === 'occupied') {
@@ -136,18 +177,27 @@ const Rooms = () => {
       return;
     }
 
-    const success = deleteRoom(selectedRoom.id);
-    
-    if (success) {
-      toast({
-        title: "Room Deleted",
-        description: `Room ${selectedRoom.roomNumber} has been removed`,
-      });
-      loadRooms();
-    } else {
+    try {
+      const success = await deleteRoom(selectedRoom.id);
+      
+      if (success) {
+        toast({
+          title: "Room Deleted",
+          description: `Room ${selectedRoom.roomNumber} has been removed`,
+        });
+        await loadRooms();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete the room",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting room:", error);
       toast({
         title: "Error",
-        description: "Failed to delete the room",
+        description: "An unexpected error occurred while deleting the room",
         variant: "destructive",
       });
     }
@@ -166,7 +216,7 @@ const Rooms = () => {
     return Math.max(1, days) * room.rate;
   };
 
-  const handleAddCustomer = () => {
+  const handleAddCustomer = async () => {
     if (!selectedRoom) return;
     
     if (!newCustomer.name || !newCustomer.phone) {
@@ -187,55 +237,66 @@ const Rooms = () => {
       return;
     }
     
-    const customer = addCustomer({
-      name: newCustomer.name,
-      email: newCustomer.email || "",
-      phone: newCustomer.phone,
-      idNumber: newCustomer.idNumber || "",
-      address: "",
-      checkInDate: newCustomer.checkInDate,
-      checkOutDate: newCustomer.checkOutDate,
-      roomId: selectedRoom.id,
-      depositAmount: newCustomer.depositAmount || 0,
-      depositPaymentMethod: newCustomer.depositAmount > 0 ? newCustomer.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other' : undefined,
-      bankRefNo: newCustomer.depositAmount > 0 && newCustomer.depositPaymentMethod === "bank_transfer" ? newCustomer.bankRefNo : undefined
-    });
-    
-    if (newCustomer.depositAmount > 0) {
-      addPayment({
-        customerId: customer.id,
+    try {
+      const customer = await addCustomer({
+        name: newCustomer.name,
+        email: newCustomer.email || "",
+        phone: newCustomer.phone,
+        idNumber: newCustomer.idNumber || "",
+        address: "",
+        checkInDate: newCustomer.checkInDate,
+        checkOutDate: newCustomer.checkOutDate,
         roomId: selectedRoom.id,
-        amount: newCustomer.depositAmount,
-        date: new Date().toISOString(),
-        method: newCustomer.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other',
-        collectedBy: "Reception Staff",
-        status: "paid",
-        notes: newCustomer.depositPaymentMethod === "bank_transfer" ? `Deposit payment - Bank Ref: ${newCustomer.bankRefNo}` : "Deposit payment",
+        depositAmount: newCustomer.depositAmount || 0,
+        depositPaymentMethod: newCustomer.depositAmount > 0 ? newCustomer.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other' : undefined,
+        bankRefNo: newCustomer.depositAmount > 0 && newCustomer.depositPaymentMethod === "bank_transfer" ? newCustomer.bankRefNo : undefined
+      });
+      
+      if (customer && newCustomer.depositAmount > 0) {
+        await addPayment({
+          customerId: customer.id,
+          roomId: selectedRoom.id,
+          amount: newCustomer.depositAmount,
+          date: new Date().toISOString(),
+          method: newCustomer.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other',
+          collectedBy: "Reception Staff",
+          status: "paid",
+          notes: newCustomer.depositPaymentMethod === "bank_transfer" ? `Deposit payment - Bank Ref: ${newCustomer.bankRefNo}` : "Deposit payment",
+        });
+      }
+      
+      if (customer) {
+        await updateRoom(selectedRoom.id, { status: "occupied" });
+        
+        setNewCustomer({
+          name: "",
+          email: "",
+          phone: "",
+          idNumber: "",
+          checkInDate: new Date().toISOString().split('T')[0],
+          checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          depositAmount: 0,
+          depositPaymentMethod: "cash",
+          bankRefNo: ""
+        });
+        
+        setIsAddCustomerOpen(false);
+        await loadRooms();
+        await loadCustomersForRooms();
+        
+        toast({
+          title: "Customer Added",
+          description: `${customer.name} has been checked into Room ${selectedRoom.roomNumber}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error adding customer:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add customer. Please try again.",
+        variant: "destructive",
       });
     }
-    
-    updateRoom(selectedRoom.id, { status: "occupied" });
-    
-    setNewCustomer({
-      name: "",
-      email: "",
-      phone: "",
-      idNumber: "",
-      checkInDate: new Date().toISOString().split('T')[0],
-      checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-      depositAmount: 0,
-      depositPaymentMethod: "cash",
-      bankRefNo: ""
-    });
-    
-    setIsAddCustomerOpen(false);
-    loadRooms();
-    loadCustomersForRooms();
-    
-    toast({
-      title: "Customer Added",
-      description: `${customer.name} has been checked into Room ${selectedRoom.roomNumber}`,
-    });
   };
 
   const openAddCustomerDialog = (room: Room) => {
@@ -286,7 +347,7 @@ const Rooms = () => {
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!selectedRoom || !roomCustomers[selectedRoom.id]) return;
     
     if (!paymentInfo.collectedBy.trim()) {
@@ -307,28 +368,37 @@ const Rooms = () => {
       return;
     }
     
-    const customer = roomCustomers[selectedRoom.id];
-    if (customer) {
-      addPayment({
-        customerId: customer.id,
-        roomId: selectedRoom.id,
-        amount: paymentInfo.amount,
-        date: new Date().toISOString(),
-        method: paymentInfo.method as "cash" | "card" | "bank_transfer" | "other",
-        collectedBy: paymentInfo.collectedBy,
-        status: "paid",
-        notes: paymentInfo.method === "bank_transfer" ? `Bank Ref: ${paymentInfo.bankRefNo}` : "Cash payment",
-      });
-      
-      updateRoom(selectedRoom.id, { status: "cleaning" });
-      
-      setIsCheckoutOpen(false);
-      loadRooms();
-      loadCustomersForRooms();
-      
+    try {
+      const customer = roomCustomers[selectedRoom.id];
+      if (customer) {
+        await addPayment({
+          customerId: customer.id,
+          roomId: selectedRoom.id,
+          amount: paymentInfo.amount,
+          date: new Date().toISOString(),
+          method: paymentInfo.method as "cash" | "card" | "bank_transfer" | "other",
+          collectedBy: paymentInfo.collectedBy,
+          status: "paid",
+          notes: paymentInfo.method === "bank_transfer" ? `Bank Ref: ${paymentInfo.bankRefNo}` : "Cash payment",
+        });
+        
+        await updateRoom(selectedRoom.id, { status: "cleaning" });
+        
+        setIsCheckoutOpen(false);
+        await loadRooms();
+        await loadCustomersForRooms();
+        
+        toast({
+          title: "Checkout Complete",
+          description: `${customer.name} has checked out of Room ${selectedRoom.roomNumber}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error during checkout:", error);
       toast({
-        title: "Checkout Complete",
-        description: `${customer.name} has checked out of Room ${selectedRoom.roomNumber}`,
+        title: "Error",
+        description: "Failed to complete checkout process",
+        variant: "destructive",
       });
     }
   };
@@ -338,42 +408,34 @@ const Rooms = () => {
     setIsRoomDetailsOpen(true);
   };
 
-  const handleEditRoom = (updatedRoom: Partial<Room>) => {
+  const handleEditRoom = async (updatedRoom: Partial<Room>) => {
     if (!selectedRoom) return;
     
-    const updated = updateRoom(selectedRoom.id, updatedRoom);
-    if (updated) {
-      toast({
-        title: "Room Updated",
-        description: `Room ${updated.roomNumber} has been updated successfully`,
-      });
-      loadRooms();
-      setSelectedRoom(updated);
-    } else {
+    try {
+      const updated = await updateRoom(selectedRoom.id, updatedRoom);
+      if (updated) {
+        toast({
+          title: "Room Updated",
+          description: `Room ${updated.roomNumber} has been updated successfully`,
+        });
+        await loadRooms();
+        setSelectedRoom(updated);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update room",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating room:", error);
       toast({
         title: "Error",
-        description: "Failed to update room",
+        description: "An unexpected error occurred while updating the room",
         variant: "destructive",
       });
     }
   };
-
-  const filteredRooms = rooms.filter((room) => {
-    const roomNumber = room.roomNumber.toLowerCase();
-    const roomType = room.type.toLowerCase();
-    const roomRate = room.rate.toString();
-    const roomStatus = room.status.toLowerCase();
-    const searchTermLower = searchTerm.toLowerCase();
-    
-    const matchesSearch = 
-      roomNumber.includes(searchTermLower) || 
-      roomType.includes(searchTermLower) || 
-      roomRate.includes(searchTermLower) || 
-      roomStatus.includes(searchTermLower);
-      
-    const matchesFilter = statusFilter === "all" || room.status === statusFilter;
-    return matchesSearch && matchesFilter;
-  });
 
   const getStatusColor = (status: Room["status"]) => {
     switch (status) {
@@ -409,6 +471,23 @@ const Rooms = () => {
       setCalculatedTotalStay(totalAmount);
     }
   };
+
+  const filteredRooms = rooms.filter((room) => {
+    const roomNumber = room.roomNumber.toLowerCase();
+    const roomType = room.type.toLowerCase();
+    const roomRate = room.rate.toString();
+    const roomStatus = room.status.toLowerCase();
+    const searchTermLower = searchTerm.toLowerCase();
+    
+    const matchesSearch = 
+      roomNumber.includes(searchTermLower) || 
+      roomType.includes(searchTermLower) || 
+      roomRate.includes(searchTermLower) || 
+      roomStatus.includes(searchTermLower);
+      
+    const matchesFilter = statusFilter === "all" || room.status === statusFilter;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="space-y-6">
@@ -447,170 +526,181 @@ const Rooms = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRooms.map((room) => (
-          <Card 
-            key={room.id} 
-            className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
-          >
-            <CardHeader className="p-5 bg-gray-50">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-2xl">Room {room.roomNumber}</CardTitle>
-                <div className="flex items-center gap-2">
-                  <Badge className={`px-3 py-1 text-lg ${getStatusColor(room.status)}`}>
-                    {room.status === "vacant" ? "Available" : 
-                     room.status === "occupied" ? "Occupied" : 
-                     "Needs Cleaning"}
-                  </Badge>
-                  
-                  <Button 
-                    variant="destructive" 
-                    size="icon"
-                    onClick={() => {
-                      setSelectedRoom(room);
-                      setIsDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="text-xl text-gray-500">Loading rooms...</div>
+        </div>
+      ) : filteredRooms.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-xl text-gray-500">No rooms found</div>
+          <div className="mt-2 text-gray-400">Try adjusting your search or filter criteria</div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredRooms.map((room) => (
+            <Card 
+              key={room.id} 
+              className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+            >
+              <CardHeader className="p-5 bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-2xl">Room {room.roomNumber}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge className={`px-3 py-1 text-lg ${getStatusColor(room.status)}`}>
+                      {room.status === "vacant" ? "Available" : 
+                       room.status === "occupied" ? "Occupied" : 
+                       "Needs Cleaning"}
+                    </Badge>
+                    
+                    <Button 
+                      variant="destructive" 
+                      size="icon"
+                      onClick={() => {
+                        setSelectedRoom(room);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-5">
-              <div className="space-y-4">
-                <div className="flex justify-between text-lg">
-                  <span className="text-gray-600">Type:</span>
-                  <span className="font-medium">
-                    {room.type.charAt(0).toUpperCase() + room.type.slice(1)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-lg">
-                  <span className="text-gray-600">Rate:</span>
-                  <span className="font-medium">${room.rate}/night</span>
-                </div>
-                {room.lastCleaned && (
+              </CardHeader>
+              <CardContent className="p-5">
+                <div className="space-y-4">
                   <div className="flex justify-between text-lg">
-                    <span className="text-gray-600">Last Cleaned:</span>
-                    <span>
-                      {new Date(room.lastCleaned).toLocaleDateString()}
+                    <span className="text-gray-600">Type:</span>
+                    <span className="font-medium">
+                      {room.type.charAt(0).toUpperCase() + room.type.slice(1)}
                     </span>
                   </div>
-                )}
-                
-                {room.status === "occupied" && roomCustomers[room.id] && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <h3 className="text-lg font-semibold mb-2 flex items-center">
-                      <User className="mr-2" size={20} />
-                      Current Guest
-                    </h3>
-                    <div className="space-y-2">
-                      <div className="font-medium text-lg">{roomCustomers[room.id]?.name}</div>
-                      <div>{roomCustomers[room.id]?.phone}</div>
-                      <div className="text-sm text-gray-600">
-                        Check-in: {new Date(roomCustomers[room.id]?.checkInDate || "").toLocaleDateString()}
-                      </div>
-                      <div className="text-sm font-semibold text-blue-800">
-                        Check-out: {new Date(roomCustomers[room.id]?.checkOutDate || "").toLocaleDateString()}
-                      </div>
-                      
-                      <div className="flex items-center mt-1 text-sm font-medium bg-yellow-50 text-yellow-800 p-2 rounded-md border border-yellow-200">
-                        <Clock className="mr-2" size={16} />
-                        <span>
-                          {calculateRemainingDays(roomCustomers[room.id]?.checkOutDate || "") === 0 
-                            ? "Checkout today!" 
-                            : `${calculateRemainingDays(roomCustomers[room.id]?.checkOutDate || "")} days until checkout`}
-                        </span>
-                      </div>
-                      
-                      <Link 
-                        to={`/customers?id=${roomCustomers[room.id]?.id}`} 
-                        className="text-blue-600 hover:underline block text-lg font-medium mt-2"
-                      >
-                        View Customer Details
-                      </Link>
-                    </div>
+                  <div className="flex justify-between text-lg">
+                    <span className="text-gray-600">Rate:</span>
+                    <span className="font-medium">${room.rate}/night</span>
                   </div>
-                )}
-                
-                <div className="pt-4 space-y-3">
-                  <Button 
-                    className="w-full py-6 text-lg bg-gray-600 hover:bg-gray-700"
-                    variant="default"
-                    onClick={() => {
-                      setSelectedRoom(room);
-                      setIsRoomDetailsOpen(true);
-                    }}
-                  >
-                    <Info className="mr-2" size={20} />
-                    View Room Details
-                  </Button>
-                
-                  {room.status === "vacant" && (
-                    <Button 
-                      className="w-full py-6 text-lg"
-                      variant="default"
-                      onClick={() => openAddCustomerDialog(room)}
-                    >
-                      <UserPlus className="mr-2" size={20} />
-                      Add Customer
-                    </Button>
+                  {room.lastCleaned && (
+                    <div className="flex justify-between text-lg">
+                      <span className="text-gray-600">Last Cleaned:</span>
+                      <span>
+                        {new Date(room.lastCleaned).toLocaleDateString()}
+                      </span>
+                    </div>
                   )}
                   
-                  {room.status === "occupied" && (
-                    <Button 
-                      className="w-full py-6 text-lg bg-red-600 hover:bg-red-700"
-                      onClick={() => openCheckoutDialog(room)}
-                      type="button"
-                    >
-                      <CreditCard className="mr-2" size={20} />
-                      Check-out & Payment
-                    </Button>
-                  )}
-                  
-                  {room.status === "cleaning" && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
-                          onClick={() => setSelectedRoom(room)}
-                        >
-                          Complete Cleaning
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle className="text-xl">Mark Room as Cleaned</DialogTitle>
-                          <DialogDescription>
-                            Enter the name of the person who cleaned the room.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-6 py-6">
-                          <div className="space-y-2">
-                            <Label htmlFor="cleaned-by" className="text-lg">Cleaned By</Label>
-                            <Input
-                              id="cleaned-by"
-                              placeholder="Enter name of cleaner"
-                              value={cleanedBy}
-                              onChange={(e) => setCleanedBy(e.target.value)}
-                              className="text-lg h-12"
-                            />
-                          </div>
-                          <Button 
-                            onClick={handleCleaningComplete} 
-                            className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
-                          >
-                            Mark as Clean
-                          </Button>
+                  {room.status === "occupied" && roomCustomers[room.id] && (
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                      <h3 className="text-lg font-semibold mb-2 flex items-center">
+                        <User className="mr-2" size={20} />
+                        Current Guest
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="font-medium text-lg">{roomCustomers[room.id]?.name}</div>
+                        <div>{roomCustomers[room.id]?.phone}</div>
+                        <div className="text-sm text-gray-600">
+                          Check-in: {new Date(roomCustomers[room.id]?.checkInDate || "").toLocaleDateString()}
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                        <div className="text-sm font-semibold text-blue-800">
+                          Check-out: {new Date(roomCustomers[room.id]?.checkOutDate || "").toLocaleDateString()}
+                        </div>
+                        
+                        <div className="flex items-center mt-1 text-sm font-medium bg-yellow-50 text-yellow-800 p-2 rounded-md border border-yellow-200">
+                          <Clock className="mr-2" size={16} />
+                          <span>
+                            {calculateRemainingDays(roomCustomers[room.id]?.checkOutDate || "") === 0 
+                              ? "Checkout today!" 
+                              : `${calculateRemainingDays(roomCustomers[room.id]?.checkOutDate || "")} days until checkout`}
+                          </span>
+                        </div>
+                        
+                        <Link 
+                          to={`/customers?id=${roomCustomers[room.id]?.id}`} 
+                          className="text-blue-600 hover:underline block text-lg font-medium mt-2"
+                        >
+                          View Customer Details
+                        </Link>
+                      </div>
+                    </div>
                   )}
+                  
+                  <div className="pt-4 space-y-3">
+                    <Button 
+                      className="w-full py-6 text-lg bg-gray-600 hover:bg-gray-700"
+                      variant="default"
+                      onClick={() => {
+                        setSelectedRoom(room);
+                        setIsRoomDetailsOpen(true);
+                      }}
+                    >
+                      <Info className="mr-2" size={20} />
+                      View Room Details
+                    </Button>
+                  
+                    {room.status === "vacant" && (
+                      <Button 
+                        className="w-full py-6 text-lg"
+                        variant="default"
+                        onClick={() => openAddCustomerDialog(room)}
+                      >
+                        <UserPlus className="mr-2" size={20} />
+                        Add Customer
+                      </Button>
+                    )}
+                    
+                    {room.status === "occupied" && (
+                      <Button 
+                        className="w-full py-6 text-lg bg-red-600 hover:bg-red-700"
+                        onClick={() => openCheckoutDialog(room)}
+                        type="button"
+                      >
+                        <CreditCard className="mr-2" size={20} />
+                        Check-out & Payment
+                      </Button>
+                    )}
+                    
+                    {room.status === "cleaning" && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
+                            onClick={() => setSelectedRoom(room)}
+                          >
+                            Complete Cleaning
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle className="text-xl">Mark Room as Cleaned</DialogTitle>
+                            <DialogDescription>
+                              Enter the name of the person who cleaned the room.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-6 py-6">
+                            <div className="space-y-2">
+                              <Label htmlFor="cleaned-by" className="text-lg">Cleaned By</Label>
+                              <Input
+                                id="cleaned-by"
+                                placeholder="Enter name of cleaner"
+                                value={cleanedBy}
+                                onChange={(e) => setCleanedBy(e.target.value)}
+                                className="text-lg h-12"
+                              />
+                            </div>
+                            <Button 
+                              onClick={handleCleaningComplete} 
+                              className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
+                            >
+                              Mark as Clean
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <RoomDetailsDialog
         room={selectedRoom}
@@ -619,7 +709,9 @@ const Rooms = () => {
         onClose={() => setIsRoomDetailsOpen(false)}
         onCheckout={() => {
           setIsRoomDetailsOpen(false);
-          openCheckoutDialog(selectedRoom!);
+          if (selectedRoom) {
+            openCheckoutDialog(selectedRoom);
+          }
         }}
         onEdit={handleEditRoom}
       />
@@ -793,184 +885,3 @@ const Rooms = () => {
           <SheetFooter className="pt-4">
             <Button
               type="button"
-              onClick={handleAddCustomer}
-              className="w-full text-lg h-12"
-            >
-              <UserPlus className="mr-2" size={18} />
-              Add Customer
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
-
-      <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl">
-              Check-out & Payment for Room {selectedRoom?.roomNumber}
-            </DialogTitle>
-            <DialogDescription>
-              Complete the payment process to check-out the guest.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="p-4 bg-blue-50 rounded-lg mb-4">
-              <h3 className="text-lg font-semibold mb-2">Guest Information</h3>
-              {selectedRoom && roomCustomers[selectedRoom.id] && (
-                <div>
-                  <p className="text-lg"><strong>Name:</strong> {roomCustomers[selectedRoom.id]?.name}</p>
-                  <p><strong>Check-in:</strong> {new Date(roomCustomers[selectedRoom.id]?.checkInDate || "").toLocaleDateString()}</p>
-                  <p><strong>Check-out:</strong> {new Date().toLocaleDateString()}</p>
-                  
-                  {selectedRoom && roomCustomers[selectedRoom.id] && (
-                    <>
-                      <div className="mt-2 pt-2 border-t border-blue-200">
-                        <p><strong>Total Stay:</strong> ${calculateTotalStay(
-                          selectedRoom.id,
-                          roomCustomers[selectedRoom.id]?.checkInDate || "",
-                          roomCustomers[selectedRoom.id]?.checkOutDate || ""
-                        )}</p>
-                        {roomCustomers[selectedRoom.id]?.depositAmount ? (
-                          <>
-                            <p><strong>Deposit Paid:</strong> ${roomCustomers[selectedRoom.id]?.depositAmount}</p>
-                            <p className="font-bold text-lg">
-                              <strong>Amount Due:</strong> ${Math.max(0, calculateTotalStay(
-                                selectedRoom.id,
-                                roomCustomers[selectedRoom.id]?.checkInDate || "",
-                                roomCustomers[selectedRoom.id]?.checkOutDate || ""
-                              ) - (roomCustomers[selectedRoom.id]?.depositAmount || 0))}
-                            </p>
-                          </>
-                        ) : null}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="payment-amount" className="text-lg">Payment Amount*</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-500">$</span>
-                <Input
-                  id="payment-amount"
-                  type="number"
-                  value={paymentInfo.amount}
-                  onChange={(e) => setPaymentInfo({...paymentInfo, amount: Number(e.target.value)})}
-                  className="text-lg h-12 pl-8"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="payment-method" className="text-lg">Payment Method*</Label>
-              <Select 
-                value={paymentInfo.method} 
-                onValueChange={(value) => setPaymentInfo({...paymentInfo, method: value})}
-              >
-                <SelectTrigger className="text-lg h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">
-                    <div className="flex items-center">
-                      <Banknote className="mr-2" size={18} />
-                      Cash
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="card">
-                    <div className="flex items-center">
-                      <CardIcon className="mr-2" size={18} />
-                      Card
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="bank_transfer">
-                    <div className="flex items-center">
-                      <CreditCard className="mr-2" size={18} />
-                      Bank Transfer
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {paymentInfo.method === "bank_transfer" && (
-              <div className="space-y-2">
-                <Label htmlFor="bank-ref" className="text-lg">Bank Reference Number*</Label>
-                <Input
-                  id="bank-ref"
-                  placeholder="Enter bank transaction reference number"
-                  value={paymentInfo.bankRefNo}
-                  onChange={(e) => setPaymentInfo({...paymentInfo, bankRefNo: e.target.value})}
-                  className="text-lg h-12"
-                  required
-                />
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="collected-by" className="text-lg">Collected By*</Label>
-              <Input
-                id="collected-by"
-                placeholder="Enter staff name"
-                value={paymentInfo.collectedBy}
-                onChange={(e) => setPaymentInfo({...paymentInfo, collectedBy: e.target.value})}
-                className="text-lg h-12"
-                required
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsCheckoutOpen(false)}
-              className="text-lg h-12"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleCheckout}
-              className="text-lg h-12 bg-red-600 hover:bg-red-700"
-            >
-              Complete Checkout
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Room</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete Room {selectedRoom?.roomNumber}? 
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteRoom}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AddRoomForm 
-        isOpen={isAddRoomOpen} 
-        onClose={() => setIsAddRoomOpen(false)}
-        onRoomAdded={loadRooms}
-      />
-    </div>
-  );
-};
-
-export default Rooms;

@@ -9,7 +9,226 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      cleaning_records: {
+        Row: {
+          cleanedby: string
+          created_at: string | null
+          date: string
+          id: string
+          notes: string | null
+          roomid: string | null
+          verified: boolean
+        }
+        Insert: {
+          cleanedby: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          roomid?: string | null
+          verified?: boolean
+        }
+        Update: {
+          cleanedby?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          roomid?: string | null
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_records_roomid_fkey"
+            columns: ["roomid"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          bankrefno: string | null
+          checkindate: string
+          checkoutdate: string
+          created_at: string | null
+          depositamount: number | null
+          depositpaymentmethod: string | null
+          email: string | null
+          id: string
+          idnumber: string | null
+          name: string
+          phone: string
+          roomid: string | null
+        }
+        Insert: {
+          address?: string | null
+          bankrefno?: string | null
+          checkindate: string
+          checkoutdate: string
+          created_at?: string | null
+          depositamount?: number | null
+          depositpaymentmethod?: string | null
+          email?: string | null
+          id?: string
+          idnumber?: string | null
+          name: string
+          phone: string
+          roomid?: string | null
+        }
+        Update: {
+          address?: string | null
+          bankrefno?: string | null
+          checkindate?: string
+          checkoutdate?: string
+          created_at?: string | null
+          depositamount?: number | null
+          depositpaymentmethod?: string | null
+          email?: string | null
+          id?: string
+          idnumber?: string | null
+          name?: string
+          phone?: string
+          roomid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_roomid_fkey"
+            columns: ["roomid"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_reports: {
+        Row: {
+          created_at: string | null
+          date: string
+          expectedcheckins: number
+          expectedcheckouts: number
+          id: string
+          occupiedrooms: number
+          roomsneedcleaning: number
+          totalrevenue: number
+          totalrooms: number
+          vacantrooms: number
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          expectedcheckins: number
+          expectedcheckouts: number
+          id?: string
+          occupiedrooms: number
+          roomsneedcleaning: number
+          totalrevenue: number
+          totalrooms: number
+          vacantrooms: number
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          expectedcheckins?: number
+          expectedcheckouts?: number
+          id?: string
+          occupiedrooms?: number
+          roomsneedcleaning?: number
+          totalrevenue?: number
+          totalrooms?: number
+          vacantrooms?: number
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          collectedby: string
+          created_at: string | null
+          customerid: string | null
+          date: string
+          id: string
+          method: string
+          notes: string | null
+          roomid: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          collectedby: string
+          created_at?: string | null
+          customerid?: string | null
+          date?: string
+          id?: string
+          method: string
+          notes?: string | null
+          roomid?: string | null
+          status: string
+        }
+        Update: {
+          amount?: number
+          collectedby?: string
+          created_at?: string | null
+          customerid?: string | null
+          date?: string
+          id?: string
+          method?: string
+          notes?: string | null
+          roomid?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_customerid_fkey"
+            columns: ["customerid"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_roomid_fkey"
+            columns: ["roomid"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          cleanedby: string | null
+          created_at: string | null
+          id: string
+          lastcleaned: string | null
+          rate: number
+          roomnumber: string
+          status: string
+          type: string
+        }
+        Insert: {
+          cleanedby?: string | null
+          created_at?: string | null
+          id?: string
+          lastcleaned?: string | null
+          rate: number
+          roomnumber: string
+          status: string
+          type: string
+        }
+        Update: {
+          cleanedby?: string | null
+          created_at?: string | null
+          id?: string
+          lastcleaned?: string | null
+          rate?: number
+          roomnumber?: string
+          status?: string
+          type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

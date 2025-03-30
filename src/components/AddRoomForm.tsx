@@ -23,10 +23,11 @@ type AddRoomFormProps = {
 const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
   const [roomNumber, setRoomNumber] = useState("");
   const [roomType, setRoomType] = useState<'single' | 'double' | 'suite' | 'deluxe'>('single');
-  const [rate, setRate] = useState("");  // Change to empty string
+  const [rate, setRate] = useState("");  // Changed to empty string
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!roomNumber.trim()) {
@@ -40,27 +41,48 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
 
     // Convert rate to number only if it's not empty
     const roomRate = rate.trim() ? Number(rate) : 80;  // Default to 80 if empty
-
-    const newRoom = addRoom({
-      roomNumber,
-      type: roomType,
-      rate: roomRate,
-      status: 'vacant',
-      lastCleaned: new Date().toISOString(),
-      cleanedBy: 'System',
-    });
-
-    toast({
-      title: "Room Added",
-      description: `Room ${newRoom.roomNumber} has been added successfully`,
-    });
-
-    // Reset form and close dialog
-    setRoomNumber("");
-    setRoomType('single');
-    setRate("");  // Reset to empty string
-    onRoomAdded();
-    onClose();
+    
+    setIsSubmitting(true);
+    
+    try {
+      const newRoom = await addRoom({
+        roomNumber,
+        type: roomType,
+        rate: roomRate,
+        status: 'vacant',
+        lastCleaned: new Date().toISOString(),
+        cleanedBy: 'System',
+      });
+      
+      if (newRoom) {
+        toast({
+          title: "Room Added",
+          description: `Room ${newRoom.roomNumber} has been added successfully`,
+        });
+        
+        // Reset form and close dialog
+        setRoomNumber("");
+        setRoomType('single');
+        setRate("");  // Reset to empty string
+        onRoomAdded();
+        onClose();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add room. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding room:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -114,14 +136,16 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
               variant="outline" 
               onClick={onClose}
               className="text-lg h-12"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button 
               type="submit"
               className="text-lg h-12"
+              disabled={isSubmitting}
             >
-              Add Room
+              {isSubmitting ? "Adding..." : "Add Room"}
             </Button>
           </DialogFooter>
         </form>
