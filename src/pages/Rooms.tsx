@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getRooms, updateRoom, getCustomers, getRoomDetails, deleteRoom, addCustomer, addPayment } from "@/services/dataService";
@@ -713,6 +714,12 @@ const Rooms = () => {
           }
         }}
         onEdit={handleEditRoom}
+      />
+
+      <AddRoomForm 
+        isOpen={isAddRoomOpen} 
+        onClose={() => setIsAddRoomOpen(false)} 
+        onRoomAdded={loadRooms} 
       />
 
       <Sheet open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>

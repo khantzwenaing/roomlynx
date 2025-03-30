@@ -127,7 +127,6 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
               placeholder="Enter room rate"  // Add placeholder
               min={1}
               className="text-lg h-12"
-              required
             />
           </div>
           <DialogFooter className="pt-4">
