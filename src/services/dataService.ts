@@ -22,13 +22,18 @@ export const loadCustomersForRooms = async () => {
       
       if (room.status === "occupied") {
         console.log(`Fetching customer details for occupied room ${room.roomNumber}`);
-        const details = await getRoomDetails(room.id);
-        
-        if (details && details.currentCustomer) {
-          console.log(`Found customer ${details.currentCustomer.name} for room ${room.roomNumber}`);
-          customerMap[room.id] = details.currentCustomer;
-        } else {
-          console.log(`No customer found for occupied room ${room.roomNumber}`);
+        try {
+          const details = await getRoomDetails(room.id);
+          
+          if (details && details.currentCustomer) {
+            console.log(`Found customer ${details.currentCustomer.name} for room ${room.roomNumber}`);
+            customerMap[room.id] = details.currentCustomer;
+          } else {
+            console.log(`No customer found for occupied room ${room.roomNumber}`);
+            customerMap[room.id] = null;
+          }
+        } catch (detailsError) {
+          console.error(`Error fetching details for room ${room.roomNumber}:`, detailsError);
           customerMap[room.id] = null;
         }
       } else {

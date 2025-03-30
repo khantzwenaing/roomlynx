@@ -30,7 +30,11 @@ const RoomDetailsPage = () => {
 
       setLoading(true);
       try {
+        console.log(`RoomDetailsPage: Fetching details for room ID: ${roomId}`);
         const roomData = await getRoomDetails(roomId);
+        console.log("RoomDetailsPage: Room data received:", roomData);
+        console.log("RoomDetailsPage: Customer data:", roomData?.currentCustomer);
+        
         setRoom(roomData);
         setEditedRoom({
           roomNumber: roomData?.roomNumber,
@@ -87,6 +91,26 @@ const RoomDetailsPage = () => {
     setIsEditing(false);
   };
 
+  // For the refresh button
+  const handleRefreshData = async () => {
+    if (!roomId) return;
+    
+    setLoading(true);
+    try {
+      console.log(`RoomDetailsPage: Refreshing data for room ID: ${roomId}`);
+      const refreshedRoomData = await getRoomDetails(roomId);
+      console.log("RoomDetailsPage: Refreshed room data:", refreshedRoomData);
+      console.log("RoomDetailsPage: Refreshed customer data:", refreshedRoomData?.currentCustomer);
+      
+      setRoom(refreshedRoomData);
+    } catch (error) {
+      console.error("Error refreshing room details:", error);
+      toast.error("Failed to refresh room details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -123,22 +147,33 @@ const RoomDetailsPage = () => {
           </Button>
           <h1 className="text-2xl font-bold">Room {room.roomNumber} Details</h1>
         </div>
-        {!isEditing ? (
-          <Button onClick={handleEdit} variant="outline">
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit Room
+        <div className="flex gap-2">
+          <Button onClick={handleRefreshData} variant="outline" className="mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 2v6h-6"></path>
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+              <path d="M3 22v-6h6"></path>
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+            </svg>
+            Refresh
           </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button onClick={handleCancelEdit} variant="outline">
-              Cancel
+          {!isEditing ? (
+            <Button onClick={handleEdit} variant="outline">
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit Room
             </Button>
-            <Button onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Save Changes
-            </Button>
-          </div>
-        )}
+          ) : (
+            <div className="flex gap-2">
+              <Button onClick={handleCancelEdit} variant="outline">
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -204,7 +239,7 @@ const RoomDetailsPage = () => {
           </div>
         </div>
 
-        {customer && (
+        {customer ? (
           <div className="space-y-6">
             <div className="bg-white rounded-lg border p-6 shadow-sm">
               <h2 className="text-xl font-semibold mb-4 flex items-center">
@@ -247,7 +282,30 @@ const RoomDetailsPage = () => {
               </div>
             </div>
           </div>
-        )}
+        ) : room.status === "occupied" ? (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg border p-6 shadow-sm">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <User className="mr-2 text-blue-500" />
+                Current Guest
+              </h2>
+              <div className="p-8 flex flex-col items-center justify-center">
+                <p className="text-amber-600 mb-4">
+                  The room is marked as occupied, but no customer data was found.
+                </p>
+                <Button onClick={handleRefreshData} variant="outline">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 2v6h-6"></path>
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                    <path d="M3 22v-6h6"></path>
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                  </svg>
+                  Refresh Data
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
