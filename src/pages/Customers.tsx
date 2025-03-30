@@ -24,7 +24,9 @@ const customerSchema = z.object({
   roomId: z.string({required_error: "Room is required"}),
   checkInDate: z.string({required_error: "Check-in date is required"}),
   checkOutDate: z.string({required_error: "Check-out date is required"}),
-  depositAmount: z.string().optional().transform(val => val === '' ? undefined : Number(val)),
+  depositAmount: z.string().optional().refine(val => val === '' || (Number(val) > 0), {
+    message: "Deposit amount must be a positive number"
+  }),
   depositPaymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'other']).optional(),
   bankRefNo: z.string().optional()
 });
@@ -50,7 +52,7 @@ const Customers = () => {
       roomId: "",
       checkInDate: new Date().toISOString().split('T')[0],
       checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-      depositAmount: undefined,
+      depositAmount: "",
       depositPaymentMethod: undefined,
       bankRefNo: undefined
     }
@@ -97,7 +99,7 @@ const Customers = () => {
         roomId: data.roomId,
         checkInDate: data.checkInDate,
         checkOutDate: data.checkOutDate,
-        depositAmount: data.depositAmount,
+        depositAmount: data.depositAmount ? Number(data.depositAmount) : undefined,
         depositPaymentMethod: data.depositPaymentMethod,
         bankRefNo: data.depositPaymentMethod === 'bank_transfer' ? data.bankRefNo : undefined
       });
@@ -267,9 +269,8 @@ const Customers = () => {
                           placeholder="Enter deposit amount" 
                           min="0"
                           {...field} 
-                          value={field.value || ''} 
                           onChange={(e) => {
-                            const value = e.target.value === '' ? undefined : Number(e.target.value);
+                            const value = e.target.value === '' ? '' : e.target.value;
                             field.onChange(value);
                           }}
                         />
