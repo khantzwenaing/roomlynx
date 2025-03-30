@@ -21,11 +21,17 @@ const Rooms = () => {
     filteredRooms,
     isLoading,
     loadRooms,
+    loadCustomersForRooms,
     roomCustomers,
   } = useRooms();
 
   const handleAddCustomer = (roomId: string) => {
     setSelectedRoomId(roomId);
+  };
+
+  const handleDataRefresh = () => {
+    loadRooms();
+    loadCustomersForRooms();
   };
 
   return (
@@ -64,6 +70,7 @@ const Rooms = () => {
         onRoomClick={(room) => {
           window.location.href = `/room-details?roomId=${room.id}`;
         }}
+        onCustomerAdded={handleDataRefresh}
       />
 
       <AddRoomForm 
@@ -74,7 +81,10 @@ const Rooms = () => {
       
       <AddCustomerSidebar
         rooms={filteredRooms.filter(room => room.status === 'vacant')}
-        onCustomerAdded={() => loadRooms()}
+        onCustomerAdded={() => {
+          handleDataRefresh();
+          setIsAddCustomerOpen(false);
+        }}
         preselectedRoomId={selectedRoomId}
         open={isAddCustomerOpen}
         onOpenChange={setIsAddCustomerOpen}

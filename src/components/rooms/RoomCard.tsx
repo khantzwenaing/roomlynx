@@ -16,9 +16,10 @@ interface RoomCardProps {
   room: Room;
   customer: Customer | null;
   onRoomClick: (room: Room) => void;
+  onCustomerAdded: () => void;
 }
 
-const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
+const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProps) => {
   const {
     isDeleteDialogOpen,
     setIsDeleteDialogOpen,
@@ -93,9 +94,9 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
         isOpen={isAddCustomerDialogOpen}
         onOpenChange={setIsAddCustomerDialogOpen}
         room={room}
-        onCustomerAdded={() => {
+        onCustomerAdded={(newCustomer) => {
           setIsAddCustomerDialogOpen(false);
-          window.location.reload();
+          onCustomerAdded();
         }}
       />
     </Card>

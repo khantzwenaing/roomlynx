@@ -8,9 +8,10 @@ interface RoomGridProps {
   isLoading: boolean;
   roomCustomers: {[key: string]: Customer | null};
   onRoomClick: (room: Room) => void;
+  onCustomerAdded: () => void;
 }
 
-const RoomGrid = ({ rooms, isLoading, roomCustomers, onRoomClick }: RoomGridProps) => {
+const RoomGrid = ({ rooms, isLoading, roomCustomers, onRoomClick, onCustomerAdded }: RoomGridProps) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -36,6 +37,7 @@ const RoomGrid = ({ rooms, isLoading, roomCustomers, onRoomClick }: RoomGridProp
           room={room} 
           customer={roomCustomers[room.id] || null}
           onRoomClick={onRoomClick}
+          onCustomerAdded={onCustomerAdded}
         />
       ))}
     </div>
