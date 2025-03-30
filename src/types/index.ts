@@ -14,6 +14,7 @@ export type Room = {
   status: 'vacant' | 'occupied' | 'maintenance' | 'cleaning';
   lastCleaned?: string;
   cleanedBy?: string;
+  currentCustomer?: Customer | null;
 };
 
 export type Customer = {
