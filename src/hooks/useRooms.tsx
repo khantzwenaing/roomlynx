@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { getRooms, loadCustomersForRooms as fetchRoomCustomers } from "@/services/dataService";
 import { Room, Customer } from "@/types";
@@ -17,8 +16,9 @@ export const useRooms = () => {
     try {
       console.log("Loading rooms data...");
       const roomsData = await getRooms();
-      setRooms(roomsData);
       console.log("Loaded rooms:", roomsData.length);
+      console.log("Room statuses:", roomsData.map(r => `${r.roomNumber}: ${r.status}`).join(', '));
+      setRooms(roomsData);
     } catch (error) {
       console.error("Error loading rooms:", error);
       toast({
@@ -36,6 +36,16 @@ export const useRooms = () => {
       console.log("Loading customer data for rooms...");
       const customerMap = await fetchRoomCustomers();
       console.log("Loaded customers map:", Object.keys(customerMap).length);
+      
+      // Debug the customer data
+      Object.entries(customerMap).forEach(([roomId, customer]) => {
+        if (customer) {
+          console.log(`Room ${roomId} has customer: ${customer.name}`);
+        } else {
+          console.log(`Room ${roomId} has no customer`);
+        }
+      });
+      
       setRoomCustomers(customerMap);
     } catch (error) {
       console.error("Error loading customers for rooms:", error);

@@ -24,6 +24,8 @@ export const getRooms = async (): Promise<Room[]> => {
 };
 
 export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
+  console.log(`Fetching details for room ID: ${roomId}`);
+  
   const { data, error } = await supabase
     .from('rooms')
     .select('*')
@@ -35,9 +37,13 @@ export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
     return null;
   }
   
+  console.log(`Room details retrieved, status: ${data.status}`);
+  
   // Get the customer for this room if it's occupied
   let currentCustomer = null;
   if (data.status === 'occupied') {
+    console.log(`Room is occupied, fetching customer data...`);
+    
     const { data: customerData, error: customerError } = await supabase
       .from('customers')
       .select('*')
@@ -46,7 +52,10 @@ export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
       .limit(1)
       .maybeSingle();
     
+    console.log(`Customer query result:`, customerData ? "Found" : "Not found");
+    
     if (!customerError && customerData) {
+      console.log(`Customer found: ${customerData.name}`);
       currentCustomer = {
         id: customerData.id,
         name: customerData.name,
@@ -61,6 +70,10 @@ export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
         depositPaymentMethod: customerData.depositpaymentmethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
         bankRefNo: customerData.bankrefno
       };
+    } else if (customerError) {
+      console.error('Error fetching customer for room:', customerError);
+    } else {
+      console.log(`No customer found for occupied room ${data.roomnumber}`);
     }
   }
   

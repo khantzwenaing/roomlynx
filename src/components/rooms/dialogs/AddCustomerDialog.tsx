@@ -37,8 +37,11 @@ const AddCustomerDialog = ({
       // Notify parent to refresh data
       onCustomerAdded();
       
-      // Close the dialog after successful operation
-      onOpenChange(false);
+      // Give a small delay before closing to ensure data updates are processed
+      setTimeout(() => {
+        // Close the dialog after successful operation
+        onOpenChange(false);
+      }, 300);
     } catch (error) {
       console.error("Error in handleCustomerAdded:", error);
       toast.error("An error occurred during check-in");

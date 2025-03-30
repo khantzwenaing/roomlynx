@@ -47,10 +47,13 @@ const Rooms = () => {
     console.log("Triggering data refresh...");
     // Perform room data refresh
     loadRooms();
-    // Make sure to refresh customer data for rooms
+    
+    // Make sure to refresh customer data for rooms with a delay
+    // to ensure database updates are completed
     setTimeout(() => {
+      console.log("Loading customers after delay...");
       loadCustomersForRooms();
-    }, 500); // Small delay to ensure database updates are completed
+    }, 800);
   };
 
   const handleResetDatabase = async () => {
@@ -132,6 +135,7 @@ const Rooms = () => {
       <AddCustomerSidebar
         rooms={filteredRooms.filter(room => room.status === 'vacant')}
         onCustomerAdded={(customer) => {
+          console.log("Customer added from sidebar:", customer);
           handleDataRefresh();
           setIsAddCustomerOpen(false);
         }}
