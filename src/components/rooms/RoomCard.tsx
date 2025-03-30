@@ -184,7 +184,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
         date: new Date().toISOString(),
         method: checkoutDetails.paymentMethod,
         collectedBy: checkoutDetails.collectedBy,
-        status: "paid",
+        status: "paid" as "paid" | "pending" | "partial", // Fixed: explicitly cast to the allowed type
         notes: checkoutDetails.bankRefNo ? `Bank Ref: ${checkoutDetails.bankRefNo}` : ""
       };
       
