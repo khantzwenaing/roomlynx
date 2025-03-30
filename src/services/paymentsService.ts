@@ -22,7 +22,8 @@ export const getPayments = async (): Promise<Payment[]> => {
     collectedBy: payment.collectedby,
     status: payment.status as 'paid' | 'pending' | 'partial',
     notes: payment.notes || '',
-    paymentType: payment.paymenttype as 'deposit' | 'checkout' | 'other' || 'other'
+    // Using optional chaining (?.) to safely access paymenttype if it exists
+    paymentType: (payment as any).paymenttype as 'deposit' | 'checkout' | 'other' || 'other'
   }));
 };
 
@@ -60,7 +61,8 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     collectedBy: data.collectedby,
     status: data.status as 'paid' | 'pending' | 'partial',
     notes: data.notes || '',
-    paymentType: data.paymenttype as 'deposit' | 'checkout' | 'other' || 'other'
+    // Using type assertion to safely access paymenttype if it exists
+    paymentType: (data as any).paymenttype as 'deposit' | 'checkout' | 'other' || 'other'
   };
 };
 
