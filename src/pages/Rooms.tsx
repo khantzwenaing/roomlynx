@@ -320,29 +320,7 @@ const Rooms = () => {
 
   const openCheckoutDialog = (room: Room) => {
     setSelectedRoom(room);
-    const customer = roomCustomers[room.id];
-    if (customer) {
-      const checkInDate = new Date(customer.checkInDate);
-      const today = new Date();
-      const daysStayed = Math.max(1, Math.ceil((today.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)));
-      const totalAmount = room.rate * daysStayed;
-      const depositAmount = customer.depositAmount || 0;
-      const amountDue = Math.max(0, totalAmount - depositAmount);
-      
-      setPaymentInfo({
-        amount: amountDue,
-        method: "cash",
-        bankRefNo: "",
-        collectedBy: "",
-      });
-      setIsCheckoutOpen(true);
-    } else {
-      toast({
-        title: "Error",
-        description: "Could not find customer information for this room.",
-        variant: "destructive",
-      });
-    }
+    setIsRoomDetailsOpen(true);
   };
 
   const handleCheckout = async () => {
@@ -374,7 +352,7 @@ const Rooms = () => {
           roomId: selectedRoom.id,
           amount: paymentInfo.amount,
           date: new Date().toISOString(),
-          method: paymentInfo.method as "cash" | "card" | "bank_transfer" | "other",
+          method: paymentInfo.method as "cash" | "bank_transfer" | "other",
           collectedBy: paymentInfo.collectedBy,
           status: "paid",
           notes: paymentInfo.method === "bank_transfer" ? `Bank Ref: ${paymentInfo.bankRefNo}` : "Cash payment",
@@ -712,9 +690,31 @@ const Rooms = () => {
         isOpen={isRoomDetailsOpen}
         onClose={() => setIsRoomDetailsOpen(false)}
         onCheckout={() => {
-          setIsRoomDetailsOpen(false);
           if (selectedRoom) {
-            openCheckoutDialog(selectedRoom);
+            const customer = roomCustomers[selectedRoom.id];
+            if (customer) {
+              const checkInDate = new Date(customer.checkInDate);
+              const today = new Date();
+              const daysStayed = Math.max(1, Math.ceil((today.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)));
+              const totalAmount = selectedRoom.rate * daysStayed;
+              const depositAmount = customer.depositAmount || 0;
+              const amountDue = Math.max(0, totalAmount - depositAmount);
+              
+              setPaymentInfo({
+                amount: amountDue,
+                method: "cash",
+                bankRefNo: "",
+                collectedBy: "",
+              });
+              setIsRoomDetailsOpen(false);
+              setIsCheckoutOpen(true);
+            } else {
+              toast({
+                title: "Error",
+                description: "Could not find customer information for this room.",
+                variant: "destructive",
+              });
+            }
           }
         }}
         onEdit={handleEditRoom}
@@ -899,118 +899,4 @@ const Rooms = () => {
       </Sheet>
 
       <Sheet open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <SheetContent className="sm:max-w-lg w-full overflow-y-auto" side="right">
-          <SheetHeader>
-            <SheetTitle className="text-xl">
-              Checkout & Payment for Room {selectedRoom?.roomNumber}
-            </SheetTitle>
-            <SheetDescription>
-              Enter payment details to complete the checkout process.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="space-y-4 py-6">
-            <div className="space-y-2">
-              <Label htmlFor="payment-amount" className="text-lg">Payment Amount ($)</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-500">$</span>
-                <Input
-                  id="payment-amount"
-                  type="number"
-                  min="0"
-                  value={paymentInfo.amount}
-                  onChange={(e) => setPaymentInfo({...paymentInfo, amount: Number(e.target.value)})}
-                  className="text-lg h-12 pl-8"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="payment-method" className="text-lg">Payment Method</Label>
-              <Select 
-                value={paymentInfo.method} 
-                onValueChange={(value) => setPaymentInfo({...paymentInfo, method: value})}
-              >
-                <SelectTrigger className="text-lg h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">
-                    <div className="flex items-center">
-                      <Banknote className="mr-2" size={18} />
-                      Cash
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="card">
-                    <div className="flex items-center">
-                      <CreditCard className="mr-2" size={18} />
-                      Card
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="bank_transfer">
-                    <div className="flex items-center">
-                      <CreditCard className="mr-2" size={18} />
-                      Bank Transfer
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {paymentInfo.method === "bank_transfer" && (
-              <div className="space-y-2">
-                <Label htmlFor="bank-ref" className="text-lg">Bank Reference Number</Label>
-                <Input
-                  id="bank-ref"
-                  placeholder="Enter bank transaction reference number"
-                  value={paymentInfo.bankRefNo}
-                  onChange={(e) => setPaymentInfo({...paymentInfo, bankRefNo: e.target.value})}
-                  className="text-lg h-12"
-                />
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="collected-by" className="text-lg">Collected By</Label>
-              <Input
-                id="collected-by"
-                placeholder="Enter name of person who collected payment"
-                value={paymentInfo.collectedBy}
-                onChange={(e) => setPaymentInfo({...paymentInfo, collectedBy: e.target.value})}
-                className="text-lg h-12"
-              />
-            </div>
-          </div>
-          
-          <SheetFooter className="pt-4">
-            <Button
-              type="button"
-              onClick={handleCheckout}
-              className="w-full py-6 text-lg"
-            >
-              Complete Checkout
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
-
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this room?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete Room {selectedRoom?.roomNumber}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteRoom} className="bg-red-600 hover:bg-red-700">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-};
-
-export default Rooms;
+        <SheetContent className="sm:max-w-
