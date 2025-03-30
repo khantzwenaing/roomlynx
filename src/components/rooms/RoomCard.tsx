@@ -1,12 +1,20 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import { User, UserPlus, CreditCard, Trash2, Info, Clock, Home } from "lucide-react";
+import { updateRoom, deleteRoom } from "@/services/dataService";
+import { processCheckout, addPayment } from "@/services/paymentsService";
 import AddCustomerForm from "@/components/customers/AddCustomerForm";
-import { UserPlus } from "lucide-react";
 
 interface RoomCardProps {
   room: Room;
@@ -309,12 +317,12 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
           
             {room.status === "vacant" && (
               <Button 
-                className="w-full py-6 text-lg bg-hotel-primary hover:bg-hotel-primary/90 flex items-center justify-center gap-2"
+                className="w-full py-6 text-lg"
                 variant="default"
-                onClick={() => setIsAddCustomerDialogOpen(true)}
+                onClick={openAddCustomerDialog}
               >
                 <UserPlus className="mr-2" size={20} />
-                Add Customer to Room {room.roomNumber}
+                Add Customer
               </Button>
             )}
             
