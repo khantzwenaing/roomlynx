@@ -63,7 +63,8 @@ const CheckoutDialog = ({
               value={checkoutDetails.paymentMethod}
               onChange={(e) => setCheckoutDetails({
                 ...checkoutDetails, 
-                paymentMethod: e.target.value as "cash" | "bank_transfer" | "other"
+                paymentMethod: e.target.value as "cash" | "bank_transfer" | "other",
+                showCheckoutForm: true
               })}
             >
               <option value="cash">Cash</option>
@@ -79,7 +80,11 @@ const CheckoutDialog = ({
                 id="bank-ref"
                 placeholder="Enter transaction reference"
                 value={checkoutDetails.bankRefNo}
-                onChange={(e) => setCheckoutDetails({...checkoutDetails, bankRefNo: e.target.value})}
+                onChange={(e) => setCheckoutDetails({
+                  ...checkoutDetails, 
+                  bankRefNo: e.target.value,
+                  showCheckoutForm: true
+                })}
                 className="text-lg h-12"
               />
             </div>
@@ -91,7 +96,11 @@ const CheckoutDialog = ({
               id="collected-by"
               placeholder="Enter staff name"
               value={checkoutDetails.collectedBy}
-              onChange={(e) => setCheckoutDetails({...checkoutDetails, collectedBy: e.target.value})}
+              onChange={(e) => setCheckoutDetails({
+                ...checkoutDetails, 
+                collectedBy: e.target.value,
+                showCheckoutForm: true
+              })}
               className="text-lg h-12"
             />
           </div>
