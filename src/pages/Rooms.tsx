@@ -649,7 +649,10 @@ const Rooms = () => {
                     {room.status === "occupied" && (
                       <Button 
                         className="w-full py-6 text-lg bg-red-600 hover:bg-red-700"
-                        onClick={() => openCheckoutDialog(room)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openCheckoutDialog(room);
+                        }}
                         type="button"
                       >
                         <CreditCard className="mr-2" size={20} />
@@ -852,7 +855,7 @@ const Rooms = () => {
                       </SelectItem>
                       <SelectItem value="card">
                         <div className="flex items-center">
-                          <CardIcon className="mr-2" size={18} />
+                          <CreditCard className="mr-2" size={18} />
                           Card
                         </div>
                       </SelectItem>
@@ -890,6 +893,101 @@ const Rooms = () => {
               className="w-full py-6 text-lg"
             >
               Add Customer & Check In
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+        <SheetContent className="sm:max-w-lg w-full overflow-y-auto" side="right">
+          <SheetHeader>
+            <SheetTitle className="text-xl">
+              Checkout & Payment for Room {selectedRoom?.roomNumber}
+            </SheetTitle>
+            <SheetDescription>
+              Enter payment details to complete the checkout process.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 py-6">
+            <div className="space-y-2">
+              <Label htmlFor="payment-amount" className="text-lg">Payment Amount ($)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-500">$</span>
+                <Input
+                  id="payment-amount"
+                  type="number"
+                  min="0"
+                  value={paymentInfo.amount}
+                  onChange={(e) => setPaymentInfo({...paymentInfo, amount: Number(e.target.value)})}
+                  className="text-lg h-12 pl-8"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="payment-method" className="text-lg">Payment Method</Label>
+              <Select 
+                value={paymentInfo.method} 
+                onValueChange={(value) => setPaymentInfo({...paymentInfo, method: value})}
+              >
+                <SelectTrigger className="text-lg h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">
+                    <div className="flex items-center">
+                      <Banknote className="mr-2" size={18} />
+                      Cash
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="card">
+                    <div className="flex items-center">
+                      <CreditCard className="mr-2" size={18} />
+                      Card
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="bank_transfer">
+                    <div className="flex items-center">
+                      <CreditCard className="mr-2" size={18} />
+                      Bank Transfer
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {paymentInfo.method === "bank_transfer" && (
+              <div className="space-y-2">
+                <Label htmlFor="bank-ref" className="text-lg">Bank Reference Number</Label>
+                <Input
+                  id="bank-ref"
+                  placeholder="Enter bank transaction reference number"
+                  value={paymentInfo.bankRefNo}
+                  onChange={(e) => setPaymentInfo({...paymentInfo, bankRefNo: e.target.value})}
+                  className="text-lg h-12"
+                />
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="collected-by" className="text-lg">Collected By</Label>
+              <Input
+                id="collected-by"
+                placeholder="Enter name of person who collected payment"
+                value={paymentInfo.collectedBy}
+                onChange={(e) => setPaymentInfo({...paymentInfo, collectedBy: e.target.value})}
+                className="text-lg h-12"
+              />
+            </div>
+          </div>
+          
+          <SheetFooter className="pt-4">
+            <Button
+              type="button"
+              onClick={handleCheckout}
+              className="w-full py-6 text-lg"
+            >
+              Complete Checkout
             </Button>
           </SheetFooter>
         </SheetContent>
