@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import AddCustomerSidebar from "./AddCustomerSidebar";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface AddCustomerDialogProps {
   rooms: Room[];

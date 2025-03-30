@@ -62,7 +62,9 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
 
   const handleDeleteRoom = async () => {
     if (room.status === 'occupied') {
-      toast.error("Cannot Delete Room", "This room is currently occupied. Check out the guest first.");
+      toast.error("Cannot Delete Room", {
+        description: "This room is currently occupied. Check out the guest first."
+      });
       setIsDeleteDialogOpen(false);
       return;
     }
@@ -71,15 +73,21 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
       const success = await deleteRoom(room.id);
       
       if (success) {
-        toast.success("Room Deleted", `Room ${room.roomNumber} has been removed`);
+        toast.success("Room Deleted", {
+          description: `Room ${room.roomNumber} has been removed`
+        });
         // Reload the page to refresh the room list
         window.location.reload();
       } else {
-        toast.error("Error", "Failed to delete the room");
+        toast.error("Error", {
+          description: "Failed to delete the room"
+        });
       }
     } catch (error) {
       console.error("Error deleting room:", error);
-      toast.error("Error", "An unexpected error occurred while deleting the room");
+      toast.error("Error", {
+        description: "An unexpected error occurred while deleting the room"
+      });
     }
     
     setIsDeleteDialogOpen(false);
@@ -87,7 +95,9 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
 
   const handleCleaningComplete = async () => {
     if (!cleanedBy.trim()) {
-      toast.error("Error", "Please enter who cleaned the room");
+      toast.error("Error", {
+        description: "Please enter who cleaned the room"
+      });
       return;
     }
 
@@ -100,11 +110,15 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
 
       if (updatedRoom) {
         window.location.reload();
-        toast.success("Cleaning Completed", `Room ${updatedRoom.roomNumber} has been marked as clean`);
+        toast.success("Cleaning Completed", {
+          description: `Room ${updatedRoom.roomNumber} has been marked as clean`
+        });
       }
     } catch (error) {
       console.error("Error completing cleaning:", error);
-      toast.error("Error", "Failed to mark room as clean");
+      toast.error("Error", {
+        description: "Failed to mark room as clean"
+      });
     }
   };
 
@@ -132,12 +146,16 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
     if (!customer) return;
     
     if (!checkoutDetails.collectedBy) {
-      toast.error("Error", "Please enter who collected the payment");
+      toast.error("Error", {
+        description: "Please enter who collected the payment"
+      });
       return;
     }
 
     if (checkoutDetails.paymentMethod === "bank_transfer" && !checkoutDetails.bankRefNo) {
-      toast.error("Error", "Please enter bank reference number");
+      toast.error("Error", {
+        description: "Please enter bank reference number"
+      });
       return;
     }
 
@@ -166,7 +184,9 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
       if (!updatedRoom) throw new Error("Failed to update room status");
       
       // 3. Show success message
-      toast.success("Checkout Complete", `Room ${room.roomNumber} has been checked out and payment processed`);
+      toast.success("Checkout Complete", {
+        description: `Room ${room.roomNumber} has been checked out and payment processed`
+      });
       
       // 4. Close dialog and reload page
       setIsCheckoutDialogOpen(false);
@@ -174,7 +194,9 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
       
     } catch (error) {
       console.error("Error during checkout:", error);
-      toast.error("Checkout Failed", "An unexpected error occurred during checkout");
+      toast.error("Checkout Failed", {
+        description: "An unexpected error occurred during checkout"
+      });
     }
   };
 
