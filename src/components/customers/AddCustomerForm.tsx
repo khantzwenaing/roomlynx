@@ -57,9 +57,9 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
     }
   });
 
-  const onSubmit = (data: CustomerFormValues) => {
+  const onSubmit = async (data: CustomerFormValues) => {
     try {
-      const newCustomer = addCustomer({
+      const newCustomer = await addCustomer({
         name: data.name,
         phone: data.phone,
         email: data.email || undefined,
@@ -73,15 +73,24 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
         bankRefNo: data.depositPaymentMethod === 'bank_transfer' ? data.bankRefNo : undefined
       });
 
-      onCustomerAdded(newCustomer);
-      onClose();
-      form.reset();
+      if (newCustomer) {
+        onCustomerAdded(newCustomer);
+        onClose();
+        form.reset();
 
-      toast({
-        title: "Success",
-        description: `Customer ${newCustomer.name} has been added successfully`,
-      });
+        toast({
+          title: "Success",
+          description: `Customer ${newCustomer.name} has been added successfully`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add customer",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      console.error("Error adding customer:", error);
       toast({
         title: "Error",
         description: "Failed to add customer",

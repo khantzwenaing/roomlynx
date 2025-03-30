@@ -18,10 +18,8 @@ const Customers = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const [customersData, roomsData] = await Promise.all([
-          getCustomers(),
-          getRooms()
-        ]);
+        const customersData = await getCustomers();
+        const roomsData = await getRooms();
         setCustomers(customersData);
         setRooms(roomsData);
       } catch (error) {

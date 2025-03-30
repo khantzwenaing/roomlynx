@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { getRooms, updateRoom, getCustomers, getRoomDetails, deleteRoom } from "@/services/dataService";
+import { getRooms, updateRoom, getCustomers, getRoomDetails, deleteRoom, addCustomer, addPayment } from "@/services/dataService";
 import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,6 @@ import AddRoomForm from "@/components/AddRoomForm";
 import RoomDetailsDialog from "@/components/RoomDetailsDialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Plus, User, UserPlus, CreditCard, Pencil, Trash2, Banknote, Info, CreditCard as CardIcon, Clock } from "lucide-react";
-import { addCustomer, addPayment } from "@/services/dataService";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -885,3 +884,18 @@ const Rooms = () => {
           <SheetFooter className="pt-4">
             <Button
               type="button"
+              onClick={handleAddCustomer}
+              className="w-full py-6 text-lg"
+            >
+              Add Customer & Check In
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* ... keep existing code (other dialogs and components) */}
+    </div>
+  );
+};
+
+export default Rooms;
