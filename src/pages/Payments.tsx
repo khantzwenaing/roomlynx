@@ -2,44 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { getPayments, getCustomers, getRooms, addPayment, resetDatabase } from "@/services/dataService";
 import { Payment, Customer, Room } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { RotateCcw, Banknote, CreditCard, WalletCards, LogIn, LogOut } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-const paymentSchema = z.object({
-  customerId: z.string({required_error: "Customer is required"}),
-  roomId: z.string({required_error: "Room is required"}),
-  amount: z.string().min(1, "Amount is required").refine(val => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "Amount must be a positive number",
-  }),
-  method: z.enum(["cash", "bank_transfer", "other"], {
-    required_error: "Payment method is required",
-  }),
-  status: z.enum(["paid", "pending", "partial"], {
-    required_error: "Payment status is required",
-  }),
-  paymentType: z.enum(["deposit", "checkout", "other"], {
-    required_error: "Payment type is required",
-  }),
-  collectedBy: z.string({required_error: "Collector name is required"}),
-  notes: z.string().optional().or(z.literal("")),
-  bankRefNo: z.string().optional(),
-});
-
-type PaymentFormValues = z.infer<typeof paymentSchema>;
+import { RotateCcw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import PaymentList from "@/components/payments/PaymentList";
+import PaymentFilters from "@/components/payments/PaymentFilters";
+import PaymentDialog from "@/components/payments/PaymentDialog";
+import { PaymentFormValues } from "@/components/payments/PaymentForm";
 
 const Payments = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -49,20 +19,6 @@ const Payments = () => {
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>("all");
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const { toast } = useToast();
-
-  const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: {
-      customerId: "",
-      roomId: "",
-      amount: "",
-      method: "cash",
-      status: "paid",
-      paymentType: "other",
-      collectedBy: "",
-      notes: "",
-    }
-  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,78 +41,6 @@ const Payments = () => {
     fetchData();
   }, [toast]);
 
-  const watchCustomerId = form.watch("customerId");
-  useEffect(() => {
-    if (watchCustomerId) {
-      const customer = customers.find(c => c.id === watchCustomerId);
-      if (customer) {
-        form.setValue("roomId", customer.roomId);
-      }
-    }
-  }, [watchCustomerId, customers, form]);
-
-  const filteredPayments = payments.filter((payment) => {
-    const customer = customers.find((c) => c.id === payment.customerId);
-    const room = rooms.find((r) => r.id === payment.roomId);
-    
-    const matchesSearch = (
-      (customer && customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (room && room.roomNumber.includes(searchTerm)) ||
-      payment.amount.toString().includes(searchTerm)
-    );
-
-    const matchesTypeFilter = 
-      paymentTypeFilter === "all" || 
-      payment.paymentType === paymentTypeFilter;
-    
-    return matchesSearch && matchesTypeFilter;
-  });
-
-  const getCustomerName = (customerId: string) => {
-    const customer = customers.find((c) => c.id === customerId);
-    return customer ? customer.name : "Unknown";
-  };
-
-  const getRoomNumber = (roomId: string) => {
-    const room = rooms.find((r) => r.id === roomId);
-    return room ? room.roomNumber : "Unknown";
-  };
-
-  const getPaymentStatusColor = (status: Payment["status"]) => {
-    switch (status) {
-      case "paid":
-        return "bg-hotel-success";
-      case "pending":
-        return "bg-hotel-warning";
-      case "partial":
-        return "bg-hotel-primary";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
-  const getPaymentTypeIcon = (paymentType?: string) => {
-    switch (paymentType) {
-      case "deposit":
-        return <LogIn className="h-4 w-4 mr-1 text-blue-500" />;
-      case "checkout":
-        return <LogOut className="h-4 w-4 mr-1 text-red-500" />;
-      default:
-        return <WalletCards className="h-4 w-4 mr-1" />;
-    }
-  };
-
-  const getPaymentTypeBadge = (paymentType?: string) => {
-    switch (paymentType) {
-      case "deposit":
-        return <Badge className="bg-blue-500">Check-in Deposit</Badge>;
-      case "checkout":
-        return <Badge className="bg-red-500">Checkout Payment</Badge>;
-      default:
-        return <Badge className="bg-gray-500">Other Payment</Badge>;
-    }
-  };
-
   const onSubmit = async (data: PaymentFormValues) => {
     try {
       const newPayment = await addPayment({
@@ -176,7 +60,6 @@ const Payments = () => {
       if (newPayment) {
         setPayments([...payments, newPayment]);
         setOpenAddDialog(false);
-        form.reset();
 
         toast({
           title: "Success",
@@ -247,335 +130,30 @@ const Payments = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <Dialog open={openAddDialog} onOpenChange={setOpenAddDialog}>
-            <DialogTrigger asChild>
-              <Button>Add New Payment</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Add New Payment</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="customerId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Customer</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a customer" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {customers.map((customer) => (
-                                <SelectItem key={customer.id} value={customer.id}>
-                                  {customer.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="roomId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Room</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            value={field.value}
-                            disabled={!!watchCustomerId}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Auto-selected from customer" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {rooms.map((room) => (
-                                <SelectItem key={room.id} value={room.id}>
-                                  Room {room.roomNumber}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="amount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Amount</FormLabel>
-                          <FormControl>
-                            <Input type="number" min="0" step="0.01" placeholder="0.00" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="method"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Payment Method</FormLabel>
-                          <Select 
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              // Clear bank reference if not bank transfer
-                              if (value !== "bank_transfer") {
-                                form.setValue("bankRefNo", "");
-                              }
-                            }} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select payment method" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="cash">
-                                <div className="flex items-center">
-                                  <Banknote className="mr-2" size={16} />
-                                  Cash
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="bank_transfer">
-                                <div className="flex items-center">
-                                  <CreditCard className="mr-2" size={16} />
-                                  Bank Transfer
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    {form.watch("method") === "bank_transfer" && (
-                      <FormField
-                        control={form.control}
-                        name="bankRefNo"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Bank Reference Number</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter transaction reference" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    
-                    <FormField
-                      control={form.control}
-                      name="paymentType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Payment Type</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select payment type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="deposit">
-                                <div className="flex items-center">
-                                  <LogIn className="mr-2" size={16} />
-                                  Check-in Deposit
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="checkout">
-                                <div className="flex items-center">
-                                  <LogOut className="mr-2" size={16} />
-                                  Checkout Payment
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="other">
-                                <div className="flex items-center">
-                                  <WalletCards className="mr-2" size={16} />
-                                  Other Payment
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select payment status" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="paid">Paid</SelectItem>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="partial">Partial</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="collectedBy"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Collected By</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Staff name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem className="col-span-2">
-                          <FormLabel>Notes (Optional)</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Additional notes about the payment" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit">Add Payment</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-        <div className="w-full md:w-1/3">
-          <Label htmlFor="search">Search Payments</Label>
-          <Input
-            id="search"
-            placeholder="Search by customer, room or amount..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+          <PaymentDialog 
+            isOpen={openAddDialog} 
+            setIsOpen={setOpenAddDialog} 
+            onSubmit={onSubmit} 
+            customers={customers} 
+            rooms={rooms} 
           />
         </div>
-        <div className="w-full md:w-1/4">
-          <Label htmlFor="payment-type-filter">Filter by Type</Label>
-          <Select value={paymentTypeFilter} onValueChange={setPaymentTypeFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="All Payment Types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                <div className="flex items-center">
-                  <WalletCards className="mr-2" size={16} />
-                  All Payments
-                </div>
-              </SelectItem>
-              <SelectItem value="deposit">
-                <div className="flex items-center">
-                  <LogIn className="mr-2" size={16} />
-                  Check-in Deposits
-                </div>
-              </SelectItem>
-              <SelectItem value="checkout">
-                <div className="flex items-center">
-                  <LogOut className="mr-2" size={16} />
-                  Checkout Payments
-                </div>
-              </SelectItem>
-              <SelectItem value="other">
-                <div className="flex items-center">
-                  <WalletCards className="mr-2" size={16} />
-                  Other Payments
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredPayments.map((payment) => (
-          <Card key={payment.id}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">${payment.amount}</CardTitle>
-                <Badge className={getPaymentStatusColor(payment.status)}>
-                  {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                </Badge>
-              </div>
-              <div className="mt-2">
-                {getPaymentTypeBadge(payment.paymentType)}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-sm font-medium">
-                  {getCustomerName(payment.customerId)}
-                </div>
-                <div className="text-sm text-gray-500">
-                  Room {getRoomNumber(payment.roomId)}
-                </div>
-                <div className="text-sm text-gray-500">
-                  Date: {new Date(payment.date).toLocaleDateString()}
-                </div>
-                <div className="text-sm text-gray-500 flex items-center">
-                  {payment.method === "cash" && <Banknote className="h-4 w-4 mr-1" />}
-                  {(payment.method === "card" || payment.method === "bank_transfer") && <CreditCard className="h-4 w-4 mr-1" />}
-                  Method: {payment.method.replace('_', ' ').charAt(0).toUpperCase() + payment.method.replace('_', ' ').slice(1)}
-                </div>
-                <div className="text-sm text-gray-500">
-                  Collected by: {payment.collectedBy}
-                </div>
-                {payment.notes && (
-                  <div className="text-sm text-gray-500">
-                    Notes: {payment.notes}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <PaymentFilters 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        paymentTypeFilter={paymentTypeFilter}
+        setPaymentTypeFilter={setPaymentTypeFilter}
+      />
+
+      <PaymentList 
+        payments={payments}
+        customers={customers}
+        rooms={rooms}
+        searchTerm={searchTerm}
+        paymentTypeFilter={paymentTypeFilter}
+      />
     </div>
   );
 };
