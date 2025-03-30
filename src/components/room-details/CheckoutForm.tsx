@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Room, Customer } from "@/types";
 import { Input } from "@/components/ui/input";
@@ -269,7 +268,8 @@ const CheckoutForm = ({
               <Label htmlFor="checkout-date">Actual Checkout Date</Label>
               <DatePicker 
                 date={earlyCheckoutDate} 
-                setDate={setEarlyCheckoutDate}
+                onDateChange={setEarlyCheckoutDate}
+                label="Checkout Date"
                 className="w-full"
               />
             </div>
@@ -367,4 +367,3 @@ const CheckoutForm = ({
 };
 
 export default CheckoutForm;
-
