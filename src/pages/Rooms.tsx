@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
 import RoomDetailsDialog from "@/components/RoomDetailsDialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { Plus, User, UserPlus, CreditCard, Pencil, Trash2, Banknote, Info, CreditCard as CardIcon } from "lucide-react";
+import { Plus, User, UserPlus, CreditCard, Pencil, Trash2, Banknote, Info, CreditCard as CardIcon, Clock } from "lucide-react";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -70,6 +70,18 @@ const Rooms = () => {
     loadRooms();
     loadCustomersForRooms();
   }, []);
+
+  const calculateRemainingDays = (checkOutDate: string): number => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    const checkOut = new Date(checkOutDate);
+    checkOut.setHours(0, 0, 0, 0); // Reset time to start of day
+    
+    const timeDiff = checkOut.getTime() - today.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    return Math.max(0, daysDiff); // Ensure we don't return negative days
+  };
 
   const handleStatusChange = (roomId: string, newStatus: Room["status"]) => {
     const updatedRoom = updateRoom(roomId, { status: newStatus });
@@ -500,6 +512,16 @@ const Rooms = () => {
                       <div className="text-sm font-semibold text-blue-800">
                         Check-out: {new Date(roomCustomers[room.id]?.checkOutDate || "").toLocaleDateString()}
                       </div>
+                      
+                      <div className="flex items-center mt-1 text-sm font-medium bg-yellow-50 text-yellow-800 p-2 rounded-md border border-yellow-200">
+                        <Clock className="mr-2" size={16} />
+                        <span>
+                          {calculateRemainingDays(roomCustomers[room.id]?.checkOutDate || "") === 0 
+                            ? "Checkout today!" 
+                            : `${calculateRemainingDays(roomCustomers[room.id]?.checkOutDate || "")} days until checkout`}
+                        </span>
+                      </div>
+                      
                       <Link 
                         to={`/customers?id=${roomCustomers[room.id]?.id}`} 
                         className="text-blue-600 hover:underline block text-lg font-medium mt-2"

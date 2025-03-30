@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Room, Customer } from "@/types";
-import { User, CreditCard, Pencil } from "lucide-react";
+import { User, CreditCard, Pencil, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,6 +54,19 @@ const RoomDetailsDialog = ({
     const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
     const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return Math.max(1, days) * room.rate;
+  };
+
+  const calculateRemainingDays = (): number => {
+    if (!customer) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    const checkOut = new Date(customer.checkOutDate);
+    checkOut.setHours(0, 0, 0, 0); // Reset time to start of day
+    
+    const timeDiff = checkOut.getTime() - today.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    return Math.max(0, daysDiff); // Ensure we don't return negative days
   };
 
   return (
@@ -148,6 +161,17 @@ const RoomDetailsDialog = ({
                 <div className="text-sm font-semibold text-blue-800">
                   Check-out: {new Date(customer.checkOutDate).toLocaleDateString()}
                 </div>
+                
+                {/* Add remaining days until checkout */}
+                <div className="flex items-center mt-1 text-sm font-medium bg-yellow-50 text-yellow-800 p-2 rounded-md border border-yellow-200">
+                  <Clock className="mr-2" size={16} />
+                  <span>
+                    {calculateRemainingDays() === 0 
+                      ? "Checkout today!" 
+                      : `${calculateRemainingDays()} days until checkout`}
+                  </span>
+                </div>
+                
                 <div className="text-sm font-semibold text-green-700">
                   Total Stay: ${calculateTotalStay()}
                 </div>
