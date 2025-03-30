@@ -103,6 +103,12 @@ const CheckoutForm = ({
               Bank Transfer
             </Label>
           </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="other" id="payment-other" />
+            <Label htmlFor="payment-other" className="flex items-center">
+              Other
+            </Label>
+          </div>
         </RadioGroup>
       </div>
       

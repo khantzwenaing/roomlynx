@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Room, Customer } from "@/types";
@@ -26,7 +25,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
   const [cleanedBy, setCleanedBy] = useState("");
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
   const [checkoutDetails, setCheckoutDetails] = useState({
-    paymentMethod: "cash" as "cash" | "card" | "bank_transfer" | "other",
+    paymentMethod: "cash" as "cash" | "bank_transfer" | "other",
     bankRefNo: "",
     collectedBy: "",
   });
@@ -184,7 +183,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
         date: new Date().toISOString(),
         method: checkoutDetails.paymentMethod,
         collectedBy: checkoutDetails.collectedBy,
-        status: "paid" as "paid" | "pending" | "partial", // Fixed: explicitly cast to the allowed type
+        status: "paid" as "paid" | "pending" | "partial",
         notes: checkoutDetails.bankRefNo ? `Bank Ref: ${checkoutDetails.bankRefNo}` : ""
       };
       
@@ -419,11 +418,10 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
                 value={checkoutDetails.paymentMethod}
                 onChange={(e) => setCheckoutDetails({
                   ...checkoutDetails, 
-                  paymentMethod: e.target.value as "cash" | "card" | "bank_transfer" | "other"
+                  paymentMethod: e.target.value as "cash" | "bank_transfer" | "other"
                 })}
               >
                 <option value="cash">Cash</option>
-                <option value="card">Card</option>
                 <option value="bank_transfer">Bank Transfer</option>
                 <option value="other">Other</option>
               </select>

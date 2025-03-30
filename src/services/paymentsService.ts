@@ -18,7 +18,7 @@ export const getPayments = async (): Promise<Payment[]> => {
     roomId: payment.roomid,
     amount: Number(payment.amount),
     date: payment.date,
-    method: payment.method as 'cash' | 'card' | 'bank_transfer' | 'other',
+    method: payment.method as 'cash' | 'bank_transfer' | 'other',
     collectedBy: payment.collectedby,
     status: payment.status as 'paid' | 'pending' | 'partial',
     notes: payment.notes || ''
@@ -54,7 +54,7 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     roomId: data.roomid,
     amount: Number(data.amount),
     date: data.date,
-    method: data.method as 'cash' | 'card' | 'bank_transfer' | 'other',
+    method: data.method as 'cash' | 'bank_transfer' | 'other',
     collectedBy: data.collectedby,
     status: data.status as 'paid' | 'pending' | 'partial',
     notes: data.notes || ''
