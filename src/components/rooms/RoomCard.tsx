@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { User, UserPlus, CreditCard, Trash2, Info, Clock, Home } from "lucide-react";
@@ -222,7 +223,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
             <Button 
               className="w-full py-6 text-lg bg-gray-600 hover:bg-gray-700"
               variant="default"
-              onClick={() => onRoomClick(room)}
+              onClick={() => navigate(`/room-details?roomId=${room.id}`)}
             >
               <Info className="mr-2" size={20} />
               View Room Details
@@ -251,12 +252,41 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
             )}
             
             {room.status === "cleaning" && (
-              <Button 
-                className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
-                onClick={handleCleaningComplete}
-              >
-                Complete Cleaning
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
+                  >
+                    Complete Cleaning
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl">Mark Room as Cleaned</DialogTitle>
+                    <DialogDescription>
+                      Enter the name of the person who cleaned the room.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-6 py-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="cleaned-by" className="text-lg">Cleaned By</Label>
+                      <Input
+                        id="cleaned-by"
+                        placeholder="Enter name of cleaner"
+                        value={cleanedBy}
+                        onChange={(e) => setCleanedBy(e.target.value)}
+                        className="text-lg h-12"
+                      />
+                    </div>
+                    <Button 
+                      onClick={handleCleaningComplete} 
+                      className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
+                    >
+                      Mark as Clean
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             )}
           </div>
         </div>

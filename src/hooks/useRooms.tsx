@@ -8,9 +8,7 @@ export const useRooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [roomCustomers, setRoomCustomers] = useState<{[key: string]: Customer | null}>({});
-  const [isRoomDetailsOpen, setIsRoomDetailsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -75,11 +73,6 @@ export const useRooms = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const handleViewRoomDetails = (room: Room) => {
-    setSelectedRoom(room);
-    setIsRoomDetailsOpen(true);
-  };
-
   return {
     rooms,
     isLoading,
@@ -88,13 +81,8 @@ export const useRooms = () => {
     statusFilter,
     setStatusFilter,
     filteredRooms,
-    selectedRoom,
-    setSelectedRoom,
     loadRooms,
     loadCustomersForRooms,
-    roomCustomers,
-    isRoomDetailsOpen,
-    setIsRoomDetailsOpen,
-    handleViewRoomDetails
+    roomCustomers
   };
 };
