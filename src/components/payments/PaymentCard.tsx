@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,24 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
 
   const paymentTypeBadge = getPaymentTypeBadge(payment.paymentType);
 
+  // Function to render notes with "Deposit" in bold
+  const renderNotes = (notes: string) => {
+    if (!notes) return null;
+    
+    if (notes.includes('Deposit')) {
+      const parts = notes.split(/(Deposit)/g);
+      return (
+        <>
+          {parts.map((part, i) => 
+            part === 'Deposit' ? <strong key={i}>{part}</strong> : part
+          )}
+        </>
+      );
+    }
+    
+    return notes;
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -86,9 +105,7 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
           </div>
           {payment.notes && (
             <div className="text-sm text-gray-500">
-              Notes: {payment.notes.includes('Deposit') 
-                ? payment.notes.replace('Deposit', <strong>Deposit</strong>)
-                : payment.notes}
+              Notes: {renderNotes(payment.notes)}
             </div>
           )}
         </div>
