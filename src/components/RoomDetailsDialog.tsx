@@ -17,6 +17,15 @@ interface RoomDetailsDialogProps {
   onClose: () => void;
   onCheckout: () => void;
   onEdit: (updatedRoom: Partial<Room>) => void;
+  onEarlyCheckout?: (
+    actualCheckoutDate: string, 
+    refundAmount: number, 
+    refundDetails: {
+      method: 'cash' | 'bank_transfer' | 'other',
+      collectedBy: string,
+      notes?: string
+    }
+  ) => Promise<void>;
 }
 
 const RoomDetailsDialog = ({
@@ -26,6 +35,7 @@ const RoomDetailsDialog = ({
   onClose,
   onCheckout,
   onEdit,
+  onEarlyCheckout,
 }: RoomDetailsDialogProps) => {
   const [editing, setEditing] = useState(false);
   const [editedRoom, setEditedRoom] = useState<Partial<Room>>({});
@@ -118,6 +128,7 @@ const RoomDetailsDialog = ({
                   customer={customer}
                   room={room}
                   onCompleteCheckout={handleCompleteCheckout}
+                  onEarlyCheckout={onEarlyCheckout}
                 />
               )}
             </div>

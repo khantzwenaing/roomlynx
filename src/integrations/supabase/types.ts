@@ -55,6 +55,7 @@ export type Database = {
           checkoutdate: string
           created_at: string | null
           depositamount: number | null
+          depositcollectedby: string | null
           depositpaymentmethod: string | null
           email: string | null
           id: string
@@ -70,6 +71,7 @@ export type Database = {
           checkoutdate: string
           created_at?: string | null
           depositamount?: number | null
+          depositcollectedby?: string | null
           depositpaymentmethod?: string | null
           email?: string | null
           id?: string
@@ -85,6 +87,7 @@ export type Database = {
           checkoutdate?: string
           created_at?: string | null
           depositamount?: number | null
+          depositcollectedby?: string | null
           depositpaymentmethod?: string | null
           email?: string | null
           id?: string
@@ -105,6 +108,8 @@ export type Database = {
       }
       daily_reports: {
         Row: {
+          cashin: number | null
+          cashout: number | null
           created_at: string | null
           date: string
           expectedcheckins: number
@@ -117,6 +122,8 @@ export type Database = {
           vacantrooms: number
         }
         Insert: {
+          cashin?: number | null
+          cashout?: number | null
           created_at?: string | null
           date?: string
           expectedcheckins: number
@@ -129,6 +136,8 @@ export type Database = {
           vacantrooms: number
         }
         Update: {
+          cashin?: number | null
+          cashout?: number | null
           created_at?: string | null
           date?: string
           expectedcheckins?: number
@@ -150,6 +159,7 @@ export type Database = {
           customerid: string | null
           date: string
           id: string
+          isrefund: boolean | null
           method: string
           notes: string | null
           roomid: string | null
@@ -162,6 +172,7 @@ export type Database = {
           customerid?: string | null
           date?: string
           id?: string
+          isrefund?: boolean | null
           method: string
           notes?: string | null
           roomid?: string | null
@@ -174,6 +185,7 @@ export type Database = {
           customerid?: string | null
           date?: string
           id?: string
+          isrefund?: boolean | null
           method?: string
           notes?: string | null
           roomid?: string | null

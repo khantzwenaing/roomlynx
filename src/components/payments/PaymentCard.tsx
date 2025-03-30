@@ -77,6 +77,11 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
               Notes: {renderNotes(payment.notes)}
             </div>
           )}
+          {payment.isRefund && (
+            <div className="text-sm text-red-500 font-medium">
+              Refund
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
