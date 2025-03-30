@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { User, UserPlus, CreditCard, Trash2, Info, Clock, Home } from "lucide-react";
 import { updateRoom, deleteRoom } from "@/services/dataService";
+import { processCheckout, addPayment } from "@/services/paymentsService";
 
 interface RoomCardProps {
   room: Room;
@@ -23,6 +24,12 @@ interface RoomCardProps {
 const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [cleanedBy, setCleanedBy] = useState("");
+  const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
+  const [checkoutDetails, setCheckoutDetails] = useState({
+    paymentMethod: "cash" as "cash" | "card" | "bank_transfer" | "other",
+    bankRefNo: "",
+    collectedBy: "",
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -131,8 +138,85 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
     navigate(`/room-details?roomId=${room.id}&action=checkin`);
   };
 
-  const handleCheckout = () => {
-    navigate(`/room-details?roomId=${room.id}&action=checkout`);
+  const calculateTotalStay = (): number => {
+    if (!customer) return 0;
+    
+    const checkInDate = new Date(customer.checkInDate);
+    const checkOutDate = new Date(customer.checkOutDate);
+    const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+    const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    return Math.max(1, days) * room.rate;
+  };
+
+  const calculateAmountDue = (): number => {
+    const totalStay = calculateTotalStay();
+    const depositAmount = customer?.depositAmount || 0;
+    return Math.max(0, totalStay - depositAmount);
+  };
+
+  const handleCheckout = async () => {
+    if (!customer) return;
+    
+    if (!checkoutDetails.collectedBy) {
+      toast({
+        title: "Error",
+        description: "Please enter who collected the payment",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (checkoutDetails.paymentMethod === "bank_transfer" && !checkoutDetails.bankRefNo) {
+      toast({
+        title: "Error",
+        description: "Please enter bank reference number",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // 1. Add payment record
+      const paymentData = {
+        customerId: customer.id,
+        roomId: room.id,
+        amount: calculateAmountDue(),
+        date: new Date().toISOString(),
+        method: checkoutDetails.paymentMethod,
+        collectedBy: checkoutDetails.collectedBy,
+        status: "paid",
+        notes: checkoutDetails.bankRefNo ? `Bank Ref: ${checkoutDetails.bankRefNo}` : ""
+      };
+      
+      const payment = await addPayment(paymentData);
+      
+      if (!payment) throw new Error("Failed to record payment");
+      
+      // 2. Update room status to cleaning
+      const updatedRoom = await updateRoom(room.id, {
+        status: "cleaning"
+      });
+      
+      if (!updatedRoom) throw new Error("Failed to update room status");
+      
+      // 3. Show success message
+      toast({
+        title: "Checkout Complete",
+        description: `Room ${room.roomNumber} has been checked out and payment processed`,
+      });
+      
+      // 4. Close dialog and reload page
+      setIsCheckoutDialogOpen(false);
+      window.location.reload();
+      
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      toast({
+        title: "Checkout Failed",
+        description: "An unexpected error occurred during checkout",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -243,7 +327,7 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
             {room.status === "occupied" && (
               <Button 
                 className="w-full py-6 text-lg bg-red-600 hover:bg-red-700"
-                onClick={handleCheckout}
+                onClick={() => setIsCheckoutDialogOpen(true)}
                 type="button"
               >
                 <CreditCard className="mr-2" size={20} />
@@ -309,6 +393,75 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Checkout Dialog */}
+      <Dialog open={isCheckoutDialogOpen} onOpenChange={setIsCheckoutDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Check-out & Payment</DialogTitle>
+            <DialogDescription>
+              Complete the checkout process for Room {room.roomNumber}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-6">
+            <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
+              <div className="text-lg font-medium">Amount Due: ${calculateAmountDue()}</div>
+              <div className="text-sm text-gray-600">
+                (Total stay: ${calculateTotalStay()} - Deposit: ${customer?.depositAmount || 0})
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="payment-method" className="text-lg">Payment Method</Label>
+              <select
+                id="payment-method"
+                className="w-full h-12 px-3 border border-gray-300 rounded-md"
+                value={checkoutDetails.paymentMethod}
+                onChange={(e) => setCheckoutDetails({
+                  ...checkoutDetails, 
+                  paymentMethod: e.target.value as "cash" | "card" | "bank_transfer" | "other"
+                })}
+              >
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            {checkoutDetails.paymentMethod === "bank_transfer" && (
+              <div className="space-y-2">
+                <Label htmlFor="bank-ref" className="text-lg">Bank Reference Number</Label>
+                <Input
+                  id="bank-ref"
+                  placeholder="Enter transaction reference"
+                  value={checkoutDetails.bankRefNo}
+                  onChange={(e) => setCheckoutDetails({...checkoutDetails, bankRefNo: e.target.value})}
+                  className="text-lg h-12"
+                />
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="collected-by" className="text-lg">Collected By</Label>
+              <Input
+                id="collected-by"
+                placeholder="Enter staff name"
+                value={checkoutDetails.collectedBy}
+                onChange={(e) => setCheckoutDetails({...checkoutDetails, collectedBy: e.target.value})}
+                className="text-lg h-12"
+              />
+            </div>
+            
+            <Button 
+              onClick={handleCheckout} 
+              className="w-full py-6 text-xl bg-red-600 hover:bg-red-700"
+            >
+              Complete Checkout
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
