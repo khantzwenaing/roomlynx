@@ -13,17 +13,7 @@ export const resetDatabase = async (): Promise<boolean> => {
     // Delete all existing rooms
     await supabase.from('rooms').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     
-    // Create initial rooms
-    const initialRooms = [
-      { roomnumber: '101', type: 'single', rate: 80, status: 'vacant' },
-      { roomnumber: '102', type: 'single', rate: 80, status: 'vacant' },
-      { roomnumber: '103', type: 'double', rate: 120, status: 'vacant' },
-      { roomnumber: '201', type: 'double', rate: 120, status: 'vacant' },
-      { roomnumber: '202', type: 'suite', rate: 200, status: 'vacant' },
-      { roomnumber: '301', type: 'deluxe', rate: 250, status: 'vacant' }
-    ];
-    
-    await supabase.from('rooms').insert(initialRooms);
+    // No longer creating initial rooms
     
     return true;
   } catch (error) {
