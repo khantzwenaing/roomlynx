@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Room, Customer } from "@/types";
 import { User, CreditCard, Pencil, Clock, Banknote } from "lucide-react";
@@ -10,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 
 interface RoomDetailsDialogProps {
   room: Room | null;
@@ -119,18 +119,25 @@ const RoomDetailsDialog = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center justify-between">
-            {editing ? "Edit Room " : "Room "}{room.roomNumber}
-            <Button variant="ghost" size="icon" onClick={handleEdit}>
-              {editing ? "Save" : <Pencil className="h-5 w-5" />}
-            </Button>
-          </DialogTitle>
-        </DialogHeader>
+    <Drawer open={isOpen} onOpenChange={onClose}>
+      <DrawerContent className="max-h-[90vh] overflow-y-auto">
+        <DrawerHeader className="border-b border-gray-200 sticky top-0 bg-white z-10">
+          <div className="flex items-center justify-between">
+            <DrawerTitle className="text-2xl">
+              {editing ? "Edit Room " : "Room "}{room.roomNumber}
+            </DrawerTitle>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="icon" onClick={handleEdit}>
+                {editing ? "Save" : <Pencil className="h-5 w-5" />}
+              </Button>
+              <DrawerClose asChild>
+                <Button variant="ghost" size="sm">Close</Button>
+              </DrawerClose>
+            </div>
+          </div>
+        </DrawerHeader>
         
-        <div className="mt-4 space-y-4">
+        <div className="p-6 space-y-6">
           {editing ? (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -316,8 +323,8 @@ const RoomDetailsDialog = ({
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 };
 
