@@ -3,7 +3,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Control, UseFormWatch } from "react-hook-form";
-import { CustomerFormValues } from "../AddCustomerForm";
+import { CustomerFormValues } from "../schema";
 
 interface DepositFieldsProps {
   control: Control<CustomerFormValues>;

@@ -1,10 +1,10 @@
 
-import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Control } from "react-hook-form";
 import { Room } from "@/types";
-import { CustomerFormValues } from "../AddCustomerForm";
+import { CustomerFormValues } from "../schema";
 
 interface BookingFieldsProps {
   control: Control<CustomerFormValues>;
