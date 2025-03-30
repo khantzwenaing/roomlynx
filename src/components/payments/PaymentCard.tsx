@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -87,7 +86,9 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
           </div>
           {payment.notes && (
             <div className="text-sm text-gray-500">
-              Notes: {payment.notes}
+              Notes: {payment.notes.includes('Deposit') 
+                ? payment.notes.replace('Deposit', <strong>Deposit</strong>)
+                : payment.notes}
             </div>
           )}
         </div>
