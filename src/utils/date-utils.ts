@@ -21,3 +21,13 @@ export const calculateRemainingDays = (checkOutDate: string): number => {
   
   return Math.max(0, daysDiff); // Ensure we don't return negative days
 };
+
+/**
+ * Calculate total stay amount based on room rate and dates
+ */
+export const calculateTotalStay = (roomRate: number, checkInDate: string, checkOutDate: string): number => {
+  const checkIn = new Date(checkInDate);
+  const checkOut = new Date(checkOutDate);
+  const days = calculateDays(checkIn, checkOut);
+  return Math.max(1, days) * roomRate;
+};
