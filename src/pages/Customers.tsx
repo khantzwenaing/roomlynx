@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { getCustomers, getRooms, addCustomer } from "@/services/dataService";
 import { Customer, Room } from "@/types";
@@ -25,7 +24,7 @@ const customerSchema = z.object({
   roomId: z.string({required_error: "Room is required"}),
   checkInDate: z.string({required_error: "Check-in date is required"}),
   checkOutDate: z.string({required_error: "Check-out date is required"}),
-  depositAmount: z.number().optional(),
+  depositAmount: z.string().optional().transform(val => val === '' ? undefined : Number(val)),
   depositPaymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'other']).optional(),
   bankRefNo: z.string().optional()
 });
@@ -50,7 +49,10 @@ const Customers = () => {
       idNumber: "",
       roomId: "",
       checkInDate: new Date().toISOString().split('T')[0],
-      checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0]
+      checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      depositAmount: undefined,
+      depositPaymentMethod: undefined,
+      bankRefNo: undefined
     }
   });
 
@@ -86,7 +88,6 @@ const Customers = () => {
 
   const onSubmit = (data: CustomerFormValues) => {
     try {
-      // Make sure all required fields are explicitly set even if they're undefined in the form data
       const newCustomer = addCustomer({
         name: data.name,
         phone: data.phone,
@@ -95,7 +96,10 @@ const Customers = () => {
         idNumber: data.idNumber || undefined,
         roomId: data.roomId,
         checkInDate: data.checkInDate,
-        checkOutDate: data.checkOutDate
+        checkOutDate: data.checkOutDate,
+        depositAmount: data.depositAmount,
+        depositPaymentMethod: data.depositPaymentMethod,
+        bankRefNo: data.depositPaymentMethod === 'bank_transfer' ? data.bankRefNo : undefined
       });
 
       setCustomers([...customers, newCustomer]);
@@ -251,6 +255,80 @@ const Customers = () => {
                     />
                   </div>
                 </div>
+                <FormField
+                  control={form.control}
+                  name="depositAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Deposit Amount (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="Enter deposit amount" 
+                          min="0"
+                          {...field} 
+                          value={field.value || ''} 
+                          onChange={(e) => {
+                            const value = e.target.value === '' ? undefined : Number(e.target.value);
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('depositAmount') && form.watch('depositAmount') > 0 && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="depositPaymentMethod"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Deposit Payment Method</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select payment method" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="card">Card</SelectItem>
+                              <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {form.watch('depositPaymentMethod') === 'bank_transfer' && (
+                      <FormField
+                        control={form.control}
+                        name="bankRefNo"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Bank Reference Number</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Enter bank transaction reference" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </>
+                )}
+
                 <DialogFooter>
                   <Button type="submit">Add Customer</Button>
                 </DialogFooter>
