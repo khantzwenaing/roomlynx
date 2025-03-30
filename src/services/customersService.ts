@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { Customer } from "@/types";
@@ -77,6 +76,11 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
 // Add a new customer
 export const addCustomer = async (customerData: Omit<Customer, "id">): Promise<Customer | null> => {
   try {
+    // Validate required fields
+    if (!customerData.depositAmount) {
+      throw new Error("Deposit amount is required");
+    }
+    
     const customerId = uuidv4();
     
     const { data, error } = await supabase
