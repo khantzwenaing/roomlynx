@@ -1,10 +1,13 @@
 
-import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Customer, Room } from "@/types";
+import { format, parseISO, isBefore } from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CheckoutDialogProps {
   isOpen: boolean;
@@ -38,6 +41,43 @@ const CheckoutDialog = ({
   calculateAmountDue,
   calculateTotalStay
 }: CheckoutDialogProps) => {
+  const [isEarlyCheckout, setIsEarlyCheckout] = useState(false);
+  const [checkoutDate, setCheckoutDate] = useState<Date>(new Date());
+  const [refundAmount, setRefundAmount] = useState(0);
+  const [refundNotes, setRefundNotes] = useState('');
+
+  useEffect(() => {
+    if (customer && isOpen) {
+      const today = new Date();
+      const plannedCheckout = parseISO(customer.checkOutDate);
+      
+      // Check if today is before the planned checkout date
+      setIsEarlyCheckout(isBefore(today, plannedCheckout));
+      
+      // Calculate refund amount if it's an early checkout
+      if (isBefore(today, plannedCheckout)) {
+        const checkInDate = parseISO(customer.checkInDate);
+        
+        // Calculate days stayed based on today
+        const actualDaysStayed = Math.ceil(
+          (today.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)
+        );
+        
+        // Calculate original planned days
+        const originalDays = Math.ceil(
+          (plannedCheckout.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)
+        );
+        
+        // Calculate days not staying
+        const daysNotStaying = Math.max(0, originalDays - actualDaysStayed);
+        
+        // Calculate refund amount
+        const refundAmount = daysNotStaying * room.rate;
+        setRefundAmount(refundAmount);
+      }
+    }
+  }, [customer, isOpen, room.rate]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -53,6 +93,12 @@ const CheckoutDialog = ({
             <div className="text-sm text-gray-600">
               (Total stay: ${calculateTotalStay()} - Deposit: ${customer?.depositAmount || 0})
             </div>
+            
+            {isEarlyCheckout && (
+              <div className="mt-2 text-sm text-blue-600">
+                This is an early checkout. {refundAmount > 0 && `Refund amount: $${refundAmount}`}
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -66,7 +112,9 @@ const CheckoutDialog = ({
                 paymentMethod: e.target.value as "cash" | "bank_transfer" | "other",
                 showCheckoutForm: true
               })}
+              required
             >
+              <option value="">Select payment method</option>
               <option value="cash">Cash</option>
               <option value="bank_transfer">Bank Transfer</option>
               <option value="other">Other</option>
@@ -86,6 +134,7 @@ const CheckoutDialog = ({
                   showCheckoutForm: true
                 })}
                 className="text-lg h-12"
+                required
               />
             </div>
           )}
@@ -102,12 +151,28 @@ const CheckoutDialog = ({
                 showCheckoutForm: true
               })}
               className="text-lg h-12"
+              required
             />
           </div>
+          
+          {isEarlyCheckout && refundAmount > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="refund-notes" className="text-lg">Refund Notes</Label>
+              <Textarea
+                id="refund-notes"
+                placeholder="Add any notes about the refund"
+                value={refundNotes}
+                onChange={(e) => setRefundNotes(e.target.value)}
+                className="text-lg"
+              />
+            </div>
+          )}
           
           <Button 
             onClick={onCheckout} 
             className="w-full py-6 text-xl bg-red-600 hover:bg-red-700"
+            disabled={!checkoutDetails.collectedBy || 
+                     (checkoutDetails.paymentMethod === "bank_transfer" && !checkoutDetails.bankRefNo)}
           >
             Complete Checkout
           </Button>

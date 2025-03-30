@@ -48,34 +48,29 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
     new Date(customer.checkInDate).toISOString().split('T')[0] === todayStr
   ).length;
   
-  // Count all checkouts for today (both regular and early)
-  const checkOuts = customers.filter(customer => 
-    new Date(customer.checkOutDate).toISOString().split('T')[0] === todayStr
-  ).length;
-  
-  // Get all reminders to find early checkouts
-  const reminders = await getCheckoutReminders();
-  
-  // Count acknowledged reminders (meaning early checkouts) that happened today
-  const acknowledgedToday = reminders.filter(reminder => 
-    reminder.status === 'acknowledged' &&
-    new Date(reminder.checkOutDate).toISOString().split('T')[0] === todayStr
-  ).length;
-  
   // Get all payments for today to identify early checkouts via refunds
   const payments = await getPayments();
   const todayPayments = payments.filter(payment => 
     new Date(payment.date).toISOString().split('T')[0] === todayStr
   );
   
-  // Count refunds made today (additional way to track early checkouts)
-  const refundsToday = todayPayments.filter(payment => 
-    payment.isRefund && payment.notes?.includes('early checkout')
-  ).length;
+  // Count refunds made today for early checkouts
+  const earlyCheckoutRefunds = todayPayments.filter(payment => 
+    payment.isRefund && payment.notes?.toLowerCase().includes('early checkout')
+  );
   
-  // Total checkouts = regular checkouts + acknowledged reminders + refunds for early checkouts
-  // We need to be careful not to double count, so we'll use the maximum value
-  const totalCheckouts = Math.max(checkOuts, acknowledgedToday, refundsToday);
+  // Get all complete checkouts for today (scheduled and early)
+  const { data: completedCheckouts, error: checkoutsError } = await supabase
+    .from('customers')
+    .select('*')
+    .eq('checkoutdate', todayStr);
+    
+  if (checkoutsError) {
+    console.error('Error fetching completed checkouts:', checkoutsError);
+  }
+  
+  // Total checkouts = regular checkouts + early checkouts
+  const totalCheckouts = (completedCheckouts?.length || 0) + earlyCheckoutRefunds.length;
   
   // Calculate cash in (regular payments)
   const cashIn = todayPayments

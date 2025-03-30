@@ -125,7 +125,7 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
       />
       
       {/* Only render AddCustomerDialog when isAddCustomerDialogOpen is true and we have a valid room */}
-      {isAddCustomerDialogOpen && (
+      {isAddCustomerDialogOpen && room && (
         <AddCustomerDialog 
           isOpen={isAddCustomerDialogOpen}
           onOpenChange={setIsAddCustomerDialogOpen}
