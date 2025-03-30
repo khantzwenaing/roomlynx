@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { getPayments, getCustomers, getRooms, addPayment, resetDatabase } from "@/services/dataService";
 import { Payment, Customer, Room } from "@/types";
@@ -15,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Banknote, CreditCard } from "lucide-react";
 
 const paymentSchema = z.object({
   customerId: z.string({required_error: "Customer is required"}),
@@ -31,6 +32,7 @@ const paymentSchema = z.object({
   }),
   collectedBy: z.string({required_error: "Collector name is required"}),
   notes: z.string().optional().or(z.literal("")),
+  bankRefNo: z.string().optional(),
 });
 
 type PaymentFormValues = z.infer<typeof paymentSchema>;
@@ -116,7 +118,9 @@ const Payments = () => {
         method: data.method,
         status: data.status,
         collectedBy: data.collectedBy,
-        notes: data.notes || undefined
+        notes: data.method === "bank_transfer" 
+          ? `Bank Ref: ${data.bankRefNo || "N/A"}` 
+          : data.notes || undefined
       });
 
       setPayments([...payments, newPayment]);
@@ -260,7 +264,13 @@ const Payments = () => {
                         <FormItem>
                           <FormLabel>Payment Method</FormLabel>
                           <Select 
-                            onValueChange={field.onChange} 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              // Clear bank reference if not bank transfer
+                              if (value !== "bank_transfer") {
+                                form.setValue("bankRefNo", "");
+                              }
+                            }} 
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -269,9 +279,24 @@ const Payments = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="cash">Cash</SelectItem>
-                              <SelectItem value="card">Card</SelectItem>
-                              <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                              <SelectItem value="cash">
+                                <div className="flex items-center">
+                                  <Banknote className="mr-2" size={16} />
+                                  Cash
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="card">
+                                <div className="flex items-center">
+                                  <CreditCard className="mr-2" size={16} />
+                                  Card
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="bank_transfer">
+                                <div className="flex items-center">
+                                  <CreditCard className="mr-2" size={16} />
+                                  Bank Transfer
+                                </div>
+                              </SelectItem>
                               <SelectItem value="other">Other</SelectItem>
                             </SelectContent>
                           </Select>
@@ -279,6 +304,23 @@ const Payments = () => {
                         </FormItem>
                       )}
                     />
+                    
+                    {form.watch("method") === "bank_transfer" && (
+                      <FormField
+                        control={form.control}
+                        name="bankRefNo"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Bank Reference Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter transaction reference" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    
                     <FormField
                       control={form.control}
                       name="status"
@@ -373,7 +415,9 @@ const Payments = () => {
                 <div className="text-sm text-gray-500">
                   Date: {new Date(payment.date).toLocaleDateString()}
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 flex items-center">
+                  {payment.method === "cash" && <Banknote className="h-4 w-4 mr-1" />}
+                  {(payment.method === "card" || payment.method === "bank_transfer") && <CreditCard className="h-4 w-4 mr-1" />}
                   Method: {payment.method.replace('_', ' ').charAt(0).toUpperCase() + payment.method.replace('_', ' ').slice(1)}
                 </div>
                 <div className="text-sm text-gray-500">

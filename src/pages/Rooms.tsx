@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
@@ -256,6 +257,15 @@ const Rooms = () => {
       return;
     }
     
+    if (paymentInfo.method === "bank_transfer" && !paymentInfo.bankRefNo.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter bank transaction reference number",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const customer = roomCustomers[selectedRoom.id];
     if (customer) {
       addPayment({
@@ -263,7 +273,7 @@ const Rooms = () => {
         roomId: selectedRoom.id,
         amount: paymentInfo.amount,
         date: new Date().toISOString(),
-        method: paymentInfo.method as "cash" | "bank_transfer",
+        method: paymentInfo.method as "cash" | "card" | "bank_transfer" | "other",
         collectedBy: paymentInfo.collectedBy,
         status: "paid",
         notes: paymentInfo.method === "bank_transfer" ? `Bank Ref: ${paymentInfo.bankRefNo}` : "Cash payment",
@@ -769,6 +779,12 @@ const Rooms = () => {
                       Cash
                     </div>
                   </SelectItem>
+                  <SelectItem value="card">
+                    <div className="flex items-center">
+                      <CreditCard className="mr-2" size={18} />
+                      Card
+                    </div>
+                  </SelectItem>
                   <SelectItem value="bank_transfer">
                     <div className="flex items-center">
                       <CreditCard className="mr-2" size={18} />
@@ -784,7 +800,7 @@ const Rooms = () => {
                 <Label htmlFor="bank-ref" className="text-lg">Bank Reference Number*</Label>
                 <Input
                   id="bank-ref"
-                  placeholder="Enter bank reference number"
+                  placeholder="Enter bank transaction reference number"
                   value={paymentInfo.bankRefNo}
                   onChange={(e) => setPaymentInfo({...paymentInfo, bankRefNo: e.target.value})}
                   className="text-lg h-12"
