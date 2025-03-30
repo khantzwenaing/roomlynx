@@ -19,11 +19,11 @@ const AddCustomerDialog = ({ rooms, onCustomerAdded }: AddCustomerDialogProps) =
       <DialogTrigger asChild>
         <Button>Add New Customer</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[calc(90vh-120px)] overflow-y-auto pr-3">
+        <ScrollArea className="flex-1 overflow-y-auto pr-3">
           <AddCustomerForm 
             rooms={rooms} 
             onCustomerAdded={onCustomerAdded} 
