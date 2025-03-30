@@ -37,7 +37,7 @@ export const createCheckoutReminder = async (
       customerId: data.customerid,
       checkOutDate: data.checkoutdate,
       reminderDate: data.reminderdate,
-      status: data.status,
+      status: data.status as "pending" | "sent" | "acknowledged",
     };
   } catch (error) {
     console.error("Error in createCheckoutReminder:", error);
