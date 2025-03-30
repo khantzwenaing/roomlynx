@@ -22,12 +22,13 @@ export const getPayments = async (): Promise<Payment[]> => {
     collectedBy: payment.collectedby,
     status: payment.status as 'paid' | 'pending' | 'partial',
     notes: payment.notes || '',
-    paymentType: (payment as any).paymenttype as 'deposit' | 'checkout' | 'other' || 'other',
+    paymentType: payment.paymenttype as 'deposit' | 'checkout' | 'other' || 'other',
     isRefund: payment.isrefund || false
   }));
 };
 
 export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment | null> => {
+  // Remove paymentType field if it doesn't exist in the database
   const newPayment = {
     customerid: payment.customerId,
     roomid: payment.roomId,
@@ -37,8 +38,8 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     collectedby: payment.collectedBy,
     status: payment.status,
     notes: payment.notes || null,
-    paymenttype: payment.paymentType || 'other',
     isrefund: payment.isRefund || false
+    // paymenttype field removed as it doesn't exist in the database
   };
   
   const { data, error } = await supabase
@@ -62,7 +63,7 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     collectedBy: data.collectedby,
     status: data.status as 'paid' | 'pending' | 'partial',
     notes: data.notes || '',
-    paymentType: (data as any).paymenttype as 'deposit' | 'checkout' | 'other' || 'other',
+    paymentType: 'checkout', // Default value since it's not in the database
     isRefund: data.isrefund || false
   };
 };

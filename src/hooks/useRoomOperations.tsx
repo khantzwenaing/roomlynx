@@ -133,7 +133,7 @@ export const useRoomOperations = (room: Room, customer: Customer | null, onRoomU
     }
 
     try {
-      // 1. Add payment record
+      // 1. Add payment record - removed paymentType field to match database schema
       const paymentData = {
         customerId: customer.id,
         roomId: room.id,
@@ -142,7 +142,8 @@ export const useRoomOperations = (room: Room, customer: Customer | null, onRoomU
         method: checkoutDetails.paymentMethod,
         collectedBy: checkoutDetails.collectedBy,
         status: "paid" as "paid" | "pending" | "partial",
-        notes: checkoutDetails.bankRefNo ? `Bank Ref: ${checkoutDetails.bankRefNo}` : ""
+        notes: checkoutDetails.bankRefNo ? `Bank Ref: ${checkoutDetails.bankRefNo}` : "",
+        isRefund: false
       };
       
       const payment = await addPayment(paymentData);

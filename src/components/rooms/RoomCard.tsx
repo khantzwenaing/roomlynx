@@ -1,28 +1,34 @@
 
 import React from "react";
-import { Room, Customer } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
+import { Room, Customer } from "@/types";
+import { useNavigate } from "react-router-dom";
+import { CleaningCompleteButton } from "./card/CleaningCompleteButton";
+import { RoomActionButtons } from "./card/RoomActionButtons";
+import { RoomCardHeader } from "./card/RoomCardHeader";
+import { RoomCardInfo } from "./card/RoomCardInfo";
+import { GuestInfo } from "./card/GuestInfo";
+import { CheckoutDialog } from "./dialogs/CheckoutDialog";
+import { DeleteRoomDialog } from "./dialogs/DeleteRoomDialog";
 import { useRoomOperations } from "@/hooks/useRoomOperations";
-import RoomCardHeader from "./card/RoomCardHeader";
-import RoomCardInfo from "./card/RoomCardInfo";
-import GuestInfo from "./card/GuestInfo";
-import RoomActionButtons from "./card/RoomActionButtons";
-import CleaningCompleteButton from "./card/CleaningCompleteButton";
-import DeleteRoomDialog from "./dialogs/DeleteRoomDialog";
-import CheckoutDialog from "./dialogs/CheckoutDialog";
-import AddCustomerDialog from "./dialogs/AddCustomerDialog";
+import { AddCustomerDialog } from "./dialogs/AddCustomerDialog";
 
 interface RoomCardProps {
   room: Room;
   customer: Customer | null;
-  onRoomClick: (room: Room) => void;
-  onCustomerAdded: () => void;
+  onRoomUpdated: () => void;
 }
 
-const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProps) => {
+const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
+  const navigate = useNavigate();
+  
+  console.info(`RoomCard ${room.roomNumber} - Status: ${room.status}, Customer:`, customer);
+  
   const {
     isDeleteDialogOpen,
     setIsDeleteDialogOpen,
+    cleanedBy,
+    setCleanedBy,
     isCheckoutDialogOpen,
     setIsCheckoutDialogOpen,
     isAddCustomerDialogOpen,
@@ -34,78 +40,78 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
     handleDeleteRoom,
     handleCleaningComplete,
     handleCheckout,
-  } = useRoomOperations(room, customer);
+  } = useRoomOperations(room, customer, onRoomUpdated);
 
-  console.log(`RoomCard ${room.roomNumber} - Status: ${room.status}, Customer:`, customer);
-
-  const handleCustomerAdded = () => {
-    console.log(`Customer added to room ${room.roomNumber} - refreshing data`);
-    // This will refresh the entire room list, including status changes
-    onCustomerAdded();
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    navigate(`/room-details?roomId=${room.id}`);
   };
 
-  // Handle card click without affecting buttons inside
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Only navigate if the click was directly on the card or certain elements, not on interactive elements
-    if (e.target === e.currentTarget || 
-        (e.target as HTMLElement).closest('.card-clickable-area')) {
-      onRoomClick(room);
-    }
+  const handleAddCustomer = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    setIsAddCustomerDialogOpen(true);
+  };
+
+  const handleCheckoutClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    setIsCheckoutDialogOpen(true);
+  };
+
+  const handleCleaningSubmit = async (cleanerName: string) => {
+    await handleCleaningComplete(cleanerName);
   };
 
   return (
-    <Card 
-      key={room.id} 
-      className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
-      onClick={handleCardClick}
-    >
-      <RoomCardHeader 
-        room={room} 
-        onDeleteClick={(e) => {
-          e.stopPropagation();
-          setIsDeleteDialogOpen(true);
-        }} 
-      />
-      
-      <CardContent className="p-5 card-clickable-area">
-        <div className="space-y-4">
-          <RoomCardInfo room={room} />
-          
-          {room.status === "occupied" && customer && (
-            <GuestInfo customer={customer} />
-          )}
-          
-          <RoomActionButtons 
+    <>
+      <Card 
+        className={`h-full cursor-pointer hover:shadow-md transition-shadow duration-300 ${
+          room.status === "vacant" ? "bg-white" : 
+          room.status === "occupied" ? "bg-blue-50" : 
+          room.status === "cleaning" ? "bg-yellow-50" : 
+          room.status === "maintenance" ? "bg-red-50" : ""
+        }`}
+        onClick={handleCardClick}
+      >
+        <CardContent className="p-0">
+          <RoomCardHeader 
             room={room} 
-            onAddCustomer={(e) => {
+            onDeleteClick={(e) => {
               e.stopPropagation();
-              setIsAddCustomerDialogOpen(true);
-            }}
-            onCheckout={(e) => {
-              e.stopPropagation();
-              setIsCheckoutDialogOpen(true);
+              setIsDeleteDialogOpen(true);
             }}
           />
           
-          {room.status === "cleaning" && (
-            <CleaningCompleteButton 
-              onCleaningComplete={(e) => {
-                e.stopPropagation();
-                handleCleaningComplete();
-              }}
+          <div className="p-4">
+            <RoomCardInfo room={room} />
+            
+            {room.status === "occupied" && customer && (
+              <GuestInfo customer={customer} />
+            )}
+            
+            {room.status === "cleaning" && (
+              <CleaningCompleteButton
+                onComplete={handleCleaningSubmit}
+                cleanerName={cleanedBy}
+                setCleanerName={setCleanedBy}
+              />
+            )}
+            
+            <RoomActionButtons
+              room={room}
+              onAddCustomer={handleAddCustomer}
+              onCheckout={handleCheckoutClick}
             />
-          )}
-        </div>
-      </CardContent>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Dialogs */}
       <DeleteRoomDialog 
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDeleteRoom}
         roomNumber={room.roomNumber}
       />
-
+      
       <CheckoutDialog 
         isOpen={isCheckoutDialogOpen}
         onOpenChange={setIsCheckoutDialogOpen}
@@ -117,14 +123,17 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
         calculateAmountDue={calculateAmountDue}
         calculateTotalStay={calculateTotalStay}
       />
-
+      
       <AddCustomerDialog 
         isOpen={isAddCustomerDialogOpen}
         onOpenChange={setIsAddCustomerDialogOpen}
-        room={room}
-        onCustomerAdded={handleCustomerAdded}
+        preselectedRoomId={room.id}
+        onCustomerAdded={() => {
+          setIsAddCustomerDialogOpen(false);
+          onRoomUpdated();
+        }}
       />
-    </Card>
+    </>
   );
 };
 
