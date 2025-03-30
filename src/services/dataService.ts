@@ -5,6 +5,7 @@ export * from './customersService';
 export * from './paymentsService';
 export * from './reportsService';
 export * from './utilityService';
+export * from './remindersService';
 
 // Helper function to load customers for rooms
 export const loadCustomersForRooms = async () => {

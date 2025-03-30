@@ -208,6 +208,51 @@ export type Database = {
           },
         ]
       }
+      rent_reminders: {
+        Row: {
+          checkoutdate: string
+          created_at: string | null
+          customerid: string
+          id: string
+          reminderdate: string
+          roomid: string
+          status: string
+        }
+        Insert: {
+          checkoutdate: string
+          created_at?: string | null
+          customerid: string
+          id?: string
+          reminderdate: string
+          roomid: string
+          status?: string
+        }
+        Update: {
+          checkoutdate?: string
+          created_at?: string | null
+          customerid?: string
+          id?: string
+          reminderdate?: string
+          roomid?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rent_reminders_customerid_fkey"
+            columns: ["customerid"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_reminders_roomid_fkey"
+            columns: ["roomid"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           cleanedby: string | null

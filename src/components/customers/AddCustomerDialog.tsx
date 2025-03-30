@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import AddCustomerForm from "./AddCustomerForm";
 import { Room, Customer } from "@/types";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AddCustomerDialogProps {
   rooms: Room[];
@@ -18,15 +19,17 @@ const AddCustomerDialog = ({ rooms, onCustomerAdded }: AddCustomerDialogProps) =
       <DialogTrigger asChild>
         <Button>Add New Customer</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
         </DialogHeader>
-        <AddCustomerForm 
-          rooms={rooms} 
-          onCustomerAdded={onCustomerAdded} 
-          onClose={() => setOpen(false)} 
-        />
+        <ScrollArea className="max-h-[calc(90vh-120px)] overflow-y-auto pr-3">
+          <AddCustomerForm 
+            rooms={rooms} 
+            onCustomerAdded={onCustomerAdded} 
+            onClose={() => setOpen(false)} 
+          />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

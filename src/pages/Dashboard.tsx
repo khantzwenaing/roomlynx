@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { getRooms, getDailyReports, getCustomers } from "@/services/dataService";
+import { getRooms, getDailyReports, getCustomers, deleteCheckoutReminder } from "@/services/dataService";
 import { Room, DailyReport, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,16 +9,19 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, 
   Legend, ResponsiveContainer, PieChart, Pie 
 } from "recharts";
-import { BedDouble, ChartPieIcon, CreditCard, Users, Calendar, Clock, Bell, BellRing, Brush } from "lucide-react";
+import { BedDouble, ChartPieIcon, CreditCard, Users, Calendar, Clock, Bell, BellRing, Brush, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isAfter, isBefore, addDays } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import CheckoutReminderAlert from "@/components/reminders/CheckoutReminderAlert";
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [checkoutToDelete, setCheckoutToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,9 +65,37 @@ const Dashboard = () => {
       return parseISO(a.checkOutDate).getTime() - parseISO(b.checkOutDate).getTime();
     });
 
+  const handleDeleteCheckout = async (customerId: string) => {
+    try {
+      // Delete the checkout reminder if it exists
+      await deleteCheckoutReminder(customerId);
+      
+      // Update UI (optional)
+      toast({
+        title: "Success",
+        description: "Customer checkout has been removed from the list",
+      });
+      
+      // Update the local customers list - in a real implementation, 
+      // you might want to refetch data instead
+      setCustomers(prev => prev.filter(c => c.id !== customerId));
+      
+    } catch (error) {
+      console.error("Error removing checkout:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove customer checkout",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+
+      {/* Add the checkout reminder alert */}
+      <CheckoutReminderAlert />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -136,6 +168,7 @@ const Dashboard = () => {
                     <TableHead>Check-in Date</TableHead>
                     <TableHead>Check-out Date</TableHead>
                     <TableHead>Phone</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -157,6 +190,37 @@ const Dashboard = () => {
                           </div>
                         </TableCell>
                         <TableCell>{customer.phone}</TableCell>
+                        <TableCell>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button 
+                                className="text-gray-500 hover:text-red-500"
+                                onClick={() => setCheckoutToDelete(customer.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Remove from upcoming checkouts?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will remove the customer from the upcoming checkouts list. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setCheckoutToDelete(null)}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => {
+                                  if (checkoutToDelete) {
+                                    handleDeleteCheckout(checkoutToDelete);
+                                    setCheckoutToDelete(null);
+                                  }
+                                }}>
+                                  Remove
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
