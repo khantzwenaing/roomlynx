@@ -25,16 +25,30 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
     }
   };
 
-  const getPaymentTypeBadge = (paymentType?: string) => {
+  const getPaymentTypeBadge = (paymentType?: Payment["paymentType"]) => {
     switch (paymentType) {
       case "deposit":
-        return <Badge className="bg-blue-500">Check-in Deposit</Badge>;
+        return {
+          icon: <LogIn className="mr-1 h-4 w-4" />,
+          color: "bg-blue-500",
+          text: "Check-in Deposit"
+        };
       case "checkout":
-        return <Badge className="bg-red-500">Checkout Payment</Badge>;
+        return {
+          icon: <LogOut className="mr-1 h-4 w-4" />,
+          color: "bg-red-500", 
+          text: "Checkout Payment"
+        };
       default:
-        return <Badge className="bg-gray-500">Other Payment</Badge>;
+        return {
+          icon: <WalletCards className="mr-1 h-4 w-4" />,
+          color: "bg-gray-500",
+          text: "Other Payment"
+        };
     }
   };
+
+  const paymentTypeBadge = getPaymentTypeBadge(payment.paymentType);
 
   return (
     <Card>
@@ -45,8 +59,11 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
             {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
           </Badge>
         </div>
-        <div className="mt-2">
-          {getPaymentTypeBadge(payment.paymentType)}
+        <div className="mt-2 flex items-center">
+          <Badge className={`${paymentTypeBadge.color} flex items-center`}>
+            {paymentTypeBadge.icon}
+            {paymentTypeBadge.text}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent>
