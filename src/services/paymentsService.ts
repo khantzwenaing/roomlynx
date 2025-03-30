@@ -22,8 +22,8 @@ export const getPayments = async (): Promise<Payment[]> => {
     collectedBy: payment.collectedby,
     status: payment.status as 'paid' | 'pending' | 'partial',
     notes: payment.notes || '',
-    // Using optional chaining (?.) to safely access paymenttype if it exists
-    paymentType: (payment as any).paymenttype as 'deposit' | 'checkout' | 'other' || 'other'
+    paymentType: (payment as any).paymenttype as 'deposit' | 'checkout' | 'other' || 'other',
+    isRefund: payment.isrefund || false
   }));
 };
 
@@ -37,7 +37,8 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     collectedby: payment.collectedBy,
     status: payment.status,
     notes: payment.notes || null,
-    paymenttype: payment.paymentType || 'other'
+    paymenttype: payment.paymentType || 'other',
+    isrefund: payment.isRefund || false
   };
   
   const { data, error } = await supabase
@@ -61,8 +62,8 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     collectedBy: data.collectedby,
     status: data.status as 'paid' | 'pending' | 'partial',
     notes: data.notes || '',
-    // Using type assertion to safely access paymenttype if it exists
-    paymentType: (data as any).paymenttype as 'deposit' | 'checkout' | 'other' || 'other'
+    paymentType: (data as any).paymenttype as 'deposit' | 'checkout' | 'other' || 'other',
+    isRefund: data.isrefund || false
   };
 };
 
@@ -71,4 +72,53 @@ export const processCheckout = async (roomId: string, paymentDetails: any) => {
   // In a real implementation, this would handle the checkout logic
   console.log("Processing checkout for room", roomId, "with payment details", paymentDetails);
   return true;
+};
+
+export const processEarlyCheckout = async (
+  roomId: string, 
+  customerId: string, 
+  actualCheckoutDate: string, 
+  refundAmount: number,
+  refundDetails: {
+    method: 'cash' | 'bank_transfer' | 'other',
+    collectedBy: string,
+    notes?: string
+  }
+): Promise<boolean> => {
+  try {
+    // 1. Create a refund payment record
+    if (refundAmount > 0) {
+      const refundPayment = {
+        customerId,
+        roomId,
+        amount: refundAmount,
+        date: new Date().toISOString(),
+        method: refundDetails.method,
+        collectedBy: refundDetails.collectedBy,
+        status: 'paid' as 'paid', 
+        notes: `Refund for early checkout: ${refundDetails.notes || ''}`,
+        paymentType: 'checkout' as 'checkout',
+        isRefund: true
+      };
+      
+      const payment = await addPayment(refundPayment);
+      if (!payment) return false;
+    }
+    
+    // 2. Update customer's checkout date
+    const { error } = await supabase
+      .from('customers')
+      .update({ checkoutdate: actualCheckoutDate })
+      .eq('id', customerId);
+      
+    if (error) {
+      console.error('Error updating customer checkout date:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error processing early checkout:', error);
+    return false;
+  }
 };

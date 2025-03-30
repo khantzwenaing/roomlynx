@@ -24,6 +24,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
     roomId: customer.roomid,
     depositAmount: customer.depositamount ? Number(customer.depositamount) : undefined,
     depositPaymentMethod: customer.depositpaymentmethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
+    depositCollectedBy: customer.depositcollectedby || undefined,
     bankRefNo: customer.bankrefno
   }));
 };
@@ -40,6 +41,7 @@ export const addCustomer = async (customer: Omit<Customer, "id">): Promise<Custo
     roomid: customer.roomId,
     depositamount: customer.depositAmount || null,
     depositpaymentmethod: customer.depositPaymentMethod || null,
+    depositcollectedby: customer.depositCollectedBy || null,
     bankrefno: customer.bankRefNo || null
   };
   
@@ -66,6 +68,7 @@ export const addCustomer = async (customer: Omit<Customer, "id">): Promise<Custo
     roomId: data.roomid,
     depositAmount: data.depositamount ? Number(data.depositamount) : undefined,
     depositPaymentMethod: data.depositpaymentmethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
+    depositCollectedBy: data.depositcollectedby || undefined,
     bankRefNo: data.bankrefno
   };
 };

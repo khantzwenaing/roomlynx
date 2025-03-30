@@ -5,6 +5,7 @@ import { DailyReport } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 const Reports = () => {
   const [reports, setReports] = useState<DailyReport[]>([]);
@@ -78,6 +79,38 @@ const Reports = () => {
         </Button>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center text-green-600">
+              <ArrowUpIcon className="mr-2 h-5 w-5" />
+              Cash In
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              ${reports.length > 0 ? reports[0].cashIn || 0 : 0}
+            </div>
+            <p className="text-sm text-gray-500">Today's incoming payments</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center text-red-600">
+              <ArrowDownIcon className="mr-2 h-5 w-5" />
+              Cash Out
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              ${reports.length > 0 ? reports[0].cashOut || 0 : 0}
+            </div>
+            <p className="text-sm text-gray-500">Today's refunds and expenses</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Report History</CardTitle>
@@ -109,7 +142,9 @@ const Reports = () => {
                     <th className="px-4 py-2 text-right">Need Cleaning</th>
                     <th className="px-4 py-2 text-right">Check-ins</th>
                     <th className="px-4 py-2 text-right">Check-outs</th>
-                    <th className="px-4 py-2 text-right">Revenue</th>
+                    <th className="px-4 py-2 text-right">Cash In</th>
+                    <th className="px-4 py-2 text-right">Cash Out</th>
+                    <th className="px-4 py-2 text-right">Net Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -123,6 +158,8 @@ const Reports = () => {
                       <td className="px-4 py-2 text-right">{report.roomsNeedCleaning}</td>
                       <td className="px-4 py-2 text-right">{report.expectedCheckIns}</td>
                       <td className="px-4 py-2 text-right">{report.expectedCheckOuts}</td>
+                      <td className="px-4 py-2 text-right font-medium text-green-600">${report.cashIn || 0}</td>
+                      <td className="px-4 py-2 text-right font-medium text-red-600">${report.cashOut || 0}</td>
                       <td className="px-4 py-2 text-right font-medium">${report.totalRevenue}</td>
                     </tr>
                   ))}

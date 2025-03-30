@@ -29,6 +29,7 @@ export type Customer = {
   roomId: string;
   depositAmount?: number;
   depositPaymentMethod?: 'cash' | 'card' | 'bank_transfer' | 'other';
+  depositCollectedBy?: string;
   bankRefNo?: string;
 };
 
@@ -43,6 +44,7 @@ export type Payment = {
   status: 'paid' | 'pending' | 'partial';
   notes?: string;
   paymentType?: 'deposit' | 'checkout' | 'other';
+  isRefund?: boolean;
 };
 
 export type DailyReport = {
@@ -55,6 +57,8 @@ export type DailyReport = {
   expectedCheckIns: number;
   expectedCheckOuts: number;
   totalRevenue: number;
+  cashIn: number;
+  cashOut: number;
 };
 
 export type CleaningRecord = {

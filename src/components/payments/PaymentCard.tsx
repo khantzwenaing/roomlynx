@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Banknote, CreditCard, LogIn, LogOut, WalletCards } from "lucide-react";
+import { Banknote, CreditCard } from "lucide-react";
 import { Payment } from "@/types";
 
 interface PaymentCardProps {
@@ -24,31 +24,6 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
         return "bg-gray-500";
     }
   };
-
-  const getPaymentTypeBadge = (paymentType?: Payment["paymentType"]) => {
-    switch (paymentType) {
-      case "deposit":
-        return {
-          icon: <LogIn className="mr-1 h-4 w-4" />,
-          color: "bg-blue-500",
-          text: "Check-in Deposit"
-        };
-      case "checkout":
-        return {
-          icon: <LogOut className="mr-1 h-4 w-4" />,
-          color: "bg-red-500", 
-          text: "Checkout Payment"
-        };
-      default:
-        return {
-          icon: <WalletCards className="mr-1 h-4 w-4" />,
-          color: "bg-gray-500",
-          text: "Other Payment"
-        };
-    }
-  };
-
-  const paymentTypeBadge = getPaymentTypeBadge(payment.paymentType);
 
   // Function to render notes with "Deposit" in bold
   const renderNotes = (notes: string) => {
@@ -75,12 +50,6 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
           <CardTitle className="text-lg">${payment.amount}</CardTitle>
           <Badge className={getPaymentStatusColor(payment.status)}>
             {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-          </Badge>
-        </div>
-        <div className="mt-2 flex items-center">
-          <Badge className={`${paymentTypeBadge.color} flex items-center`}>
-            {paymentTypeBadge.icon}
-            {paymentTypeBadge.text}
           </Badge>
         </div>
       </CardHeader>

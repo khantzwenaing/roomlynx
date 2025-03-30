@@ -5,7 +5,7 @@ import RoomDetailsDialog from "@/components/RoomDetailsDialog";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import { calculateDays } from "@/utils/date-utils";
-import { processCheckout, addPayment } from "@/services/dataService";
+import { processCheckout, addPayment, processEarlyCheckout } from "@/services/dataService";
 import { updateRoom } from "@/services/roomsService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -66,6 +66,57 @@ const RoomDetailsSheet = ({
     }
   };
 
+  const handleEarlyCheckout = async (
+    actualCheckoutDate: string, 
+    refundAmount: number, 
+    refundDetails: {
+      method: 'cash' | 'bank_transfer' | 'other',
+      collectedBy: string,
+      notes?: string
+    }
+  ) => {
+    if (!selectedRoom || !roomCustomers[selectedRoom.id]) return;
+    
+    const customer = roomCustomers[selectedRoom.id];
+    if (!customer) return;
+    
+    try {
+      const success = await processEarlyCheckout(
+        selectedRoom.id, 
+        customer.id, 
+        actualCheckoutDate, 
+        refundAmount, 
+        refundDetails
+      );
+      
+      if (success) {
+        // Update room status
+        await updateRoom(selectedRoom.id, { status: 'cleaning' });
+        
+        toast({
+          title: "Checkout Complete",
+          description: `Room ${selectedRoom.roomNumber} has been checked out early and refund processed`,
+        });
+        
+        onOpenChange(false);
+        onRoomUpdated();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to process early checkout",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error during early checkout:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during checkout",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleEditRoom = async (updatedRoom: Partial<Room>) => {
     if (!selectedRoom) return;
     
@@ -104,6 +155,7 @@ const RoomDetailsSheet = ({
           isOpen={isOpen}
           onClose={() => onOpenChange(false)}
           onCheckout={handleCheckout}
+          onEarlyCheckout={handleEarlyCheckout}
           onEdit={handleEditRoom}
         />
       </SheetContent>

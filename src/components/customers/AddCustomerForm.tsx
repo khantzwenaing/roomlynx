@@ -26,6 +26,7 @@ const customerSchema = z.object({
     message: "Deposit amount must be a positive number"
   }),
   depositPaymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'other']).optional(),
+  depositCollectedBy: z.string().optional(),
   bankRefNo: z.string().optional()
 });
 
@@ -55,6 +56,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
       checkOutDate: new Date(Date.now() + 86400000),
       depositAmount: "",
       depositPaymentMethod: undefined,
+      depositCollectedBy: "",
       bankRefNo: undefined
     }
   });
@@ -72,6 +74,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         checkOutDate: data.checkOutDate.toISOString().split('T')[0],
         depositAmount: data.depositAmount ? Number(data.depositAmount) : undefined,
         depositPaymentMethod: data.depositPaymentMethod,
+        depositCollectedBy: data.depositCollectedBy,
         bankRefNo: data.depositPaymentMethod === 'bank_transfer' ? data.bankRefNo : undefined
       });
 
@@ -281,6 +284,23 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="depositCollectedBy"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Collected By</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter staff name who collected the deposit" 
+                      {...field} 
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

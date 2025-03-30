@@ -24,7 +24,9 @@ export const getDailyReports = async (): Promise<DailyReport[]> => {
     roomsNeedCleaning: report.roomsneedcleaning,
     expectedCheckIns: report.expectedcheckins,
     expectedCheckOuts: report.expectedcheckouts,
-    totalRevenue: Number(report.totalrevenue)
+    totalRevenue: Number(report.totalrevenue),
+    cashIn: Number(report.cashin || 0),
+    cashOut: Number(report.cashout || 0)
   }));
 };
 
@@ -55,7 +57,18 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
     new Date(payment.date).toISOString().split('T')[0] === todayStr
   );
   
-  const totalRevenue = todayPayments.reduce((sum, payment) => sum + payment.amount, 0);
+  // Calculate cash in (regular payments)
+  const cashIn = todayPayments
+    .filter(payment => !payment.isRefund)
+    .reduce((sum, payment) => sum + payment.amount, 0);
+
+  // Calculate cash out (refunds)
+  const cashOut = todayPayments
+    .filter(payment => payment.isRefund)
+    .reduce((sum, payment) => sum + payment.amount, 0);
+
+  // Net revenue = cash in - cash out
+  const totalRevenue = cashIn - cashOut;
   
   const newReport = {
     date: today.toISOString(),
@@ -65,7 +78,9 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
     roomsneedcleaning: cleaningRooms,
     expectedcheckins: checkIns,
     expectedcheckouts: checkOuts,
-    totalrevenue: totalRevenue
+    totalrevenue: totalRevenue,
+    cashin: cashIn,
+    cashout: cashOut
   };
   
   const { data, error } = await supabase
@@ -88,7 +103,9 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
     roomsNeedCleaning: data.roomsneedcleaning,
     expectedCheckIns: data.expectedcheckins,
     expectedCheckOuts: data.expectedcheckouts,
-    totalRevenue: Number(data.totalrevenue)
+    totalRevenue: Number(data.totalrevenue),
+    cashIn: Number(data.cashin || 0),
+    cashOut: Number(data.cashout || 0)
   };
 };
 
