@@ -5,7 +5,6 @@ import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -252,41 +251,12 @@ const RoomCard = ({ room, customer, onRoomClick }: RoomCardProps) => {
             )}
             
             {room.status === "cleaning" && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button 
-                    className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
-                  >
-                    Complete Cleaning
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="text-xl">Mark Room as Cleaned</DialogTitle>
-                    <DialogDescription>
-                      Enter the name of the person who cleaned the room.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-6 py-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="cleaned-by" className="text-lg">Cleaned By</Label>
-                      <Input
-                        id="cleaned-by"
-                        placeholder="Enter name of cleaner"
-                        value={cleanedBy}
-                        onChange={(e) => setCleanedBy(e.target.value)}
-                        className="text-lg h-12"
-                      />
-                    </div>
-                    <Button 
-                      onClick={handleCleaningComplete} 
-                      className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
-                    >
-                      Mark as Clean
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <Button 
+                className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
+                onClick={handleCleaningComplete}
+              >
+                Complete Cleaning
+              </Button>
             )}
           </div>
         </div>
