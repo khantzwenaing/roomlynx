@@ -60,3 +60,10 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     notes: data.notes || ''
   };
 };
+
+export const processCheckout = async (roomId: string, paymentDetails: any) => {
+  // This is a placeholder for the actual checkout process
+  // In a real implementation, this would handle the checkout logic
+  console.log("Processing checkout for room", roomId, "with payment details", paymentDetails);
+  return true;
+};

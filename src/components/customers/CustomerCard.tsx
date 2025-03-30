@@ -16,6 +16,7 @@ interface CustomerCardProps {
 
 export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const getRoomNumber = (roomId: string) => {
     const room = rooms.find((r) => r.id === roomId);
@@ -36,28 +37,30 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
 
   const checkoutStatus = getCheckoutStatus(customer.checkOutDate);
 
+  const handleViewDetails = () => {
+    setSelectedCustomer(customer);
+    setIsDetailsOpen(true);
+  };
+
+  const handleCheckoutClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.location.href = `/rooms?roomId=${customer.roomId}&action=checkout`;
+  };
+
   return (
     <Card key={customer.id} className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg">{customer.name}</CardTitle>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setSelectedCustomer(customer)}
-                className="flex items-center"
-              >
-                <Eye className="mr-1 h-4 w-4" />
-                View
-              </Button>
-            </DialogTrigger>
-            <CustomerDetailsDialog 
-              customer={selectedCustomer} 
-              getRoomNumber={getRoomNumber} 
-            />
-          </Dialog>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleViewDetails}
+            className="flex items-center"
+          >
+            <Eye className="mr-1 h-4 w-4" />
+            View
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -99,8 +102,24 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
               Deposit: ${customer.depositAmount}
             </div>
           )}
+
+          <Button 
+            className="mt-2 w-full bg-red-600 hover:bg-red-700"
+            size="sm"
+            onClick={handleCheckoutClick}
+          >
+            <CreditCard className="mr-1 h-4 w-4" />
+            Checkout & Payment
+          </Button>
         </div>
       </CardContent>
+
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <CustomerDetailsDialog 
+          customer={selectedCustomer} 
+          getRoomNumber={getRoomNumber} 
+        />
+      </Dialog>
     </Card>
   );
 };
