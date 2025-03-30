@@ -116,6 +116,20 @@ export const processEarlyCheckout = async (
       return false;
     }
     
+    // 3. Update or delete the checkout reminder
+    const reminderResult = await supabase
+      .from('rent_reminders')
+      .update({ 
+        status: 'acknowledged', 
+        checkoutdate: actualCheckoutDate 
+      })
+      .eq('customerid', customerId);
+    
+    if (reminderResult.error) {
+      console.error('Error updating checkout reminder:', reminderResult.error);
+      // Don't fail the whole operation if this part fails
+    }
+    
     return true;
   } catch (error) {
     console.error('Error processing early checkout:', error);

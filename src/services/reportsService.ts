@@ -4,6 +4,7 @@ import { DailyReport, CleaningRecord } from "@/types";
 import { getRooms } from "./roomsService";
 import { getCustomers } from "./customersService";
 import { getPayments } from "./paymentsService";
+import { getCheckoutReminders } from "./remindersService";
 
 export const getDailyReports = async (): Promise<DailyReport[]> => {
   const { data, error } = await supabase
@@ -42,14 +43,25 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   
-  // Count check-ins and check-outs
+  // Count check-ins and check-outs for today
   const checkIns = customers.filter(customer => 
     new Date(customer.checkInDate).toISOString().split('T')[0] === todayStr
   ).length;
   
+  // Get all customers who checked out today (including early checkouts)
   const checkOuts = customers.filter(customer => 
     new Date(customer.checkOutDate).toISOString().split('T')[0] === todayStr
   ).length;
+  
+  // Get reminders with 'acknowledged' status for today (early checkouts)
+  const reminders = await getCheckoutReminders();
+  const acknowledgedToday = reminders.filter(reminder => 
+    reminder.status === 'acknowledged' &&
+    new Date(reminder.checkOutDate).toISOString().split('T')[0] === todayStr
+  ).length;
+  
+  // Combine regular checkouts with acknowledged reminders
+  const totalCheckouts = checkOuts + acknowledgedToday;
   
   // Get payments for today to calculate revenue
   const payments = await getPayments();
@@ -77,7 +89,7 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
     vacantrooms: vacantRooms,
     roomsneedcleaning: cleaningRooms,
     expectedcheckins: checkIns,
-    expectedcheckouts: checkOuts,
+    expectedcheckouts: totalCheckouts,
     totalrevenue: totalRevenue,
     cashin: cashIn,
     cashout: cashOut

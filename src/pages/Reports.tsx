@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
-import { getDailyReports, generateDailyReport } from "@/services/dataService";
-import { DailyReport } from "@/types";
+import { getDailyReports, generateDailyReport, getCheckoutReminders } from "@/services/dataService";
+import { DailyReport, RentReminder } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +8,7 @@ import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 const Reports = () => {
   const [reports, setReports] = useState<DailyReport[]>([]);
+  const [reminders, setReminders] = useState<RentReminder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
@@ -23,6 +23,10 @@ const Reports = () => {
           new Date(b.date).getTime() - new Date(a.date).getTime()
         );
         setReports(sortedData);
+        
+        // Also load reminders to make sure we have the latest data
+        const remindersData = await getCheckoutReminders();
+        setReminders(remindersData);
       } catch (error) {
         console.error("Error loading reports:", error);
         toast({
