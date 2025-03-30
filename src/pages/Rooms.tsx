@@ -205,13 +205,11 @@ const Rooms = () => {
     setIsDeleteDialogOpen(false);
   };
 
-  const calculateTotalStay = (roomId: string, checkInDate: string, checkOutDate: string) => {
+  const calculateTotalStay = (roomId: string, checkInDate: Date, checkOutDate: Date) => {
     const room = rooms.find(r => r.id === roomId);
     if (!room) return 0;
     
-    const checkIn = new Date(checkInDate);
-    const checkOut = new Date(checkOutDate);
-    const timeDiff = checkOut.getTime() - checkIn.getTime();
+    const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
     const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return Math.max(1, days) * room.rate;
   };
@@ -314,7 +312,7 @@ const Rooms = () => {
       bankRefNo: ""
     });
     
-    const total = calculateTotalStay(room.id, today.toISOString(), tomorrow.toISOString());
+    const total = calculateTotalStay(room.id, today, tomorrow);
     setCalculatedTotalStay(total);
     
     setIsAddCustomerOpen(true);
@@ -466,8 +464,8 @@ const Rooms = () => {
       
       const totalAmount = calculateTotalStay(
         selectedRoom.id, 
-        checkInDate.toISOString(),
-        checkOutDate.toISOString()
+        checkInDate,
+        checkOutDate
       );
       
       setCalculatedTotalStay(totalAmount);
