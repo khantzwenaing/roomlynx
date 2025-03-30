@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
@@ -44,8 +45,12 @@ const Rooms = () => {
 
   const handleDataRefresh = () => {
     console.log("Triggering data refresh...");
+    // Perform room data refresh
     loadRooms();
-    loadCustomersForRooms();
+    // Make sure to refresh customer data for rooms
+    setTimeout(() => {
+      loadCustomersForRooms();
+    }, 500); // Small delay to ensure database updates are completed
   };
 
   const handleResetDatabase = async () => {

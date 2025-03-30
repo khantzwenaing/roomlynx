@@ -36,7 +36,10 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
     handleCheckout,
   } = useRoomOperations(room, customer);
 
+  console.log(`RoomCard ${room.roomNumber} - Status: ${room.status}, Customer:`, customer);
+
   const handleCustomerAdded = () => {
+    console.log(`Customer added to room ${room.roomNumber} - refreshing data`);
     // This will refresh the entire room list, including status changes
     onCustomerAdded();
   };

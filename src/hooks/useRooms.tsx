@@ -15,8 +15,10 @@ export const useRooms = () => {
   const loadRooms = useCallback(async () => {
     setIsLoading(true);
     try {
+      console.log("Loading rooms data...");
       const roomsData = await getRooms();
       setRooms(roomsData);
+      console.log("Loaded rooms:", roomsData.length);
     } catch (error) {
       console.error("Error loading rooms:", error);
       toast({
@@ -31,7 +33,9 @@ export const useRooms = () => {
 
   const loadCustomersForRooms = useCallback(async () => {
     try {
+      console.log("Loading customer data for rooms...");
       const customerMap = await fetchRoomCustomers();
+      console.log("Loaded customers map:", Object.keys(customerMap).length);
       setRoomCustomers(customerMap);
     } catch (error) {
       console.error("Error loading customers for rooms:", error);

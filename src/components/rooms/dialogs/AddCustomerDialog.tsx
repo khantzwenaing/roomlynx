@@ -36,6 +36,8 @@ const AddCustomerDialog = ({
       
       // Notify parent to refresh data
       onCustomerAdded();
+      
+      // Close the dialog after successful operation
       onOpenChange(false);
     } catch (error) {
       console.error("Error in handleCustomerAdded:", error);
