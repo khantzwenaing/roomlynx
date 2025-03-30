@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getRooms, updateRoom, getCustomers, getRoomDetails, deleteRoom, addCustomer, addPayment } from "@/services/dataService";
@@ -899,4 +900,174 @@ const Rooms = () => {
       </Sheet>
 
       <Sheet open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <SheetContent className="sm:max-w-
+        <SheetContent className="sm:max-w-lg overflow-y-auto" side="right">
+          <SheetHeader>
+            <SheetTitle className="text-xl">
+              Checkout & Payment for Room {selectedRoom?.roomNumber}
+            </SheetTitle>
+            <SheetDescription>
+              Complete the checkout process by collecting payment.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 py-6">
+            {selectedRoom && roomCustomers[selectedRoom.id] && (
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="font-semibold text-lg mb-2">Guest Information</div>
+                <div className="text-md">{roomCustomers[selectedRoom.id]?.name}</div>
+                <div className="text-sm text-gray-600 mt-2">
+                  Check-in: {new Date(roomCustomers[selectedRoom.id]?.checkInDate || "").toLocaleDateString()}
+                </div>
+                <div className="text-sm text-gray-600">
+                  Check-out: {new Date().toLocaleDateString()}
+                </div>
+                
+                <div className="mt-4 border-t border-blue-200 pt-4">
+                  <div className="font-semibold text-lg mb-2">Payment Details</div>
+                  
+                  <div className="flex justify-between text-sm">
+                    <span>Room Rate:</span>
+                    <span>${selectedRoom.rate}/night</span>
+                  </div>
+                  
+                  {roomCustomers[selectedRoom.id] && (
+                    <>
+                      <div className="flex justify-between text-sm mt-1">
+                        <span>Number of Nights:</span>
+                        <span>
+                          {Math.max(1, Math.ceil(
+                            (new Date().getTime() - new Date(roomCustomers[selectedRoom.id]?.checkInDate || "").getTime()) / 
+                            (1000 * 3600 * 24)
+                          ))}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between text-md font-semibold mt-1">
+                        <span>Total Amount:</span>
+                        <span>
+                          ${selectedRoom.rate * Math.max(1, Math.ceil(
+                            (new Date().getTime() - new Date(roomCustomers[selectedRoom.id]?.checkInDate || "").getTime()) / 
+                            (1000 * 3600 * 24)
+                          ))}
+                        </span>
+                      </div>
+                      
+                      {roomCustomers[selectedRoom.id]?.depositAmount > 0 && (
+                        <div className="flex justify-between text-sm mt-1 text-green-700">
+                          <span>Deposit Paid:</span>
+                          <span>- ${roomCustomers[selectedRoom.id]?.depositAmount}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-between text-lg font-bold mt-2 pt-2 border-t border-blue-200">
+                        <span>Amount Due:</span>
+                        <span>${paymentInfo.amount}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="payment-amount" className="text-lg">Payment Amount*</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-500">$</span>
+                <Input
+                  id="payment-amount"
+                  type="number"
+                  min="0"
+                  value={paymentInfo.amount}
+                  onChange={(e) => setPaymentInfo({...paymentInfo, amount: Number(e.target.value)})}
+                  className="text-lg h-12 pl-8"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="payment-method" className="text-lg">Payment Method*</Label>
+              <Select 
+                value={paymentInfo.method} 
+                onValueChange={(value) => setPaymentInfo({...paymentInfo, method: value})}
+              >
+                <SelectTrigger className="text-lg h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">
+                    <div className="flex items-center">
+                      <Banknote className="mr-2" size={18} />
+                      Cash
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="bank_transfer">
+                    <div className="flex items-center">
+                      <CardIcon className="mr-2" size={18} />
+                      Bank Transfer
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {paymentInfo.method === "bank_transfer" && (
+              <div className="space-y-2">
+                <Label htmlFor="bank-ref-payment" className="text-lg">Bank Reference Number*</Label>
+                <Input
+                  id="bank-ref-payment"
+                  placeholder="Enter bank transaction reference number"
+                  value={paymentInfo.bankRefNo}
+                  onChange={(e) => setPaymentInfo({...paymentInfo, bankRefNo: e.target.value})}
+                  className="text-lg h-12"
+                  required
+                />
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="collected-by" className="text-lg">Collected By*</Label>
+              <Input
+                id="collected-by"
+                placeholder="Enter name of staff who collected payment"
+                value={paymentInfo.collectedBy}
+                onChange={(e) => setPaymentInfo({...paymentInfo, collectedBy: e.target.value})}
+                className="text-lg h-12"
+                required
+              />
+            </div>
+          </div>
+          
+          <SheetFooter className="pt-4">
+            <Button
+              type="button"
+              onClick={handleCheckout}
+              className="w-full py-6 text-lg bg-red-600 hover:bg-red-700"
+            >
+              Complete Checkout
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this room?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the room
+              and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteRoom}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default Rooms;
