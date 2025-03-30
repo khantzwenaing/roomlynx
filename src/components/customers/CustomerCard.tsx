@@ -1,4 +1,3 @@
-
 import { Customer, Room } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +50,7 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
 
   const handleCheckoutClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Navigate directly to the rooms page with checkout action
     navigate(`/rooms?roomId=${customer.roomId}&action=checkout`);
   };
 

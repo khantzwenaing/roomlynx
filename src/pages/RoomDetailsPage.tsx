@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getRoomDetails } from "@/services/roomsService";
@@ -46,6 +45,7 @@ const RoomDetailsPage = () => {
 
   const handleCheckoutClick = () => {
     if (room?.currentCustomer) {
+      // Navigate directly to the rooms page with checkout action
       navigate(`/rooms?roomId=${roomId}&action=checkout`);
     }
   };

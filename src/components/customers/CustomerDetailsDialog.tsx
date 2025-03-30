@@ -1,4 +1,3 @@
-
 import { Customer } from "@/types";
 import { format, parseISO } from "date-fns";
 import { User, Phone, Mail, Home, Clock, CreditCard, Banknote, Calendar, CheckSquare } from "lucide-react";
@@ -43,6 +42,7 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false, 
 
   const handleCheckout = () => {
     if (onClose) onClose();
+    // Navigate directly to the rooms page with checkout action
     navigate(`/rooms?roomId=${customer.roomId}&action=checkout`);
   };
 
