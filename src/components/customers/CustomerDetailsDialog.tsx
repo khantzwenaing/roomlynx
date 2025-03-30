@@ -1,9 +1,9 @@
-
 import { Customer } from "@/types";
 import { format, parseISO } from "date-fns";
 import { User, Phone, Mail, Home, Clock, CreditCard, Banknote, Calendar, CheckSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface CustomerDetailsDialogProps {
   customer: Customer | null;
