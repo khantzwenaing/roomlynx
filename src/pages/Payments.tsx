@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { getPayments, getCustomers, getRooms, addPayment, resetDatabase } from "@/services/dataService";
 import { Payment, Customer, Room } from "@/types";
@@ -89,8 +90,14 @@ const Payments = () => {
         
         toast({
           title: "Database Reset",
-          description: "Database has been reset to its initial state.",
+          description: "Database has been reset to its initial state with fresh rooms.",
+          duration: 5000,
         });
+        
+        // Force page refresh to update all components
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         throw new Error("Failed to reset database");
       }
