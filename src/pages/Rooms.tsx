@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";  // Add this import
+import { Link } from "react-router-dom";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
 import { Room, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +33,8 @@ const Rooms = () => {
     phone: "",
     idNumber: "",
     checkInDate: new Date().toISOString().split('T')[0],
-    checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0]
+    checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    depositAmount: 0
   });
   const [paymentInfo, setPaymentInfo] = useState({
     amount: 0,
@@ -139,6 +140,17 @@ const Rooms = () => {
     setIsDeleteDialogOpen(false);
   };
 
+  const calculateTotalStay = (roomId: string, checkInDate: string, checkOutDate: string) => {
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return 0;
+    
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+    const timeDiff = checkOut.getTime() - checkIn.getTime();
+    const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    return Math.max(1, days) * room.rate;
+  };
+
   const handleAddCustomer = () => {
     if (!selectedRoom) return;
     
@@ -160,6 +172,7 @@ const Rooms = () => {
       checkInDate: newCustomer.checkInDate,
       checkOutDate: newCustomer.checkOutDate,
       roomId: selectedRoom.id,
+      depositAmount: newCustomer.depositAmount || 0
     });
     
     updateRoom(selectedRoom.id, { status: "occupied" });
@@ -170,7 +183,8 @@ const Rooms = () => {
       phone: "",
       idNumber: "",
       checkInDate: new Date().toISOString().split('T')[0],
-      checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0]
+      checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      depositAmount: 0
     });
     
     setIsAddCustomerOpen(false);
@@ -195,10 +209,12 @@ const Rooms = () => {
       const checkInDate = new Date(customer.checkInDate);
       const today = new Date();
       const daysStayed = Math.max(1, Math.ceil((today.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)));
-      const amount = room.rate * daysStayed;
+      const totalAmount = room.rate * daysStayed;
+      const depositAmount = customer.depositAmount || 0;
+      const amountDue = Math.max(0, totalAmount - depositAmount);
       
       setPaymentInfo({
-        amount,
+        amount: amountDue,
         method: "cash",
         bankRefNo: "",
         collectedBy: "",
@@ -256,8 +272,24 @@ const Rooms = () => {
     setIsRoomDetailsOpen(true);
   };
 
-  const handleEditRoom = () => {
-    setIsRoomDetailsOpen(false);
+  const handleEditRoom = (updatedRoom: Partial<Room>) => {
+    if (!selectedRoom) return;
+    
+    const updated = updateRoom(selectedRoom.id, updatedRoom);
+    if (updated) {
+      toast({
+        title: "Room Updated",
+        description: `Room ${updated.roomNumber} has been updated successfully`,
+      });
+      loadRooms();
+      setSelectedRoom(updated);
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to update room",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredRooms = rooms.filter((room) => {
@@ -289,6 +321,23 @@ const Rooms = () => {
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleRoomDatesChange = (field: 'checkInDate' | 'checkOutDate', value: string) => {
+    setNewCustomer({
+      ...newCustomer,
+      [field]: value
+    });
+    
+    if (selectedRoom && newCustomer.checkInDate && newCustomer.checkOutDate) {
+      const totalAmount = calculateTotalStay(
+        selectedRoom.id, 
+        field === 'checkInDate' ? value : newCustomer.checkInDate,
+        field === 'checkOutDate' ? value : newCustomer.checkOutDate
+      );
+      
+      console.log(`Total stay amount: $${totalAmount}`);
     }
   };
 
@@ -569,7 +618,7 @@ const Rooms = () => {
                   id="check-in-date"
                   type="date"
                   value={newCustomer.checkInDate}
-                  onChange={(e) => setNewCustomer({...newCustomer, checkInDate: e.target.value})}
+                  onChange={(e) => handleRoomDatesChange('checkInDate', e.target.value)}
                   className="text-lg h-12"
                 />
               </div>
@@ -580,10 +629,39 @@ const Rooms = () => {
                   id="check-out-date"
                   type="date"
                   value={newCustomer.checkOutDate}
-                  onChange={(e) => setNewCustomer({...newCustomer, checkOutDate: e.target.value})}
+                  onChange={(e) => handleRoomDatesChange('checkOutDate', e.target.value)}
                   className="text-lg h-12"
                 />
               </div>
+            </div>
+
+            {selectedRoom && (
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="font-semibold mb-2">Stay Information</div>
+                <div className="text-sm">
+                  Room Rate: ${selectedRoom.rate}/night
+                </div>
+                <div className="text-sm font-medium">
+                  Total Cost: ${calculateTotalStay(
+                    selectedRoom.id,
+                    newCustomer.checkInDate,
+                    newCustomer.checkOutDate
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="deposit-amount" className="text-lg">Deposit Amount</Label>
+              <Input
+                id="deposit-amount"
+                type="number"
+                min="0"
+                placeholder="Enter deposit amount"
+                value={newCustomer.depositAmount}
+                onChange={(e) => setNewCustomer({...newCustomer, depositAmount: Number(e.target.value)})}
+                className="text-lg h-12"
+              />
             </div>
           </div>
           
@@ -625,6 +703,30 @@ const Rooms = () => {
                   <p className="text-lg"><strong>Name:</strong> {roomCustomers[selectedRoom.id]?.name}</p>
                   <p><strong>Check-in:</strong> {new Date(roomCustomers[selectedRoom.id]?.checkInDate || "").toLocaleDateString()}</p>
                   <p><strong>Check-out:</strong> {new Date().toLocaleDateString()}</p>
+                  
+                  {selectedRoom && roomCustomers[selectedRoom.id] && (
+                    <>
+                      <div className="mt-2 pt-2 border-t border-blue-200">
+                        <p><strong>Total Stay:</strong> ${calculateTotalStay(
+                          selectedRoom.id,
+                          roomCustomers[selectedRoom.id]?.checkInDate || "",
+                          roomCustomers[selectedRoom.id]?.checkOutDate || ""
+                        )}</p>
+                        {roomCustomers[selectedRoom.id]?.depositAmount ? (
+                          <>
+                            <p><strong>Deposit Paid:</strong> ${roomCustomers[selectedRoom.id]?.depositAmount}</p>
+                            <p className="font-bold text-lg">
+                              <strong>Amount Due:</strong> ${Math.max(0, calculateTotalStay(
+                                selectedRoom.id,
+                                roomCustomers[selectedRoom.id]?.checkInDate || "",
+                                roomCustomers[selectedRoom.id]?.checkOutDate || ""
+                              ) - (roomCustomers[selectedRoom.id]?.depositAmount || 0))}
+                            </p>
+                          </>
+                        ) : null}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>

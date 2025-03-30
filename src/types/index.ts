@@ -26,6 +26,7 @@ export type Customer = {
   checkInDate: string;
   checkOutDate: string;
   roomId: string;
+  depositAmount?: number;
 };
 
 export type Payment = {
