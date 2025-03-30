@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from "@/hooks/use-toast";
 
 interface RoomDetailsDialogProps {
   room: Room | null;
@@ -36,17 +37,19 @@ const RoomDetailsDialog = ({
     showCheckoutForm: false
   });
   const [amountDue, setAmountDue] = useState(0);
-
-  if (!room) return null;
+  const { toast } = useToast();
 
   useEffect(() => {
     if (customer && room) {
       // Calculate amount due on component mount or when customer/room changes
-      const totalStay = calculateTotalStay();
+      const totalStay = calculateTotalStay(room, customer);
       const depositAmount = customer.depositAmount || 0;
       setAmountDue(Math.max(0, totalStay - depositAmount));
     }
   }, [customer, room]);
+
+  // Early return if room is null, but AFTER all hooks are called
+  if (!room) return null;
 
   const handleEdit = () => {
     if (editing) {
@@ -64,13 +67,13 @@ const RoomDetailsDialog = ({
     }
   };
 
-  const calculateTotalStay = () => {
-    if (!customer) return 0;
-    const checkInDate = new Date(customer.checkInDate);
-    const checkOutDate = new Date(customer.checkOutDate);
+  const calculateTotalStay = (currentRoom: Room, currentCustomer: Customer | null) => {
+    if (!currentCustomer) return 0;
+    const checkInDate = new Date(currentCustomer.checkInDate);
+    const checkOutDate = new Date(currentCustomer.checkOutDate);
     const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
     const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    return Math.max(1, days) * room.rate;
+    return Math.max(1, days) * currentRoom.rate;
   };
 
   const calculateRemainingDays = (): number => {
@@ -95,12 +98,20 @@ const RoomDetailsDialog = ({
 
   const handleCompleteCheckout = () => {
     if (!checkoutDetails.collectedBy) {
-      alert("Please enter who collected the payment");
+      toast({
+        title: "Error",
+        description: "Please enter who collected the payment",
+        variant: "destructive"
+      });
       return;
     }
 
     if (checkoutDetails.paymentMethod === "bank_transfer" && !checkoutDetails.bankRefNo) {
-      alert("Please enter bank reference number");
+      toast({
+        title: "Error",
+        description: "Please enter bank reference number",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -212,7 +223,7 @@ const RoomDetailsDialog = ({
                 </div>
                 
                 <div className="text-lg font-semibold text-green-700">
-                  Total Stay: ${calculateTotalStay()}
+                  Total Stay: ${calculateTotalStay(room, customer)}
                 </div>
                 {customer.depositAmount && (
                   <div className="text-lg font-semibold text-purple-700">
@@ -242,7 +253,7 @@ const RoomDetailsDialog = ({
                   <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
                     <div className="text-lg font-medium">Amount Due: ${amountDue}</div>
                     <div className="text-sm text-gray-600">
-                      (Total stay: ${calculateTotalStay()} - Deposit: ${customer.depositAmount || 0})
+                      (Total stay: ${calculateTotalStay(room, customer)} - Deposit: ${customer.depositAmount || 0})
                     </div>
                   </div>
                   
