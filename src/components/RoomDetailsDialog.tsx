@@ -85,40 +85,42 @@ const RoomDetailsDialog = ({
           {editing ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="roomNumber">Room Number</Label>
+                <Label htmlFor="roomNumber" className="text-lg">Room Number</Label>
                 <Input
                   id="roomNumber"
                   value={editedRoom.roomNumber}
                   onChange={(e) => setEditedRoom({...editedRoom, roomNumber: e.target.value})}
+                  className="text-lg h-12"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="roomType">Room Type</Label>
+                <Label htmlFor="roomType" className="text-lg">Room Type</Label>
                 <Select 
                   value={editedRoom.type} 
                   onValueChange={(value: 'single' | 'double' | 'suite' | 'deluxe') => 
                     setEditedRoom({...editedRoom, type: value})
                   }
                 >
-                  <SelectTrigger id="roomType">
+                  <SelectTrigger id="roomType" className="text-lg h-12">
                     <SelectValue placeholder="Select room type" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="single">Single</SelectItem>
-                    <SelectItem value="double">Double</SelectItem>
-                    <SelectItem value="suite">Suite</SelectItem>
-                    <SelectItem value="deluxe">Deluxe</SelectItem>
+                  <SelectContent className="text-lg">
+                    <SelectItem value="single" className="text-lg py-3">Single</SelectItem>
+                    <SelectItem value="double" className="text-lg py-3">Double</SelectItem>
+                    <SelectItem value="suite" className="text-lg py-3">Suite</SelectItem>
+                    <SelectItem value="deluxe" className="text-lg py-3">Deluxe</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="rate">Rate per Night ($)</Label>
+                <Label htmlFor="rate" className="text-lg">Rate per Night ($)</Label>
                 <Input
                   id="rate"
                   type="number"
                   value={editedRoom.rate}
                   onChange={(e) => setEditedRoom({...editedRoom, rate: Number(e.target.value)})}
                   min={1}
+                  className="text-lg h-12"
                 />
               </div>
             </div>
@@ -147,24 +149,23 @@ const RoomDetailsDialog = ({
 
           {customer && room.status === "occupied" && (
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <h3 className="text-lg font-semibold mb-3 flex items-center">
-                <User className="mr-2" size={20} />
+              <h3 className="text-xl font-semibold mb-3 flex items-center">
+                <User className="mr-2" size={24} />
                 Current Guest
               </h3>
-              <div className="space-y-2">
-                <div className="font-medium text-lg">{customer.name}</div>
-                <div>{customer.phone}</div>
-                {customer.email && <div>{customer.email}</div>}
-                <div className="text-sm text-gray-600">
+              <div className="space-y-3">
+                <div className="font-medium text-xl">{customer.name}</div>
+                <div className="text-lg">{customer.phone}</div>
+                {customer.email && <div className="text-lg">{customer.email}</div>}
+                <div className="text-lg text-gray-700">
                   Check-in: {new Date(customer.checkInDate).toLocaleDateString()}
                 </div>
-                <div className="text-sm font-semibold text-blue-800">
+                <div className="text-lg font-semibold text-blue-800">
                   Check-out: {new Date(customer.checkOutDate).toLocaleDateString()}
                 </div>
                 
-                {/* Add remaining days until checkout */}
-                <div className="flex items-center mt-1 text-sm font-medium bg-yellow-50 text-yellow-800 p-2 rounded-md border border-yellow-200">
-                  <Clock className="mr-2" size={16} />
+                <div className="flex items-center mt-1 text-lg font-medium bg-yellow-50 text-yellow-800 p-3 rounded-md border border-yellow-200">
+                  <Clock className="mr-2" size={20} />
                   <span>
                     {calculateRemainingDays() === 0 
                       ? "Checkout today!" 
@@ -172,27 +173,27 @@ const RoomDetailsDialog = ({
                   </span>
                 </div>
                 
-                <div className="text-sm font-semibold text-green-700">
+                <div className="text-lg font-semibold text-green-700">
                   Total Stay: ${calculateTotalStay()}
                 </div>
                 {customer.depositAmount && (
-                  <div className="text-sm font-semibold text-purple-700">
+                  <div className="text-lg font-semibold text-purple-700">
                     Deposit: ${customer.depositAmount}
                   </div>
                 )}
                 <Link 
                   to={`/customers?id=${customer.id}`}
-                  className="text-blue-600 hover:underline block text-lg font-medium mt-2"
+                  className="text-blue-600 hover:underline block text-xl font-medium mt-2"
                 >
                   View Customer Details
                 </Link>
               </div>
 
               <Button 
-                className="w-full mt-4 py-6 text-lg bg-red-600 hover:bg-red-700"
+                className="w-full mt-6 py-6 text-xl bg-red-600 hover:bg-red-700"
                 onClick={onCheckout}
               >
-                <CreditCard className="mr-2" size={20} />
+                <CreditCard className="mr-2" size={24} />
                 Check-out & Payment
               </Button>
             </div>

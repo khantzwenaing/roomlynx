@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getRooms, updateRoom, getCustomers, getRoomDetails, deleteRoom, addCustomer, addPayment } from "@/services/dataService";
@@ -16,6 +15,7 @@ import AddRoomForm from "@/components/AddRoomForm";
 import RoomDetailsDialog from "@/components/RoomDetailsDialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Plus, User, UserPlus, CreditCard, Pencil, Trash2, Banknote, Info, CreditCard as CardIcon, Clock } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -33,8 +33,8 @@ const Rooms = () => {
     email: "",
     phone: "",
     idNumber: "",
-    checkInDate: new Date().toISOString().split('T')[0],
-    checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    checkInDate: new Date(),
+    checkOutDate: new Date(Date.now() + 86400000),
     depositAmount: 0,
     depositPaymentMethod: "cash",
     bankRefNo: ""
@@ -452,20 +452,22 @@ const Rooms = () => {
     }
   };
 
-  const handleRoomDatesChange = (field: 'checkInDate' | 'checkOutDate', value: string) => {
+  const handleRoomDatesChange = (field: 'checkInDate' | 'checkOutDate', date: Date | undefined) => {
+    if (!date) return;
+    
     setNewCustomer({
       ...newCustomer,
-      [field]: value
+      [field]: date
     });
     
-    if (selectedRoom && newCustomer.checkInDate && newCustomer.checkOutDate) {
-      const checkInDate = field === 'checkInDate' ? value : newCustomer.checkInDate;
-      const checkOutDate = field === 'checkOutDate' ? value : newCustomer.checkOutDate;
+    if (selectedRoom) {
+      const checkInDate = field === 'checkInDate' ? date : newCustomer.checkInDate;
+      const checkOutDate = field === 'checkOutDate' ? date : newCustomer.checkOutDate;
       
       const totalAmount = calculateTotalStay(
         selectedRoom.id, 
-        checkInDate,
-        checkOutDate
+        checkInDate.toISOString().split('T')[0],
+        checkOutDate.toISOString().split('T')[0]
       );
       
       setCalculatedTotalStay(totalAmount);
@@ -782,24 +784,18 @@ const Rooms = () => {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="check-in-date" className="text-lg">Check-in Date</Label>
-                <Input
-                  id="check-in-date"
-                  type="date"
-                  value={newCustomer.checkInDate}
-                  onChange={(e) => handleRoomDatesChange('checkInDate', e.target.value)}
-                  className="text-lg h-12"
+                <DatePicker 
+                  date={newCustomer.checkInDate} 
+                  onDateChange={(date) => date && handleRoomDatesChange('checkInDate', date)}
+                  label="Check-in Date"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="check-out-date" className="text-lg">Check-out Date</Label>
-                <Input
-                  id="check-out-date"
-                  type="date"
-                  value={newCustomer.checkOutDate}
-                  onChange={(e) => handleRoomDatesChange('checkOutDate', e.target.value)}
-                  className="text-lg h-12"
+                <DatePicker 
+                  date={newCustomer.checkOutDate} 
+                  onDateChange={(date) => date && handleRoomDatesChange('checkOutDate', date)}
+                  label="Check-out Date"
                 />
               </div>
             </div>

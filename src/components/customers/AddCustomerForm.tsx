@@ -11,6 +11,7 @@ import { z } from "zod";
 import { Room, Customer } from "@/types";
 import { addCustomer } from "@/services/dataService";
 import { useToast } from "@/hooks/use-toast";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const customerSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -19,8 +20,8 @@ const customerSchema = z.object({
   address: z.string().optional().or(z.literal("")),
   idNumber: z.string().optional().or(z.literal("")),
   roomId: z.string({required_error: "Room is required"}),
-  checkInDate: z.string({required_error: "Check-in date is required"}),
-  checkOutDate: z.string({required_error: "Check-out date is required"}),
+  checkInDate: z.date({required_error: "Check-in date is required"}),
+  checkOutDate: z.date({required_error: "Check-out date is required"}),
   depositAmount: z.string().optional().refine(val => val === '' || (Number(val) > 0), {
     message: "Deposit amount must be a positive number"
   }),
@@ -49,8 +50,8 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
       address: "",
       idNumber: "",
       roomId: "",
-      checkInDate: new Date().toISOString().split('T')[0],
-      checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      checkInDate: new Date(),
+      checkOutDate: new Date(Date.now() + 86400000),
       depositAmount: "",
       depositPaymentMethod: undefined,
       bankRefNo: undefined
@@ -66,8 +67,8 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
         address: data.address || undefined,
         idNumber: data.idNumber || undefined,
         roomId: data.roomId,
-        checkInDate: data.checkInDate,
-        checkOutDate: data.checkOutDate,
+        checkInDate: data.checkInDate.toISOString().split('T')[0],
+        checkOutDate: data.checkOutDate.toISOString().split('T')[0],
         depositAmount: data.depositAmount ? Number(data.depositAmount) : undefined,
         depositPaymentMethod: data.depositPaymentMethod,
         bankRefNo: data.depositPaymentMethod === 'bank_transfer' ? data.bankRefNo : undefined
@@ -108,11 +109,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel className="text-lg">Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} />
+                  <Input placeholder="John Doe" {...field} className="text-lg h-12" />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -121,11 +122,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone</FormLabel>
+                <FormLabel className="text-lg">Phone</FormLabel>
                 <FormControl>
-                  <Input placeholder="123-456-7890" {...field} />
+                  <Input placeholder="123-456-7890" {...field} className="text-lg h-12" />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -134,11 +135,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email (Optional)</FormLabel>
+                <FormLabel className="text-lg">Email (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="email@example.com" {...field} />
+                  <Input placeholder="email@example.com" {...field} className="text-lg h-12" />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -147,11 +148,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
             name="idNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>ID Number (Optional)</FormLabel>
+                <FormLabel className="text-lg">ID Number (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="ID12345" {...field} />
+                  <Input placeholder="ID12345" {...field} className="text-lg h-12" />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -160,11 +161,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
             name="address"
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <FormLabel>Address (Optional)</FormLabel>
+                <FormLabel className="text-lg">Address (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="123 Main St, City" {...field} />
+                  <Input placeholder="123 Main St, City" {...field} className="text-lg h-12" />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -173,25 +174,25 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
             name="roomId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Room</FormLabel>
+                <FormLabel className="text-lg">Room</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-lg h-12">
                       <SelectValue placeholder="Select a room" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="text-lg">
                     {availableRooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id}>
+                      <SelectItem key={room.id} value={room.id} className="text-lg py-3">
                         Room {room.roomNumber} ({room.type})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-base" />
               </FormItem>
             )}
           />
@@ -201,11 +202,14 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
               name="checkInDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Check-in Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <DatePicker 
+                      date={field.value} 
+                      onDateChange={field.onChange} 
+                      label="Check-in Date"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -214,27 +218,32 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
               name="checkOutDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Check-out Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <DatePicker 
+                      date={field.value} 
+                      onDateChange={field.onChange} 
+                      label="Check-out Date"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
           </div>
         </div>
+        
         <FormField
           control={form.control}
           name="depositAmount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Deposit Amount (Optional)</FormLabel>
+              <FormLabel className="text-lg">Deposit Amount (Optional)</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
                   placeholder="Enter deposit amount" 
                   min="0"
+                  className="text-lg h-12"
                   {...field} 
                   onChange={(e) => {
                     const value = e.target.value === '' ? '' : e.target.value;
@@ -242,7 +251,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
                   }}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-base" />
             </FormItem>
           )}
         />
@@ -298,7 +307,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose }: AddCustomerFormPro
         )}
 
         <DialogFooter>
-          <Button type="submit">Add Customer</Button>
+          <Button type="submit" className="text-lg py-6 px-8">Add Customer</Button>
         </DialogFooter>
       </form>
     </Form>
