@@ -1,11 +1,16 @@
+
 import React, { useState, useEffect } from "react";
 import { getRooms, getDailyReports } from "@/services/dataService";
 import { Room, DailyReport } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, 
+  Legend, ResponsiveContainer, PieChart, Pie 
+} from "recharts";
 import { BedDouble, ChartPieIcon, CreditCard, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
