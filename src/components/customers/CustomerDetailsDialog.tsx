@@ -2,7 +2,8 @@
 import { Customer } from "@/types";
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Banknote, CreditCard } from "lucide-react";
+import { Banknote, CreditCard, User, Phone, Mail, MapPin, Calendar, Home } from "lucide-react";
+import { format, parseISO } from "date-fns";
 
 interface CustomerDetailsDialogProps {
   customer: Customer | null;
@@ -13,74 +14,108 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber }: CustomerDetailsDialo
   if (!customer) return null;
 
   return (
-    <DialogContent className="sm:max-w-[425px]">
+    <DialogContent className="sm:max-w-[500px]">
       <DialogHeader>
-        <DialogTitle>Customer Details</DialogTitle>
+        <DialogTitle className="text-xl flex items-center">
+          <User className="mr-2 h-5 w-5" />
+          Customer Details
+        </DialogTitle>
       </DialogHeader>
-      <div className="space-y-4 py-4">
+      <div className="space-y-5 py-4">
         <div className="grid grid-cols-1 gap-4">
-          <div className="space-y-2">
-            <Label>Name</Label>
-            <div className="border p-2 rounded-md bg-gray-50">
-              {customer.name}
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <User className="h-5 w-5 text-gray-500" />
+                <Label className="text-sm text-gray-500">Name</Label>
+              </div>
+              <div className="text-lg font-medium">{customer.name}</div>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>Phone</Label>
-            <div className="border p-2 rounded-md bg-gray-50">
-              {customer.phone}
+          
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Phone className="h-5 w-5 text-gray-500" />
+                <Label className="text-sm text-gray-500">Phone</Label>
+              </div>
+              <div className="text-lg font-medium">{customer.phone}</div>
             </div>
           </div>
+          
           {customer.email && (
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <div className="border p-2 rounded-md bg-gray-50">
-                {customer.email}
-              </div>
-            </div>
-          )}
-          {customer.address && (
-            <div className="space-y-2">
-              <Label>Address</Label>
-              <div className="border p-2 rounded-md bg-gray-50">
-                {customer.address}
-              </div>
-            </div>
-          )}
-          <div className="space-y-2">
-            <Label>Room</Label>
-            <div className="border p-2 rounded-md bg-gray-50">
-              Room {getRoomNumber(customer.roomId)}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Check-in / Check-out</Label>
-            <div className="border p-2 rounded-md bg-gray-50">
-              {new Date(customer.checkInDate).toLocaleDateString()} to {new Date(customer.checkOutDate).toLocaleDateString()}
-            </div>
-          </div>
-          {customer.depositAmount && customer.depositAmount > 0 && (
-            <div className="space-y-2">
-              <Label>Deposit</Label>
-              <div className="border p-2 rounded-md bg-gray-50 flex justify-between">
-                <span>${customer.depositAmount}</span>
-                <span className="flex items-center text-sm">
-                  {customer.depositPaymentMethod === 'cash' && (
-                    <><Banknote size={14} className="mr-1" /> Cash</>
-                  )}
-                  {customer.depositPaymentMethod === 'card' && (
-                    <><CreditCard size={14} className="mr-1" /> Card</>
-                  )}
-                  {customer.depositPaymentMethod === 'bank_transfer' && (
-                    <><CreditCard size={14} className="mr-1" /> Bank Transfer</>
-                  )}
-                </span>
-              </div>
-              {customer.depositPaymentMethod === 'bank_transfer' && customer.bankRefNo && (
-                <div className="text-sm text-gray-500">
-                  Ref: {customer.bankRefNo}
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Mail className="h-5 w-5 text-gray-500" />
+                  <Label className="text-sm text-gray-500">Email</Label>
                 </div>
-              )}
+                <div className="text-lg font-medium">{customer.email}</div>
+              </div>
+            </div>
+          )}
+          
+          {customer.address && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-5 w-5 text-gray-500" />
+                  <Label className="text-sm text-gray-500">Address</Label>
+                </div>
+                <div className="text-lg font-medium">{customer.address}</div>
+              </div>
+            </div>
+          )}
+          
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Home className="h-5 w-5 text-gray-500" />
+                <Label className="text-sm text-gray-500">Room</Label>
+              </div>
+              <div className="text-lg font-medium">Room {getRoomNumber(customer.roomId)}</div>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-5 w-5 text-gray-500" />
+                <Label className="text-sm text-gray-500">Check-in / Check-out</Label>
+              </div>
+              <div className="text-lg font-medium">
+                {format(parseISO(customer.checkInDate), "MMM dd, yyyy")} to {format(parseISO(customer.checkOutDate), "MMM dd, yyyy")}
+              </div>
+            </div>
+          </div>
+          
+          {customer.depositAmount && customer.depositAmount > 0 && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <CreditCard className="h-5 w-5 text-gray-500" />
+                  <Label className="text-sm text-gray-500">Deposit</Label>
+                </div>
+                <div className="flex justify-between text-lg font-medium">
+                  <span>${customer.depositAmount}</span>
+                  <span className="flex items-center text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                    {customer.depositPaymentMethod === 'cash' && (
+                      <><Banknote size={14} className="mr-1" /> Cash</>
+                    )}
+                    {customer.depositPaymentMethod === 'card' && (
+                      <><CreditCard size={14} className="mr-1" /> Card</>
+                    )}
+                    {customer.depositPaymentMethod === 'bank_transfer' && (
+                      <><CreditCard size={14} className="mr-1" /> Bank Transfer</>
+                    )}
+                  </span>
+                </div>
+                {customer.depositPaymentMethod === 'bank_transfer' && customer.bankRefNo && (
+                  <div className="text-sm text-gray-500 mt-1 bg-gray-100 p-2 rounded-md">
+                    Reference: {customer.bankRefNo}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

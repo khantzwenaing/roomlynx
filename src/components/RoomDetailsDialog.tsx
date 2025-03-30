@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Room, Customer } from "@/types";
-import { User, CreditCard, Pencil, Clock, Banknote } from "lucide-react";
+import { User, CreditCard, Pencil, Clock, Banknote, Info, Home, Bed, Calendar, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
+import { format } from "date-fns";
 
 interface RoomDetailsDialogProps {
   room: Room | null;
@@ -89,7 +90,8 @@ const RoomDetailsDialog = ({
     return Math.max(0, daysDiff); // Ensure we don't return negative days
   };
 
-  const handleCheckoutClick = () => {
+  const handleCheckoutClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Stop event propagation
     setCheckoutDetails({
       ...checkoutDetails,
       showCheckoutForm: true
@@ -123,7 +125,8 @@ const RoomDetailsDialog = ({
       <DrawerContent className="max-h-[90vh] overflow-y-auto">
         <DrawerHeader className="border-b border-gray-200 sticky top-0 bg-white z-10">
           <div className="flex items-center justify-between">
-            <DrawerTitle className="text-2xl">
+            <DrawerTitle className="text-2xl flex items-center">
+              <Home className="mr-2 h-6 w-6" />
               {editing ? "Edit Room " : "Room "}{room.roomNumber}
             </DrawerTitle>
             <div className="flex gap-2">
@@ -181,46 +184,101 @@ const RoomDetailsDialog = ({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 text-lg">
-              <div className="font-semibold">Type:</div>
-              <div>{room.type.charAt(0).toUpperCase() + room.type.slice(1)}</div>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="flex gap-4 items-center">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100 text-blue-700">
+                    <Bed className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Room Type</h3>
+                    <p className="text-xl font-semibold">{room.type.charAt(0).toUpperCase() + room.type.slice(1)}</p>
+                  </div>
+                </div>
+              </div>
               
-              <div className="font-semibold">Rate:</div>
-              <div>${room.rate}/night</div>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="flex gap-4 items-center">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-100 text-green-700">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Rate per Night</h3>
+                    <p className="text-xl font-semibold">${room.rate}</p>
+                  </div>
+                </div>
+              </div>
               
-              <div className="font-semibold">Status:</div>
-              <div>{room.status.charAt(0).toUpperCase() + room.status.slice(1)}</div>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="flex gap-4 items-center">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-purple-100 text-purple-700">
+                    <Info className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Status</h3>
+                    <div className={`text-xl font-semibold flex items-center ${
+                      room.status === "vacant" ? "text-green-600" : 
+                      room.status === "occupied" ? "text-blue-600" : 
+                      room.status === "cleaning" ? "text-amber-600" : "text-red-600"
+                    }`}>
+                      {room.status.charAt(0).toUpperCase() + room.status.slice(1)}
+                    </div>
+                  </div>
+                </div>
+              </div>
               
               {room.lastCleaned && (
-                <>
-                  <div className="font-semibold">Last Cleaned:</div>
-                  <div>{new Date(room.lastCleaned).toLocaleDateString()}</div>
-                  
-                  <div className="font-semibold">Cleaned By:</div>
-                  <div>{room.cleanedBy}</div>
-                </>
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                  <div className="flex gap-4 items-center">
+                    <div className="flex items-center justify-center h-10 w-10 rounded-full bg-teal-100 text-teal-700">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium">Last Cleaned</h3>
+                      <p className="text-xl font-semibold">{new Date(room.lastCleaned).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-500">by {room.cleanedBy}</p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
 
           {customer && room.status === "occupied" && (
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <h3 className="text-xl font-semibold mb-3 flex items-center">
-                <User className="mr-2" size={24} />
+            <div className="mt-6 p-5 bg-blue-50 rounded-lg border border-blue-100">
+              <h3 className="text-xl font-semibold mb-4 flex items-center text-blue-800">
+                <User className="mr-2" size={22} />
                 Current Guest
               </h3>
-              <div className="space-y-3">
-                <div className="font-medium text-xl">{customer.name}</div>
-                <div className="text-lg">{customer.phone}</div>
-                {customer.email && <div className="text-lg">{customer.email}</div>}
-                <div className="text-lg text-gray-700">
-                  Check-in: {new Date(customer.checkInDate).toLocaleDateString()}
-                </div>
-                <div className="text-lg font-semibold text-blue-800">
-                  Check-out: {new Date(customer.checkOutDate).toLocaleDateString()}
+              <div className="grid grid-cols-1 gap-4 mt-3">
+                <div className="p-3 bg-white rounded-lg border border-blue-100">
+                  <h4 className="text-sm text-blue-600 font-medium">Guest Name</h4>
+                  <p className="text-lg font-semibold mt-1">{customer.name}</p>
                 </div>
                 
-                <div className="flex items-center mt-1 text-lg font-medium bg-yellow-50 text-yellow-800 p-3 rounded-md border border-yellow-200">
+                <div className="p-3 bg-white rounded-lg border border-blue-100">
+                  <h4 className="text-sm text-blue-600 font-medium">Contact</h4>
+                  <p className="text-lg font-medium mt-1">{customer.phone}</p>
+                  {customer.email && <p className="text-sm text-gray-500">{customer.email}</p>}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-white rounded-lg border border-blue-100">
+                    <h4 className="text-sm text-blue-600 font-medium">Check-in</h4>
+                    <p className="text-lg font-medium mt-1">
+                      {format(new Date(customer.checkInDate), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                  
+                  <div className="p-3 bg-white rounded-lg border border-blue-100">
+                    <h4 className="text-sm text-blue-600 font-medium">Check-out</h4>
+                    <p className="text-lg font-medium mt-1 text-blue-800">
+                      {format(new Date(customer.checkOutDate), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center p-3 text-lg font-medium bg-yellow-50 text-yellow-800 rounded-md border border-yellow-200">
                   <Clock className="mr-2" size={20} />
                   <span>
                     {calculateRemainingDays() === 0 
@@ -229,17 +287,27 @@ const RoomDetailsDialog = ({
                   </span>
                 </div>
                 
-                <div className="text-lg font-semibold text-green-700">
-                  Total Stay: ${calculateTotalStay(room, customer)}
-                </div>
-                {customer.depositAmount && (
-                  <div className="text-lg font-semibold text-purple-700">
-                    Deposit: ${customer.depositAmount}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-white rounded-lg border border-blue-100">
+                    <h4 className="text-sm text-blue-600 font-medium">Total Stay</h4>
+                    <p className="text-lg font-semibold mt-1 text-green-700">
+                      ${calculateTotalStay(room, customer)}
+                    </p>
                   </div>
-                )}
+                  
+                  {customer.depositAmount && (
+                    <div className="p-3 bg-white rounded-lg border border-blue-100">
+                      <h4 className="text-sm text-blue-600 font-medium">Deposit</h4>
+                      <p className="text-lg font-semibold mt-1 text-purple-700">
+                        ${customer.depositAmount}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
                 <Link 
                   to={`/customers?id=${customer.id}`}
-                  className="text-blue-600 hover:underline block text-xl font-medium mt-2"
+                  className="text-blue-600 hover:underline block text-xl font-medium mt-1 p-2"
                 >
                   View Customer Details
                 </Link>
@@ -254,10 +322,10 @@ const RoomDetailsDialog = ({
                   Check-out & Payment
                 </Button>
               ) : (
-                <div className="mt-6 space-y-4 bg-white p-4 rounded-lg border border-gray-200">
+                <div className="mt-6 space-y-4 bg-white p-5 rounded-lg border border-gray-200">
                   <h4 className="text-xl font-semibold text-gray-800">Checkout Details</h4>
                   
-                  <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
+                  <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
                     <div className="text-lg font-medium">Amount Due: ${amountDue}</div>
                     <div className="text-sm text-gray-600">
                       (Total stay: ${calculateTotalStay(room, customer)} - Deposit: ${customer.depositAmount || 0})

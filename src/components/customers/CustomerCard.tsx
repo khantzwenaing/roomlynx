@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Banknote, CreditCard } from "lucide-react";
+import { Banknote, CreditCard, Eye, Clock } from "lucide-react";
 import CustomerDetailsDialog from "./CustomerDetailsDialog";
 import { useState } from "react";
+import { format, parseISO } from "date-fns";
 
 interface CustomerCardProps {
   customer: Customer;
@@ -36,17 +37,19 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
   const checkoutStatus = getCheckoutStatus(customer.checkOutDate);
 
   return (
-    <Card key={customer.id}>
+    <Card key={customer.id} className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg">{customer.name}</CardTitle>
           <Dialog>
             <DialogTrigger asChild>
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm"
                 onClick={() => setSelectedCustomer(customer)}
+                className="flex items-center"
               >
+                <Eye className="mr-1 h-4 w-4" />
                 View
               </Button>
             </DialogTrigger>
@@ -58,24 +61,41 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="text-sm text-gray-500">
             {customer.phone} {customer.email && `• ${customer.email}`}
           </div>
-          <div className="flex justify-between text-sm">
-            <span>Room {getRoomNumber(customer.roomId)}</span>
-            <Badge className={checkoutStatus.color}>
+          
+          <div className="flex justify-between text-sm items-center">
+            <span className="font-medium">Room {getRoomNumber(customer.roomId)}</span>
+            <Badge className={`${checkoutStatus.color} flex items-center`}>
+              <Clock className="mr-1 h-3 w-3" />
               {checkoutStatus.label}
             </Badge>
           </div>
-          <div className="text-sm text-gray-500">
-            Check-in: {new Date(customer.checkInDate).toLocaleDateString()}
+          
+          <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+            <div className="p-2 bg-gray-50 rounded border border-gray-100">
+              <div className="text-xs text-gray-500">Check-in</div>
+              <div>{format(parseISO(customer.checkInDate), "MMM dd, yyyy")}</div>
+            </div>
+            <div className="p-2 bg-gray-50 rounded border border-gray-100">
+              <div className="text-xs text-gray-500">Check-out</div>
+              <div>{format(parseISO(customer.checkOutDate), "MMM dd, yyyy")}</div>
+            </div>
           </div>
-          <div className="text-sm text-gray-500">
-            Check-out: {new Date(customer.checkOutDate).toLocaleDateString()}
-          </div>
+          
           {customer.depositAmount && customer.depositAmount > 0 && (
-            <div className="text-sm text-green-600 mt-2">
+            <div className="text-sm text-green-600 mt-2 flex items-center">
+              {customer.depositPaymentMethod === 'cash' && (
+                <Banknote className="mr-1" size={14} />
+              )}
+              {customer.depositPaymentMethod === 'card' && (
+                <CreditCard className="mr-1" size={14} />
+              )}
+              {customer.depositPaymentMethod === 'bank_transfer' && (
+                <CreditCard className="mr-1" size={14} />
+              )}
               Deposit: ${customer.depositAmount}
             </div>
           )}
