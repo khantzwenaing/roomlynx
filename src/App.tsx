@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,7 @@ import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Customers from "./pages/Customers"; // Import Customers page
 
 // Components
 import Layout from "./components/Layout";
@@ -81,6 +83,15 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <Layout>
             <Settings />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Add Customers route */}
+      <Route path="/customers" element={
+        <ProtectedRoute>
+          <Layout>
+            <Customers />
           </Layout>
         </ProtectedRoute>
       } />
