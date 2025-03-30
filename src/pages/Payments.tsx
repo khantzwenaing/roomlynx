@@ -23,7 +23,7 @@ const paymentSchema = z.object({
   amount: z.string().min(1, "Amount is required").refine(val => !isNaN(Number(val)) && Number(val) > 0, {
     message: "Amount must be a positive number",
   }),
-  method: z.enum(["cash", "card", "bank_transfer", "other"], {
+  method: z.enum(["cash", "bank_transfer", "other"], {
     required_error: "Payment method is required",
   }),
   status: z.enum(["paid", "pending", "partial"], {
@@ -316,12 +316,6 @@ const Payments = () => {
                                 <div className="flex items-center">
                                   <Banknote className="mr-2" size={16} />
                                   Cash
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="card">
-                                <div className="flex items-center">
-                                  <CreditCard className="mr-2" size={16} />
-                                  Card
                                 </div>
                               </SelectItem>
                               <SelectItem value="bank_transfer">
