@@ -34,7 +34,7 @@ const AddCustomerSidebar = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto p-0">
+      <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto p-0" side="right">
         <SheetHeader className="p-6 border-b">
           <SheetTitle className="text-xl">Add New Customer</SheetTitle>
           <SheetDescription>
@@ -47,7 +47,6 @@ const AddCustomerSidebar = ({
               rooms={rooms} 
               onCustomerAdded={(customer) => {
                 onCustomerAdded(customer);
-                setIsOpen(false);
               }}
               onClose={() => setIsOpen(false)}
               preselectedRoomId={preselectedRoomId}

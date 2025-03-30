@@ -10,6 +10,7 @@ export const useRooms = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roomCustomers, setRoomCustomers] = useState<{[key: string]: Customer | null}>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
   const loadRooms = useCallback(async () => {
@@ -58,6 +59,26 @@ export const useRooms = () => {
     }
   }, [toast]);
 
+  const refreshData = useCallback(async () => {
+    setIsRefreshing(true);
+    console.log("Refreshing all room and customer data...");
+    
+    try {
+      // Load rooms first
+      await loadRooms();
+      
+      // Then load customers with a small delay to ensure DB operations complete
+      setTimeout(async () => {
+        await loadCustomersForRooms();
+        setIsRefreshing(false);
+        console.log("Data refresh complete");
+      }, 500);
+    } catch (error) {
+      console.error("Error during data refresh:", error);
+      setIsRefreshing(false);
+    }
+  }, [loadRooms, loadCustomersForRooms]);
+
   const filteredRooms = rooms.filter((room) => {
     const roomNumber = room.roomNumber.toLowerCase();
     const roomType = room.type.toLowerCase();
@@ -95,6 +116,7 @@ export const useRooms = () => {
   return {
     rooms,
     isLoading,
+    isRefreshing,
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -102,6 +124,7 @@ export const useRooms = () => {
     filteredRooms,
     loadRooms,
     loadCustomersForRooms,
+    refreshData,
     roomCustomers
   };
 };

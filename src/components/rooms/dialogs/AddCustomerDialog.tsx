@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Room, Customer } from "@/types";
 import AddCustomerSidebar from "@/components/customers/AddCustomerSidebar";
 import { updateRoom } from "@/services/dataService";
@@ -18,8 +18,11 @@ const AddCustomerDialog = ({
   room, 
   onCustomerAdded
 }: AddCustomerDialogProps) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const handleCustomerAdded = async (customer: Customer) => {
     try {
+      setIsProcessing(true);
       console.log("Customer added successfully:", customer);
       console.log("Updating room status to occupied for room ID:", room.id);
       
@@ -43,11 +46,13 @@ const AddCustomerDialog = ({
         setTimeout(() => {
           // Close the dialog after successful operation
           onOpenChange(false);
+          setIsProcessing(false);
         }, 500);
-      }, 1500);
+      }, 1000);
     } catch (error) {
       console.error("Error in handleCustomerAdded:", error);
       toast.error("An error occurred during check-in");
+      setIsProcessing(false);
     }
   };
 
@@ -57,7 +62,11 @@ const AddCustomerDialog = ({
       onCustomerAdded={handleCustomerAdded}
       preselectedRoomId={room.id}
       open={isOpen}
-      onOpenChange={onOpenChange}
+      onOpenChange={(open) => {
+        if (!isProcessing) {
+          onOpenChange(open);
+        }
+      }}
     />
   );
 };

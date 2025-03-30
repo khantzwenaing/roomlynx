@@ -27,6 +27,15 @@ const customerSchema = z.object({
   depositPaymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'other']).optional(),
   depositCollectedBy: z.string().optional(),
   bankRefNo: z.string().optional()
+}).refine(data => {
+  // Ensure check-out date is after check-in date
+  if (data.checkInDate && data.checkOutDate) {
+    return data.checkOutDate > data.checkInDate;
+  }
+  return true;
+}, {
+  message: "Check-out date must be after check-in date",
+  path: ["checkOutDate"]
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
@@ -40,7 +49,12 @@ interface AddCustomerFormProps {
 
 const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }: AddCustomerFormProps) => {
   const { toast } = useToast();
-  const availableRooms = rooms.filter(room => room.status === 'vacant');
+  const availableRooms = rooms.filter(room => room.status === 'vacant' || (preselectedRoomId && room.id === preselectedRoomId));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Set default check-out date to tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
@@ -52,7 +66,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
       idNumber: "",
       roomId: preselectedRoomId || "",
       checkInDate: new Date(),
-      checkOutDate: new Date(Date.now() + 86400000),
+      checkOutDate: tomorrow,
       depositAmount: "",
       depositPaymentMethod: undefined,
       depositCollectedBy: "",
@@ -62,6 +76,9 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
 
   const onSubmit = async (data: CustomerFormValues) => {
     try {
+      setIsSubmitting(true);
+      console.log("Adding customer with data:", data);
+      
       const newCustomer = await addCustomer({
         name: data.name,
         phone: data.phone,
@@ -78,6 +95,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
       });
 
       if (newCustomer) {
+        console.log("Customer added successfully:", newCustomer);
         onCustomerAdded(newCustomer);
         form.reset();
 
@@ -86,11 +104,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
           description: `Customer ${newCustomer.name} has been added successfully`,
         });
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to add customer",
-          variant: "destructive",
-        });
+        throw new Error("Failed to add customer");
       }
     } catch (error) {
       console.error("Error adding customer:", error);
@@ -99,6 +113,21 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         description: "Failed to add customer",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle check-in date change to ensure check-out date is always after check-in
+  const handleCheckInDateChange = (date: Date) => {
+    form.setValue("checkInDate", date);
+    
+    // If check-out date is before or equal to new check-in date, update it
+    const currentCheckOut = form.getValues("checkOutDate");
+    if (date >= currentCheckOut) {
+      const newCheckOut = new Date(date);
+      newCheckOut.setDate(date.getDate() + 1);
+      form.setValue("checkOutDate", newCheckOut);
     }
   };
 
@@ -180,13 +209,14 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
+                  disabled={!!preselectedRoomId}
                 >
                   <FormControl>
                     <SelectTrigger className="text-base h-10">
                       <SelectValue placeholder="Select a room" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="text-base">
+                  <SelectContent className="text-base bg-white z-50">
                     {availableRooms.map((room) => (
                       <SelectItem key={room.id} value={room.id} className="text-base py-2">
                         Room {room.roomNumber} ({room.type})
@@ -207,7 +237,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                   <FormControl>
                     <DatePicker 
                       date={field.value} 
-                      onDateChange={field.onChange} 
+                      onDateChange={handleCheckInDateChange}
                       label="Check-in Date"
                     />
                   </FormControl>
@@ -275,7 +305,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-white z-50">
                       <SelectItem value="cash">Cash</SelectItem>
                       <SelectItem value="card">Card</SelectItem>
                       <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
@@ -328,8 +358,12 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         )}
 
         <div className="flex flex-col gap-2 pt-2">
-          <Button type="submit" className="w-full">Add Customer</Button>
-          <Button variant="outline" onClick={onClose} className="w-full">Cancel</Button>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Adding..." : "Add Customer"}
+          </Button>
+          <Button variant="outline" onClick={onClose} className="w-full" disabled={isSubmitting}>
+            Cancel
+          </Button>
         </div>
       </form>
     </Form>
