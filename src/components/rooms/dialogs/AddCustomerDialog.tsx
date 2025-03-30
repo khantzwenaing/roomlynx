@@ -7,7 +7,7 @@ interface AddCustomerDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   room: Room;
-  onCustomerAdded: (customer: any) => void;
+  onCustomerAdded: () => void;
 }
 
 const AddCustomerDialog = ({ 
@@ -19,11 +19,9 @@ const AddCustomerDialog = ({
   return (
     <AddCustomerSidebar
       rooms={[room]}
-      onCustomerAdded={(newCustomer) => {
+      onCustomerAdded={() => {
+        onCustomerAdded();
         onOpenChange(false);
-        if (onCustomerAdded) {
-          onCustomerAdded(newCustomer);
-        }
       }}
       preselectedRoomId={room.id}
       open={isOpen}

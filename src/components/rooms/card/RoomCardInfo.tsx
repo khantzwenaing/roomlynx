@@ -27,6 +27,12 @@ const RoomCardInfo = ({ room }: RoomCardInfoProps) => {
           </span>
         </div>
       )}
+      {room.cleanedBy && (
+        <div className="flex justify-between text-lg">
+          <span className="text-gray-600">Cleaned By:</span>
+          <span>{room.cleanedBy}</span>
+        </div>
+      )}
     </div>
   );
 };

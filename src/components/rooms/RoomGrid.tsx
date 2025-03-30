@@ -36,7 +36,7 @@ const RoomGrid = ({ rooms, isLoading, roomCustomers, onRoomClick, onCustomerAdde
           key={room.id} 
           room={room} 
           customer={roomCustomers[room.id] || null}
-          onRoomClick={onRoomClick}
+          onRoomClick={() => onRoomClick(room)}
           onCustomerAdded={onCustomerAdded}
         />
       ))}

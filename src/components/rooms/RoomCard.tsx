@@ -39,7 +39,8 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
   return (
     <Card 
       key={room.id} 
-      className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+      className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+      onClick={() => onRoomClick(room)}
     >
       <RoomCardHeader 
         room={room} 
@@ -94,7 +95,7 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
         isOpen={isAddCustomerDialogOpen}
         onOpenChange={setIsAddCustomerDialogOpen}
         room={room}
-        onCustomerAdded={(newCustomer) => {
+        onCustomerAdded={() => {
           setIsAddCustomerDialogOpen(false);
           onCustomerAdded();
         }}

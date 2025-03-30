@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, UserPlus } from "lucide-react";
 import AddRoomForm from "@/components/AddRoomForm";
@@ -7,11 +7,13 @@ import RoomGrid from "@/components/rooms/RoomGrid";
 import RoomFilters from "@/components/rooms/RoomFilters";
 import { useRooms } from "@/hooks/useRooms";
 import AddCustomerSidebar from "@/components/customers/AddCustomerSidebar";
+import { useSearchParams } from "react-router-dom";
 
 const Rooms = () => {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>(undefined);
+  const [searchParams] = useSearchParams();
 
   const { 
     searchTerm, 
@@ -25,8 +27,22 @@ const Rooms = () => {
     roomCustomers,
   } = useRooms();
 
+  // Check URL parameters for actions
+  useEffect(() => {
+    const roomId = searchParams.get('roomId');
+    const action = searchParams.get('action');
+    
+    if (roomId) {
+      setSelectedRoomId(roomId);
+      if (action === 'checkout') {
+        // Handle checkout action if needed
+      }
+    }
+  }, [searchParams]);
+
   const handleAddCustomer = (roomId: string) => {
     setSelectedRoomId(roomId);
+    setIsAddCustomerOpen(true);
   };
 
   const handleDataRefresh = () => {

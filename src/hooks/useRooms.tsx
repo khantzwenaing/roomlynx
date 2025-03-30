@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
-import { getRooms, getRoomDetails } from "@/services/dataService";
+import { getRooms, loadCustomersForRooms as fetchRoomCustomers } from "@/services/dataService";
 import { Room, Customer } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,25 +31,17 @@ export const useRooms = () => {
 
   const loadCustomersForRooms = useCallback(async () => {
     try {
-      const allRooms = await getRooms();
-      const customerMap: {[key: string]: Customer | null} = {};
-      
-      for (const room of allRooms) {
-        if (room.status === "occupied") {
-          const details = await getRoomDetails(room.id);
-          if (details && details.currentCustomer) {
-            customerMap[room.id] = details.currentCustomer;
-          } else {
-            customerMap[room.id] = null;
-          }
-        }
-      }
-      
+      const customerMap = await fetchRoomCustomers();
       setRoomCustomers(customerMap);
     } catch (error) {
       console.error("Error loading customers for rooms:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load customer information.",
+        variant: "destructive",
+      });
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     loadRooms();
