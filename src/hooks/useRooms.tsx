@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { getRooms, loadCustomersForRooms as fetchRoomCustomers } from "@/services/dataService";
 import { Room, Customer } from "@/types";
@@ -56,11 +57,6 @@ export const useRooms = () => {
       });
     }
   }, [toast]);
-
-  useEffect(() => {
-    loadRooms();
-    loadCustomersForRooms();
-  }, [loadRooms, loadCustomersForRooms]);
 
   const filteredRooms = rooms.filter((room) => {
     const roomNumber = room.roomNumber.toLowerCase();

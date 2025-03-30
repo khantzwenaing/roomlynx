@@ -17,6 +17,7 @@ const Rooms = () => {
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>(undefined);
   const [searchParams] = useSearchParams();
   const [isResetting, setIsResetting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { 
     searchTerm, 
@@ -44,7 +45,9 @@ const Rooms = () => {
   }, [searchParams]);
 
   const handleDataRefresh = () => {
+    setIsRefreshing(true);
     console.log("Triggering data refresh...");
+    
     // Perform room data refresh
     loadRooms();
     
@@ -53,7 +56,8 @@ const Rooms = () => {
     setTimeout(() => {
       console.log("Loading customers after delay...");
       loadCustomersForRooms();
-    }, 800);
+      setIsRefreshing(false);
+    }, 1500);
   };
 
   const handleResetDatabase = async () => {
@@ -72,7 +76,7 @@ const Rooms = () => {
         setTimeout(() => {
           handleDataRefresh();
           setIsResetting(false);
-        }, 1000);
+        }, 1500);
       } else {
         console.error("Database reset failed");
         toast.error("Failed to reset database");
@@ -85,12 +89,28 @@ const Rooms = () => {
     }
   };
 
+  // Automatic refresh when loading the page
+  useEffect(() => {
+    handleDataRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-2">
         <h1 className="text-3xl font-bold text-gray-800">Rooms</h1>
         
         <div className="flex gap-2">
+          <Button 
+            onClick={handleDataRefresh} 
+            variant="outline" 
+            size="default"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} size={18} />
+            Refresh Data
+          </Button>
+          
           <Button 
             onClick={handleResetDatabase} 
             variant="outline" 
@@ -128,7 +148,10 @@ const Rooms = () => {
       <AddRoomForm 
         isOpen={isAddRoomOpen} 
         onClose={() => setIsAddRoomOpen(false)} 
-        onRoomAdded={loadRooms} 
+        onRoomAdded={() => {
+          loadRooms();
+          setIsAddRoomOpen(false);
+        }} 
       />
       
       {/* Keep this hidden sidebar for when needed, but don't show the button */}
@@ -136,7 +159,7 @@ const Rooms = () => {
         rooms={filteredRooms.filter(room => room.status === 'vacant')}
         onCustomerAdded={(customer) => {
           console.log("Customer added from sidebar:", customer);
-          handleDataRefresh();
+          setTimeout(handleDataRefresh, 1000);
           setIsAddCustomerOpen(false);
         }}
         preselectedRoomId={selectedRoomId}

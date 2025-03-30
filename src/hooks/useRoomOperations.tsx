@@ -91,10 +91,16 @@ export const useRoomOperations = (room: Room, customer: Customer | null, onRoomU
       });
 
       if (updatedRoom) {
-        window.location.reload();
         toast.success("Cleaning Completed", {
           description: `Room ${updatedRoom.roomNumber} has been marked as clean`
         });
+        
+        // Use a delay to ensure database updates complete before refreshing
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        throw new Error("Failed to update room status");
       }
     } catch (error) {
       console.error("Error completing cleaning:", error);
@@ -105,7 +111,12 @@ export const useRoomOperations = (room: Room, customer: Customer | null, onRoomU
   };
 
   const handleCheckout = async () => {
-    if (!customer) return;
+    if (!customer) {
+      toast.error("Error", {
+        description: "No customer information found"
+      });
+      return;
+    }
     
     if (!checkoutDetails.collectedBy) {
       toast.error("Error", {
@@ -152,7 +163,11 @@ export const useRoomOperations = (room: Room, customer: Customer | null, onRoomU
       
       // 4. Close dialog and reload page
       setIsCheckoutDialogOpen(false);
-      window.location.reload();
+      
+      // Add a small delay to ensure database operations are completed
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
       
     } catch (error) {
       console.error("Error during checkout:", error);

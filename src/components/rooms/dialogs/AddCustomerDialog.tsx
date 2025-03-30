@@ -44,7 +44,7 @@ const AddCustomerDialog = ({
           // Close the dialog after successful operation
           onOpenChange(false);
         }, 500);
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error("Error in handleCustomerAdded:", error);
       toast.error("An error occurred during check-in");
