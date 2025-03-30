@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getRooms, updateRoom, getCustomers, addCustomer, getRoomDetails, addPayment, deleteRoom } from "@/services/dataService";
@@ -15,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
 import RoomDetailsDialog from "@/components/RoomDetailsDialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { Plus, User, UserPlus, CreditCard, Pencil, Trash2, Banknote, Info } from "lucide-react";
+import { Plus, User, UserPlus, CreditCard, Pencil, Trash2, Banknote, Info, CreditCard as CardIcon } from "lucide-react";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -35,7 +34,9 @@ const Rooms = () => {
     idNumber: "",
     checkInDate: new Date().toISOString().split('T')[0],
     checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-    depositAmount: 0
+    depositAmount: 0,
+    depositPaymentMethod: "cash",
+    bankRefNo: ""
   });
   const [paymentInfo, setPaymentInfo] = useState({
     amount: 0,
@@ -165,6 +166,15 @@ const Rooms = () => {
       return;
     }
     
+    if (newCustomer.depositPaymentMethod === "bank_transfer" && !newCustomer.bankRefNo.trim() && newCustomer.depositAmount > 0) {
+      toast({
+        title: "Error",
+        description: "Bank reference number is required for bank transfers",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const customer = addCustomer({
       name: newCustomer.name,
       email: newCustomer.email || "",
@@ -174,8 +184,23 @@ const Rooms = () => {
       checkInDate: newCustomer.checkInDate,
       checkOutDate: newCustomer.checkOutDate,
       roomId: selectedRoom.id,
-      depositAmount: newCustomer.depositAmount || 0
+      depositAmount: newCustomer.depositAmount || 0,
+      depositPaymentMethod: newCustomer.depositAmount > 0 ? newCustomer.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other' : undefined,
+      bankRefNo: newCustomer.depositAmount > 0 && newCustomer.depositPaymentMethod === "bank_transfer" ? newCustomer.bankRefNo : undefined
     });
+    
+    if (newCustomer.depositAmount > 0) {
+      addPayment({
+        customerId: customer.id,
+        roomId: selectedRoom.id,
+        amount: newCustomer.depositAmount,
+        date: new Date().toISOString(),
+        method: newCustomer.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other',
+        collectedBy: "Reception Staff",
+        status: "paid",
+        notes: newCustomer.depositPaymentMethod === "bank_transfer" ? `Deposit payment - Bank Ref: ${newCustomer.bankRefNo}` : "Deposit payment",
+      });
+    }
     
     updateRoom(selectedRoom.id, { status: "occupied" });
     
@@ -186,7 +211,9 @@ const Rooms = () => {
       idNumber: "",
       checkInDate: new Date().toISOString().split('T')[0],
       checkOutDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-      depositAmount: 0
+      depositAmount: 0,
+      depositPaymentMethod: "cash",
+      bankRefNo: ""
     });
     
     setIsAddCustomerOpen(false);
@@ -209,7 +236,9 @@ const Rooms = () => {
       ...newCustomer,
       checkInDate: todayStr,
       checkOutDate: tomorrowStr,
-      depositAmount: 0
+      depositAmount: 0,
+      depositPaymentMethod: "cash",
+      bankRefNo: ""
     });
     
     const total = calculateTotalStay(room.id, todayStr, tomorrowStr);
@@ -687,6 +716,56 @@ const Rooms = () => {
                 </div>
               )}
             </div>
+            
+            {newCustomer.depositAmount > 0 && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="deposit-method" className="text-lg">Deposit Payment Method*</Label>
+                  <Select 
+                    value={newCustomer.depositPaymentMethod} 
+                    onValueChange={(value) => setNewCustomer({...newCustomer, depositPaymentMethod: value})}
+                  >
+                    <SelectTrigger className="text-lg h-12">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">
+                        <div className="flex items-center">
+                          <Banknote className="mr-2" size={18} />
+                          Cash
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="card">
+                        <div className="flex items-center">
+                          <CardIcon className="mr-2" size={18} />
+                          Card
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="bank_transfer">
+                        <div className="flex items-center">
+                          <CreditCard className="mr-2" size={18} />
+                          Bank Transfer
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {newCustomer.depositPaymentMethod === "bank_transfer" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="bank-ref" className="text-lg">Bank Reference Number*</Label>
+                    <Input
+                      id="bank-ref"
+                      placeholder="Enter bank transaction reference number"
+                      value={newCustomer.bankRefNo}
+                      onChange={(e) => setNewCustomer({...newCustomer, bankRefNo: e.target.value})}
+                      className="text-lg h-12"
+                      required
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </div>
           
           <SheetFooter className="pt-4">
@@ -781,7 +860,7 @@ const Rooms = () => {
                   </SelectItem>
                   <SelectItem value="card">
                     <div className="flex items-center">
-                      <CreditCard className="mr-2" size={18} />
+                      <CardIcon className="mr-2" size={18} />
                       Card
                     </div>
                   </SelectItem>

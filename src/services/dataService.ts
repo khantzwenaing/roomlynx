@@ -1,4 +1,3 @@
-
 import { Room, Customer, Payment, CleaningRecord, RentReminder, DailyReport } from "@/types";
 
 // Mock data
@@ -265,7 +264,17 @@ export const getCustomerByRoomId = (roomId: string): Customer | null => {
 };
 
 export const addCustomer = (customer: Omit<Customer, "id">): Customer => {
-  const newCustomer = { ...customer, id: `customer-${Date.now()}` };
+  const newCustomer = { 
+    ...customer, 
+    id: `customer-${Date.now()}`,
+    depositAmount: customer.depositAmount || 0,
+    depositPaymentMethod: customer.depositAmount && customer.depositAmount > 0 ? 
+      customer.depositPaymentMethod : undefined,
+    bankRefNo: customer.depositAmount && customer.depositAmount > 0 && 
+      customer.depositPaymentMethod === 'bank_transfer' ? 
+      customer.bankRefNo : undefined
+  };
+  
   const allCustomers = loadFromLocalStorage("hotel_customers", customers);
   const updatedCustomers = [...allCustomers, newCustomer];
   saveToLocalStorage("hotel_customers", updatedCustomers);

@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Banknote, CreditCard } from "lucide-react";
 
 const customerSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -23,7 +24,10 @@ const customerSchema = z.object({
   idNumber: z.string().optional().or(z.literal("")),
   roomId: z.string({required_error: "Room is required"}),
   checkInDate: z.string({required_error: "Check-in date is required"}),
-  checkOutDate: z.string({required_error: "Check-out date is required"})
+  checkOutDate: z.string({required_error: "Check-out date is required"}),
+  depositAmount: z.number().optional(),
+  depositPaymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'other']).optional(),
+  bankRefNo: z.string().optional()
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
@@ -332,6 +336,30 @@ const Customers = () => {
                                 {new Date(selectedCustomer.checkInDate).toLocaleDateString()} to {new Date(selectedCustomer.checkOutDate).toLocaleDateString()}
                               </div>
                             </div>
+                            {selectedCustomer.depositAmount && selectedCustomer.depositAmount > 0 && (
+                              <div className="space-y-2">
+                                <Label>Deposit</Label>
+                                <div className="border p-2 rounded-md bg-gray-50 flex justify-between">
+                                  <span>${selectedCustomer.depositAmount}</span>
+                                  <span className="flex items-center text-sm">
+                                    {selectedCustomer.depositPaymentMethod === 'cash' && (
+                                      <><Banknote size={14} className="mr-1" /> Cash</>
+                                    )}
+                                    {selectedCustomer.depositPaymentMethod === 'card' && (
+                                      <><CreditCard size={14} className="mr-1" /> Card</>
+                                    )}
+                                    {selectedCustomer.depositPaymentMethod === 'bank_transfer' && (
+                                      <><CreditCard size={14} className="mr-1" /> Bank Transfer</>
+                                    )}
+                                  </span>
+                                </div>
+                                {selectedCustomer.depositPaymentMethod === 'bank_transfer' && selectedCustomer.bankRefNo && (
+                                  <div className="text-sm text-gray-500">
+                                    Ref: {selectedCustomer.bankRefNo}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -356,6 +384,11 @@ const Customers = () => {
                   <div className="text-sm text-gray-500">
                     Check-out: {new Date(customer.checkOutDate).toLocaleDateString()}
                   </div>
+                  {customer.depositAmount && customer.depositAmount > 0 && (
+                    <div className="text-sm text-green-600 mt-2">
+                      Deposit: ${customer.depositAmount}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

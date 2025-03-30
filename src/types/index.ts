@@ -27,6 +27,8 @@ export type Customer = {
   checkOutDate: string;
   roomId: string;
   depositAmount?: number;
+  depositPaymentMethod?: 'cash' | 'card' | 'bank_transfer' | 'other';
+  bankRefNo?: string;
 };
 
 export type Payment = {
