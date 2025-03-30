@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, UserPlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import AddRoomForm from "@/components/AddRoomForm";
 import RoomGrid from "@/components/rooms/RoomGrid";
 import RoomFilters from "@/components/rooms/RoomFilters";
@@ -40,11 +39,6 @@ const Rooms = () => {
     }
   }, [searchParams]);
 
-  const handleAddCustomer = (roomId: string) => {
-    setSelectedRoomId(roomId);
-    setIsAddCustomerOpen(true);
-  };
-
   const handleDataRefresh = () => {
     loadRooms();
     loadCustomersForRooms();
@@ -56,15 +50,6 @@ const Rooms = () => {
         <h1 className="text-3xl font-bold text-gray-800">Rooms</h1>
         
         <div className="flex gap-2">
-          <Button 
-            onClick={() => setIsAddCustomerOpen(true)} 
-            variant="outline"
-            size="default"
-          >
-            <UserPlus className="mr-2" size={18} />
-            Add Customer
-          </Button>
-          
           <Button onClick={() => setIsAddRoomOpen(true)} size="default">
             <Plus className="mr-2" size={18} />
             Add New Room
@@ -95,9 +80,10 @@ const Rooms = () => {
         onRoomAdded={loadRooms} 
       />
       
+      {/* Keep this hidden sidebar for when needed, but don't show the button */}
       <AddCustomerSidebar
         rooms={filteredRooms.filter(room => room.status === 'vacant')}
-        onCustomerAdded={() => {
+        onCustomerAdded={(customer) => {
           handleDataRefresh();
           setIsAddCustomerOpen(false);
         }}

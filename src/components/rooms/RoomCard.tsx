@@ -36,6 +36,11 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
     handleCheckout,
   } = useRoomOperations(room, customer);
 
+  const handleCustomerAdded = () => {
+    // This will refresh the entire room list, including status changes
+    onCustomerAdded();
+  };
+
   return (
     <Card 
       key={room.id} 
@@ -101,7 +106,7 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
         isOpen={isAddCustomerDialogOpen}
         onOpenChange={setIsAddCustomerDialogOpen}
         room={room}
-        onCustomerAdded={onCustomerAdded}
+        onCustomerAdded={handleCustomerAdded}
       />
     </Card>
   );
