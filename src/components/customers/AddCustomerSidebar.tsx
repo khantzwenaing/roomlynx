@@ -32,9 +32,17 @@ const AddCustomerSidebar = ({
   const isOpen = open !== undefined ? open : localOpen;
   const setIsOpen = onOpenChange || setLocalOpen;
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setIsOpen(newOpen);
+  };
+
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto p-0" side="right">
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <SheetContent 
+        className="w-full sm:max-w-md md:max-w-lg overflow-y-auto p-0" 
+        side="right" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <SheetHeader className="p-6 border-b">
           <SheetTitle className="text-xl">Add New Customer</SheetTitle>
           <SheetDescription>

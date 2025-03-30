@@ -21,6 +21,7 @@ export const useRooms = () => {
       console.log("Loaded rooms:", roomsData.length);
       console.log("Room statuses:", roomsData.map(r => `${r.roomNumber}: ${r.status}`).join(', '));
       setRooms(roomsData);
+      return roomsData;
     } catch (error) {
       console.error("Error loading rooms:", error);
       toast({
@@ -28,12 +29,13 @@ export const useRooms = () => {
         description: "Failed to load rooms. Please try again.",
         variant: "destructive",
       });
+      return [];
     } finally {
       setIsLoading(false);
     }
   }, [toast]);
 
-  const loadCustomersForRooms = useCallback(async () => {
+  const loadCustomersForRooms = useCallback(async (currentRooms?: Room[]) => {
     try {
       console.log("Loading customer data for rooms...");
       const customerMap = await fetchRoomCustomers();
@@ -49,6 +51,7 @@ export const useRooms = () => {
       });
       
       setRoomCustomers(customerMap);
+      return customerMap;
     } catch (error) {
       console.error("Error loading customers for rooms:", error);
       toast({
@@ -56,6 +59,7 @@ export const useRooms = () => {
         description: "Failed to load customer information.",
         variant: "destructive",
       });
+      return {};
     }
   }, [toast]);
 
@@ -65,17 +69,21 @@ export const useRooms = () => {
     
     try {
       // Load rooms first
-      await loadRooms();
+      const roomsData = await loadRooms();
       
       // Then load customers with a small delay to ensure DB operations complete
-      setTimeout(async () => {
-        await loadCustomersForRooms();
-        setIsRefreshing(false);
-        console.log("Data refresh complete");
-      }, 500);
+      return new Promise<void>((resolve) => {
+        setTimeout(async () => {
+          await loadCustomersForRooms(roomsData);
+          setIsRefreshing(false);
+          console.log("Data refresh complete");
+          resolve();
+        }, 800);
+      });
     } catch (error) {
       console.error("Error during data refresh:", error);
       setIsRefreshing(false);
+      throw error;
     }
   }, [loadRooms, loadCustomersForRooms]);
 

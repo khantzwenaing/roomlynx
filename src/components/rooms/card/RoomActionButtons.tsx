@@ -20,7 +20,7 @@ const RoomActionButtons = ({ room, onAddCustomer, onCheckout }: RoomActionButton
   };
 
   return (
-    <div className="pt-4 space-y-3">
+    <div className="pt-4 space-y-3" onClick={(e) => e.stopPropagation()}>
       <Button 
         className="w-full py-6 text-lg bg-gray-600 hover:bg-gray-700"
         variant="default"

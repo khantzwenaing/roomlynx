@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
@@ -29,6 +28,7 @@ const Rooms = () => {
     loadRooms,
     loadCustomersForRooms,
     roomCustomers,
+    refreshData
   } = useRooms();
 
   // Check URL parameters for actions
@@ -46,18 +46,12 @@ const Rooms = () => {
 
   const handleDataRefresh = () => {
     setIsRefreshing(true);
-    console.log("Triggering data refresh...");
+    console.log("Triggering full data refresh...");
     
-    // Perform room data refresh
-    loadRooms();
-    
-    // Make sure to refresh customer data for rooms with a delay
-    // to ensure database updates are completed
-    setTimeout(() => {
-      console.log("Loading customers after delay...");
-      loadCustomersForRooms();
+    refreshData().finally(() => {
       setIsRefreshing(false);
-    }, 1500);
+      console.log("Data refresh complete");
+    });
   };
 
   const handleResetDatabase = async () => {
@@ -94,6 +88,12 @@ const Rooms = () => {
     handleDataRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleRoomClick = (room: Room) => {
+    // Navigate to room details page, but use window.location to ensure full page load
+    // This helps avoid state retention issues
+    window.location.href = `/room-details?roomId=${room.id}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -139,9 +139,7 @@ const Rooms = () => {
         rooms={filteredRooms}
         isLoading={isLoading}
         roomCustomers={roomCustomers}
-        onRoomClick={(room) => {
-          window.location.href = `/room-details?roomId=${room.id}`;
-        }}
+        onRoomClick={handleRoomClick}
         onCustomerAdded={handleDataRefresh}
       />
 

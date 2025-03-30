@@ -44,11 +44,20 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
     onCustomerAdded();
   };
 
+  // Handle card click without affecting buttons inside
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only navigate if the click was directly on the card or certain elements, not on interactive elements
+    if (e.target === e.currentTarget || 
+        (e.target as HTMLElement).closest('.card-clickable-area')) {
+      onRoomClick(room);
+    }
+  };
+
   return (
     <Card 
       key={room.id} 
-      className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-      onClick={() => onRoomClick(room)}
+      className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+      onClick={handleCardClick}
     >
       <RoomCardHeader 
         room={room} 
@@ -58,7 +67,7 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
         }} 
       />
       
-      <CardContent className="p-5">
+      <CardContent className="p-5 card-clickable-area">
         <div className="space-y-4">
           <RoomCardInfo room={room} />
           
@@ -80,7 +89,10 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
           
           {room.status === "cleaning" && (
             <CleaningCompleteButton 
-              onCleaningComplete={handleCleaningComplete}
+              onCleaningComplete={(e) => {
+                e.stopPropagation();
+                handleCleaningComplete();
+              }}
             />
           )}
         </div>

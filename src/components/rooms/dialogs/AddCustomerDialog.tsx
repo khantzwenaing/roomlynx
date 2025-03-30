@@ -32,23 +32,24 @@ const AddCustomerDialog = ({
       if (updatedRoom) {
         console.log("Room status updated successfully to occupied");
         toast.success("Customer checked in successfully");
+        
+        // Notify parent to refresh data with a delay to ensure DB operations complete
+        setTimeout(() => {
+          console.log("Triggering data refresh after customer added");
+          onCustomerAdded();
+          
+          // Give a small delay before closing to ensure data updates are processed
+          setTimeout(() => {
+            // Close the dialog after successful operation
+            onOpenChange(false);
+            setIsProcessing(false);
+          }, 500);
+        }, 1000);
       } else {
         console.error("Failed to update room status");
         toast.error("Failed to update room status");
+        setIsProcessing(false);
       }
-      
-      // Notify parent to refresh data with a delay to ensure DB operations complete
-      setTimeout(() => {
-        console.log("Triggering data refresh after customer added");
-        onCustomerAdded();
-        
-        // Give a small delay before closing to ensure data updates are processed
-        setTimeout(() => {
-          // Close the dialog after successful operation
-          onOpenChange(false);
-          setIsProcessing(false);
-        }, 500);
-      }, 1000);
     } catch (error) {
       console.error("Error in handleCustomerAdded:", error);
       toast.error("An error occurred during check-in");
