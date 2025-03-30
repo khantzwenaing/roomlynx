@@ -3,7 +3,7 @@ import { Customer, Room } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Eye, Clock, Banknote } from "lucide-react";
+import { CreditCard, Eye, Clock, Banknote, Home } from "lucide-react";
 import CustomerDetailsDialog from "./CustomerDetailsDialog";
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
@@ -44,9 +44,18 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
     setIsDetailsOpen(true);
   };
 
+  const handleRoomDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/room-details?roomId=${customer.roomId}`);
+  };
+
   const handleCheckoutClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate(`/rooms?roomId=${customer.roomId}&action=checkout`);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDetailsOpen(false);
   };
 
   return (
@@ -72,7 +81,15 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
           </div>
           
           <div className="flex justify-between text-sm items-center">
-            <span className="font-medium">Room {getRoomNumber(customer.roomId)}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRoomDetailsClick}
+              className="p-0 h-auto hover:bg-transparent hover:underline"
+            >
+              <Home className="mr-1 h-3 w-3" />
+              Room {getRoomNumber(customer.roomId)}
+            </Button>
             <Badge className={`${checkoutStatus.color} flex items-center`}>
               <Clock className="mr-1 h-3 w-3" />
               {checkoutStatus.label}
@@ -134,6 +151,7 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
                 customer={selectedCustomer} 
                 getRoomNumber={getRoomNumber}
                 showAsDrawer={true}
+                onClose={handleCloseDrawer}
               />
             )}
           </div>

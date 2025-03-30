@@ -14,7 +14,8 @@ import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import Customers from "./pages/Customers"; // Import Customers page
+import Customers from "./pages/Customers";
+import RoomDetailsPage from "./pages/RoomDetailsPage"; // Import new page
 
 // Components
 import Layout from "./components/Layout";
@@ -87,11 +88,19 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      {/* Add Customers route */}
       <Route path="/customers" element={
         <ProtectedRoute>
           <Layout>
             <Customers />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Add Room Details Page route */}
+      <Route path="/room-details" element={
+        <ProtectedRoute>
+          <Layout>
+            <RoomDetailsPage />
           </Layout>
         </ProtectedRoute>
       } />

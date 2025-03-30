@@ -1,7 +1,8 @@
+
 import { Customer } from "@/types";
 import { format, parseISO } from "date-fns";
 import { User, Phone, Mail, Home, Clock, CreditCard, Banknote, Calendar, CheckSquare } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -9,9 +10,12 @@ interface CustomerDetailsDialogProps {
   customer: Customer | null;
   getRoomNumber: (roomId: string) => string;
   showAsDrawer?: boolean;
+  onClose?: () => void;
 }
 
-const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false }: CustomerDetailsDialogProps) => {
+const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false, onClose }: CustomerDetailsDialogProps) => {
+  const navigate = useNavigate();
+  
   if (!customer) return null;
 
   const containerClass = showAsDrawer 
@@ -31,6 +35,16 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false }
   };
 
   const stayStatus = getStayStatusBadge(customer.checkOutDate);
+
+  const handleViewRoomDetails = () => {
+    if (onClose) onClose();
+    navigate(`/room-details?roomId=${customer.roomId}`);
+  };
+
+  const handleCheckout = () => {
+    if (onClose) onClose();
+    navigate(`/rooms?roomId=${customer.roomId}&action=checkout`);
+  };
 
   return (
     <div className={containerClass}>
@@ -54,13 +68,14 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false }
             <span className="text-gray-500">Room Number:</span>
             <span className="font-medium">{getRoomNumber(customer.roomId)}</span>
           </div>
-          <Link 
-            to={`/rooms?roomId=${customer.roomId}`}
-            className="text-blue-600 hover:underline inline-flex items-center mt-1"
+          <Button 
+            variant="outline"
+            onClick={handleViewRoomDetails}
+            className="w-full mt-1"
           >
-            <Clock className="mr-1" size={16} />
+            <Home className="mr-1" size={16} />
             View Room Details
-          </Link>
+          </Button>
         </div>
 
         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -141,9 +156,7 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false }
         <div className="mt-2">
           <Button
             className="w-full bg-red-600 hover:bg-red-700"
-            onClick={() => {
-              window.location.href = `/rooms?roomId=${customer.roomId}&action=checkout`;
-            }}
+            onClick={handleCheckout}
           >
             <CreditCard className="mr-2" />
             Checkout & Payment
