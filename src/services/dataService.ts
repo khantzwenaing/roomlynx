@@ -43,8 +43,8 @@ export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
     const { data: customerData, error: customerError } = await supabase
       .from('customers')
       .select('*')
-      .eq('roomid', roomId)
-      .order('checkindate', { ascending: false })
+      .eq('roomId', roomId)
+      .order('checkInDate', { ascending: false })
       .limit(1)
       .maybeSingle();
     
@@ -55,13 +55,13 @@ export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
         email: customerData.email || '',
         phone: customerData.phone,
         address: customerData.address || '',
-        idNumber: customerData.idnumber || '',
-        checkInDate: customerData.checkindate,
-        checkOutDate: customerData.checkoutdate,
-        roomId: customerData.roomid,
-        depositAmount: customerData.depositamount ? Number(customerData.depositamount) : undefined,
-        depositPaymentMethod: customerData.depositpaymentmethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
-        bankRefNo: customerData.bankrefno
+        idNumber: customerData.idNumber || '',
+        checkInDate: customerData.checkInDate,
+        checkOutDate: customerData.checkOutDate,
+        roomId: customerData.roomId,
+        depositAmount: customerData.depositAmount ? Number(customerData.depositAmount) : undefined,
+        depositPaymentMethod: customerData.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
+        bankRefNo: customerData.bankRefNo
       };
     }
   }
@@ -175,13 +175,13 @@ export const getCustomers = async (): Promise<Customer[]> => {
     email: customer.email || '',
     phone: customer.phone,
     address: customer.address || '',
-    idNumber: customer.idnumber || '',
-    checkInDate: customer.checkindate,
-    checkOutDate: customer.checkoutdate,
-    roomId: customer.roomid,
-    depositAmount: customer.depositamount ? Number(customer.depositamount) : undefined,
-    depositPaymentMethod: customer.depositpaymentmethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
-    bankRefNo: customer.bankrefno
+    idNumber: customer.idNumber || '',
+    checkInDate: customer.checkInDate,
+    checkOutDate: customer.checkOutDate,
+    roomId: customer.roomId,
+    depositAmount: customer.depositAmount ? Number(customer.depositAmount) : undefined,
+    depositPaymentMethod: customer.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
+    bankRefNo: customer.bankRefNo
   }));
 };
 
@@ -191,13 +191,13 @@ export const addCustomer = async (customer: Omit<Customer, "id">): Promise<Custo
     email: customer.email || null,
     phone: customer.phone,
     address: customer.address || null,
-    idnumber: customer.idNumber || null,
-    checkindate: customer.checkInDate,
-    checkoutdate: customer.checkOutDate,
-    roomid: customer.roomId,
-    depositamount: customer.depositAmount || null,
-    depositpaymentmethod: customer.depositPaymentMethod || null,
-    bankrefno: customer.bankRefNo || null
+    idNumber: customer.idNumber || null,
+    checkInDate: customer.checkInDate,
+    checkOutDate: customer.checkOutDate,
+    roomId: customer.roomId,
+    depositAmount: customer.depositAmount || null,
+    depositPaymentMethod: customer.depositPaymentMethod || null,
+    bankRefNo: customer.bankRefNo || null
   };
   
   const { data, error } = await supabase
@@ -217,13 +217,13 @@ export const addCustomer = async (customer: Omit<Customer, "id">): Promise<Custo
     email: data.email || '',
     phone: data.phone,
     address: data.address || '',
-    idNumber: data.idnumber || '',
-    checkInDate: data.checkindate,
-    checkOutDate: data.checkoutdate,
-    roomId: data.roomid,
-    depositAmount: data.depositamount ? Number(data.depositamount) : undefined,
-    depositPaymentMethod: data.depositpaymentmethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
-    bankRefNo: data.bankrefno
+    idNumber: data.idNumber || '',
+    checkInDate: data.checkInDate,
+    checkOutDate: data.checkOutDate,
+    roomId: data.roomId,
+    depositAmount: data.depositAmount ? Number(data.depositAmount) : undefined,
+    depositPaymentMethod: data.depositPaymentMethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
+    bankRefNo: data.bankRefNo
   };
 };
 
@@ -240,12 +240,12 @@ export const getPayments = async (): Promise<Payment[]> => {
   
   return data.map(payment => ({
     id: payment.id,
-    customerId: payment.customerid,
-    roomId: payment.roomid,
+    customerId: payment.customerId,
+    roomId: payment.roomId,
     amount: Number(payment.amount),
     date: payment.date,
     method: payment.method as 'cash' | 'card' | 'bank_transfer' | 'other',
-    collectedBy: payment.collectedby,
+    collectedBy: payment.collectedBy,
     status: payment.status as 'paid' | 'pending' | 'partial',
     notes: payment.notes || ''
   }));
@@ -253,12 +253,12 @@ export const getPayments = async (): Promise<Payment[]> => {
 
 export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment | null> => {
   const newPayment = {
-    customerid: payment.customerId,
-    roomid: payment.roomId,
+    customerId: payment.customerId,
+    roomId: payment.roomId,
     amount: payment.amount,
     date: payment.date,
     method: payment.method,
-    collectedby: payment.collectedBy,
+    collectedBy: payment.collectedBy,
     status: payment.status,
     notes: payment.notes || null
   };
@@ -276,12 +276,12 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
   
   return {
     id: data.id,
-    customerId: data.customerid,
-    roomId: data.roomid,
+    customerId: data.customerId,
+    roomId: data.roomId,
     amount: Number(data.amount),
     date: data.date,
     method: data.method as 'cash' | 'card' | 'bank_transfer' | 'other',
-    collectedBy: data.collectedby,
+    collectedBy: data.collectedBy,
     status: data.status as 'paid' | 'pending' | 'partial',
     notes: data.notes || ''
   };
@@ -301,13 +301,13 @@ export const getDailyReports = async (): Promise<DailyReport[]> => {
   return data.map(report => ({
     id: report.id,
     date: report.date,
-    totalRooms: report.totalrooms,
-    occupiedRooms: report.occupiedrooms,
-    vacantRooms: report.vacantrooms,
-    roomsNeedCleaning: report.roomsneedcleaning,
-    expectedCheckIns: report.expectedcheckins,
-    expectedCheckOuts: report.expectedcheckouts,
-    totalRevenue: Number(report.totalrevenue)
+    totalRooms: report.totalRooms,
+    occupiedRooms: report.occupiedRooms,
+    vacantRooms: report.vacantRooms,
+    roomsNeedCleaning: report.roomsNeedCleaning,
+    expectedCheckIns: report.expectedCheckIns,
+    expectedCheckOuts: report.expectedCheckOuts,
+    totalRevenue: Number(report.totalRevenue)
   }));
 };
 
@@ -342,13 +342,13 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
   
   const newReport = {
     date: today.toISOString(),
-    totalrooms: rooms.length,
-    occupiedrooms: occupiedRooms,
-    vacantrooms: vacantRooms,
-    roomsneedcleaning: cleaningRooms,
-    expectedcheckins: checkIns,
-    expectedcheckouts: checkOuts,
-    totalrevenue: totalRevenue
+    totalRooms: rooms.length,
+    occupiedRooms: occupiedRooms,
+    vacantRooms: vacantRooms,
+    roomsNeedCleaning: cleaningRooms,
+    expectedCheckIns: checkIns,
+    expectedCheckOuts: checkOuts,
+    totalRevenue: totalRevenue
   };
   
   const { data, error } = await supabase
@@ -365,13 +365,13 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
   return {
     id: data.id,
     date: data.date,
-    totalRooms: data.totalrooms,
-    occupiedRooms: data.occupiedrooms,
-    vacantRooms: data.vacantrooms,
-    roomsNeedCleaning: data.roomsneedcleaning,
-    expectedCheckIns: data.expectedcheckins,
-    expectedCheckOuts: data.expectedcheckouts,
-    totalRevenue: Number(data.totalrevenue)
+    totalRooms: data.totalRooms,
+    occupiedRooms: data.occupiedRooms,
+    vacantRooms: data.vacantRooms,
+    roomsNeedCleaning: data.roomsNeedCleaning,
+    expectedCheckIns: data.expectedCheckIns,
+    expectedCheckOuts: data.expectedCheckOuts,
+    totalRevenue: Number(data.totalRevenue)
   };
 };
 
@@ -388,10 +388,40 @@ export const getCleaningRecords = async (): Promise<CleaningRecord[]> => {
   
   return data.map(record => ({
     id: record.id,
-    roomId: record.roomid,
+    roomId: record.roomId,
     date: record.date,
-    cleanedBy: record.cleanedby,
+    cleanedBy: record.cleanedBy,
     verified: record.verified,
     notes: record.notes || ''
   }));
+};
+
+// Adding resetDatabase function that was missing
+export const resetDatabase = async (): Promise<boolean> => {
+  try {
+    // Clear existing data
+    await supabase.from('payments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('customers').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('daily_reports').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('cleaning_records').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    
+    // Reset room statuses to vacant
+    const { data: rooms } = await supabase.from('rooms').select('id');
+    if (rooms) {
+      for (const room of rooms) {
+        await supabase
+          .from('rooms')
+          .update({ status: 'vacant' })
+          .eq('id', room.id);
+      }
+    }
+    
+    // Add some sample data if needed
+    // ...
+
+    return true;
+  } catch (error) {
+    console.error('Error resetting database:', error);
+    return false;
+  }
 };

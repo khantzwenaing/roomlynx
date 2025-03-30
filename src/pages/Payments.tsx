@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { getPayments, getCustomers, getRooms, addPayment, resetDatabase } from "@/services/dataService";
 import { Payment, Customer, Room } from "@/types";
@@ -59,10 +58,25 @@ const Payments = () => {
   });
 
   useEffect(() => {
-    setPayments(getPayments());
-    setCustomers(getCustomers());
-    setRooms(getRooms());
-  }, []);
+    const fetchData = async () => {
+      try {
+        const paymentsData = await getPayments();
+        const customersData = await getCustomers();
+        const roomsData = await getRooms();
+        setPayments(paymentsData);
+        setCustomers(customersData);
+        setRooms(roomsData);
+      } catch (error) {
+        console.error("Error fetching payment data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load payment data",
+          variant: "destructive",
+        });
+      }
+    };
+    fetchData();
+  }, [toast]);
 
   const watchCustomerId = form.watch("customerId");
   useEffect(() => {
@@ -108,29 +122,33 @@ const Payments = () => {
     }
   };
 
-  const onSubmit = (data: PaymentFormValues) => {
+  const onSubmit = async (data: PaymentFormValues) => {
     try {
-      const newPayment = addPayment({
+      const newPayment = await addPayment({
         customerId: data.customerId,
         roomId: data.roomId,
         amount: Number(data.amount),
         date: new Date().toISOString(),
-        method: data.method,
-        status: data.status,
+        method: data.method as 'cash' | 'card' | 'bank_transfer' | 'other',
+        status: data.status as 'paid' | 'pending' | 'partial',
         collectedBy: data.collectedBy,
         notes: data.method === "bank_transfer" 
           ? `Bank Ref: ${data.bankRefNo || "N/A"}` 
           : data.notes || undefined
       });
 
-      setPayments([...payments, newPayment]);
-      setOpenAddDialog(false);
-      form.reset();
+      if (newPayment) {
+        setPayments([...payments, newPayment]);
+        setOpenAddDialog(false);
+        form.reset();
 
-      toast({
-        title: "Success",
-        description: `Payment of $${newPayment.amount} has been recorded successfully`,
-      });
+        toast({
+          title: "Success",
+          description: `Payment of $${newPayment.amount} has been recorded successfully`,
+        });
+      } else {
+        throw new Error("Failed to add payment");
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -140,15 +158,30 @@ const Payments = () => {
     }
   };
 
-  const handleResetDatabase = () => {
-    const success = resetDatabase();
-    if (success) {
-      setPayments(getPayments());
-      setCustomers(getCustomers());
-      setRooms(getRooms());
+  const handleResetDatabase = async () => {
+    try {
+      const success = await resetDatabase();
+      if (success) {
+        const paymentsData = await getPayments();
+        const customersData = await getCustomers();
+        const roomsData = await getRooms();
+        
+        setPayments(paymentsData);
+        setCustomers(customersData);
+        setRooms(roomsData);
+        
+        toast({
+          title: "Database Reset",
+          description: "Database has been reset to its initial state.",
+        });
+      } else {
+        throw new Error("Failed to reset database");
+      }
+    } catch (error) {
       toast({
-        title: "Database Reset",
-        description: "Database has been reset to its initial state.",
+        title: "Error",
+        description: "Failed to reset database",
+        variant: "destructive",
       });
     }
   };

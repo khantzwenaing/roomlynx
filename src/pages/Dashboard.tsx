@@ -1,21 +1,39 @@
-
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRooms, getDailyReports } from "@/services/dataService";
 import { Room, DailyReport } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
+import { BedDouble, ChartPieIcon, CreditCard, Users } from "lucide-react";
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [reports, setReports] = useState<DailyReport[]>([]);
-  const isMobile = useIsMobile();
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    setRooms(getRooms());
-    setReports(getDailyReports());
-  }, []);
+    const fetchData = async () => {
+      try {
+        const roomsData = await getRooms();
+        const reportsData = await getDailyReports();
+        setRooms(roomsData);
+        setReports(reportsData);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load dashboard data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
 
   const roomStatusCounts = {
     vacant: rooms.filter((r) => r.status === "vacant").length,
@@ -23,6 +41,20 @@ const Dashboard = () => {
     maintenance: rooms.filter((r) => r.status === "maintenance").length,
     cleaning: rooms.filter((r) => r.status === "cleaning").length,
   };
+
+  const statusColors = {
+    vacant: "#10B981",
+    occupied: "#0EA5E9",
+    maintenance: "#F87333",
+    cleaning: "#F87333",
+  };
+
+  const COLORS = [
+    "#10B981",
+    "#0EA5E9",
+    "#F87333",
+    "#F87333",
+  ];
 
   const chartData = reports.slice(0, 7).map((report) => ({
     date: new Date(report.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
