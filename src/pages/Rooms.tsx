@@ -9,12 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import AddRoomForm from "@/components/AddRoomForm";
 import RoomDetailsDialog from "@/components/RoomDetailsDialog";
-import { Plus, User, UserPlus, CreditCard, MoreHorizontal, Pencil, Trash2, Banknote, Info } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import { Plus, User, UserPlus, CreditCard, Pencil, Trash2, Banknote, Info } from "lucide-react";
 
 const Rooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -43,6 +43,7 @@ const Rooms = () => {
     collectedBy: "",
   });
   const [isRoomDetailsOpen, setIsRoomDetailsOpen] = useState(false);
+  const [calculatedTotalStay, setCalculatedTotalStay] = useState(0);
   const { toast } = useToast();
 
   const loadRooms = () => {
@@ -199,6 +200,20 @@ const Rooms = () => {
 
   const openAddCustomerDialog = (room: Room) => {
     setSelectedRoom(room);
+    
+    const todayStr = new Date().toISOString().split('T')[0];
+    const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    
+    setNewCustomer({
+      ...newCustomer,
+      checkInDate: todayStr,
+      checkOutDate: tomorrowStr,
+      depositAmount: 0
+    });
+    
+    const total = calculateTotalStay(room.id, todayStr, tomorrowStr);
+    setCalculatedTotalStay(total);
+    
     setIsAddCustomerOpen(true);
   };
 
@@ -331,13 +346,16 @@ const Rooms = () => {
     });
     
     if (selectedRoom && newCustomer.checkInDate && newCustomer.checkOutDate) {
+      const checkInDate = field === 'checkInDate' ? value : newCustomer.checkInDate;
+      const checkOutDate = field === 'checkOutDate' ? value : newCustomer.checkOutDate;
+      
       const totalAmount = calculateTotalStay(
         selectedRoom.id, 
-        field === 'checkInDate' ? value : newCustomer.checkInDate,
-        field === 'checkOutDate' ? value : newCustomer.checkOutDate
+        checkInDate,
+        checkOutDate
       );
       
-      console.log(`Total stay amount: $${totalAmount}`);
+      setCalculatedTotalStay(totalAmount);
     }
   };
 
@@ -393,25 +411,17 @@ const Rooms = () => {
                      room.status === "occupied" ? "Occupied" : 
                      "Needs Cleaning"}
                   </Badge>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem 
-                        className="cursor-pointer"
-                        onClick={() => {
-                          setSelectedRoom(room);
-                          setIsDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4 text-red-500" />
-                        <span className="text-red-500">Delete</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  
+                  <Button 
+                    variant="destructive" 
+                    size="icon"
+                    onClick={() => {
+                      setSelectedRoom(room);
+                      setIsDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -553,17 +563,17 @@ const Rooms = () => {
         onEdit={handleEditRoom}
       />
 
-      <Dialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl">
+      <Sheet open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
+        <SheetContent className="sm:max-w-lg w-full overflow-y-auto" side="right">
+          <SheetHeader>
+            <SheetTitle className="text-xl">
               Add Customer for Room {selectedRoom?.roomNumber}
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               Enter customer details to assign them to this room.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
+            </SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 py-6">
             <div className="space-y-2">
               <Label htmlFor="customer-name" className="text-lg">Guest Name*</Label>
               <Input
@@ -642,48 +652,45 @@ const Rooms = () => {
                   Room Rate: ${selectedRoom.rate}/night
                 </div>
                 <div className="text-sm font-medium">
-                  Total Cost: ${calculateTotalStay(
-                    selectedRoom.id,
-                    newCustomer.checkInDate,
-                    newCustomer.checkOutDate
-                  )}
+                  Total Cost: ${calculatedTotalStay}
                 </div>
               </div>
             )}
             
             <div className="space-y-2">
               <Label htmlFor="deposit-amount" className="text-lg">Deposit Amount</Label>
-              <Input
-                id="deposit-amount"
-                type="number"
-                min="0"
-                placeholder="Enter deposit amount"
-                value={newCustomer.depositAmount}
-                onChange={(e) => setNewCustomer({...newCustomer, depositAmount: Number(e.target.value)})}
-                className="text-lg h-12"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-500">$</span>
+                <Input
+                  id="deposit-amount"
+                  type="number"
+                  min="0"
+                  placeholder="Enter deposit amount"
+                  value={newCustomer.depositAmount}
+                  onChange={(e) => setNewCustomer({...newCustomer, depositAmount: Number(e.target.value)})}
+                  className="text-lg h-12 pl-8"
+                />
+              </div>
+              {newCustomer.depositAmount > 0 && (
+                <div className="text-sm text-green-600 font-medium">
+                  Remaining amount to pay: ${Math.max(0, calculatedTotalStay - newCustomer.depositAmount)}
+                </div>
+              )}
             </div>
           </div>
           
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsAddCustomerOpen(false)}
-              className="text-lg h-12"
-            >
-              Cancel
-            </Button>
+          <SheetFooter className="pt-4">
             <Button
               type="button"
               onClick={handleAddCustomer}
-              className="text-lg h-12"
+              className="w-full text-lg h-12"
             >
+              <UserPlus className="mr-2" size={18} />
               Add Customer
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
         <DialogContent className="sm:max-w-md">
