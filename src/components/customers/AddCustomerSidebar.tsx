@@ -3,18 +3,18 @@ import { useState } from "react";
 import { Customer, Room } from "@/types";
 import AddCustomerForm from "./AddCustomerForm";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AddCustomerSidebarProps {
   rooms: Room[];
   onCustomerAdded: (customer: Customer) => void;
   preselectedRoomId?: string;
-  triggerClassName?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -33,13 +33,16 @@ const AddCustomerSidebar = ({
   const setIsOpen = onOpenChange || setLocalOpen;
 
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerContent className="h-[90vh] md:h-[85vh] max-w-md mx-auto">
-        <div className="mx-auto w-full max-w-md">
-          <DrawerHeader>
-            <DrawerTitle className="text-xl">Add New Customer</DrawerTitle>
-          </DrawerHeader>
-          <ScrollArea className="h-[calc(100vh-150px)] px-4">
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto p-0">
+        <SheetHeader className="p-6 border-b">
+          <SheetTitle className="text-xl">Add New Customer</SheetTitle>
+          <SheetDescription>
+            Enter customer details to complete check-in
+          </SheetDescription>
+        </SheetHeader>
+        <ScrollArea className="h-[calc(100vh-120px)]">
+          <div className="p-6">
             <AddCustomerForm 
               rooms={rooms} 
               onCustomerAdded={(customer) => {
@@ -49,10 +52,10 @@ const AddCustomerSidebar = ({
               onClose={() => setIsOpen(false)}
               preselectedRoomId={preselectedRoomId}
             />
-          </ScrollArea>
-        </div>
-      </DrawerContent>
-    </Drawer>
+          </div>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   );
 };
 

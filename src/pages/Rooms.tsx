@@ -1,15 +1,16 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, UserPlus } from "lucide-react";
 import AddRoomForm from "@/components/AddRoomForm";
 import RoomGrid from "@/components/rooms/RoomGrid";
 import RoomFilters from "@/components/rooms/RoomFilters";
 import { useRooms } from "@/hooks/useRooms";
-import AddCustomerDialog from "@/components/customers/AddCustomerDialog";
+import AddCustomerSidebar from "@/components/customers/AddCustomerSidebar";
 
 const Rooms = () => {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+  const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>(undefined);
 
   const { 
@@ -33,11 +34,14 @@ const Rooms = () => {
         <h1 className="text-3xl font-bold text-gray-800">Rooms</h1>
         
         <div className="flex gap-2">
-          <AddCustomerDialog 
-            rooms={filteredRooms}
-            onCustomerAdded={() => loadRooms()}
-            preselectedRoomId={selectedRoomId}
-          />
+          <Button 
+            onClick={() => setIsAddCustomerOpen(true)} 
+            variant="outline"
+            size="default"
+          >
+            <UserPlus className="mr-2" size={18} />
+            Add Customer
+          </Button>
           
           <Button onClick={() => setIsAddRoomOpen(true)} size="default">
             <Plus className="mr-2" size={18} />
@@ -66,6 +70,14 @@ const Rooms = () => {
         isOpen={isAddRoomOpen} 
         onClose={() => setIsAddRoomOpen(false)} 
         onRoomAdded={loadRooms} 
+      />
+      
+      <AddCustomerSidebar
+        rooms={filteredRooms.filter(room => room.status === 'vacant')}
+        onCustomerAdded={() => loadRooms()}
+        preselectedRoomId={selectedRoomId}
+        open={isAddCustomerOpen}
+        onOpenChange={setIsAddCustomerOpen}
       />
     </div>
   );

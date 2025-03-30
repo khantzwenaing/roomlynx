@@ -29,7 +29,10 @@ const RoomActionButtons = ({ room, onAddCustomer, onCheckout }: RoomActionButton
         <Button 
           className="w-full py-6 text-lg"
           variant="default"
-          onClick={onAddCustomer}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddCustomer();
+          }}
         >
           <UserPlus className="mr-2" size={20} />
           Add Customer
@@ -39,7 +42,10 @@ const RoomActionButtons = ({ room, onAddCustomer, onCheckout }: RoomActionButton
       {room.status === "occupied" && (
         <Button 
           className="w-full py-6 text-lg bg-red-600 hover:bg-red-700"
-          onClick={onCheckout}
+          onClick={(e) => {
+            e.stopPropagation();
+            onCheckout();
+          }}
           type="button"
         >
           <CreditCard className="mr-2" size={20} />
