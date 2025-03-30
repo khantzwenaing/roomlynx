@@ -11,7 +11,6 @@ import { Room, Customer } from "@/types";
 import { addCustomer } from "@/services/dataService";
 import { useToast } from "@/hooks/use-toast";
 import { DatePicker } from "@/components/ui/date-picker";
-import { DrawerClose, DrawerFooter } from "@/components/ui/drawer";
 
 const customerSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -328,12 +327,10 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
           </>
         )}
 
-        <DrawerFooter className="px-0 pt-2">
+        <div className="flex flex-col gap-2 pt-2">
           <Button type="submit" className="w-full">Add Customer</Button>
-          <DrawerClose asChild>
-            <Button variant="outline" onClick={onClose} className="w-full">Cancel</Button>
-          </DrawerClose>
-        </DrawerFooter>
+          <Button variant="outline" onClick={onClose} className="w-full">Cancel</Button>
+        </div>
       </form>
     </Form>
   );
