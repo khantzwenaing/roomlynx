@@ -48,18 +48,13 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
     new Date(customer.checkInDate).toISOString().split('T')[0] === todayStr
   ).length;
   
-  // Get all payments for today to identify early checkouts via refunds
+  // Get all payments for today to identify all checkouts (regular and early)
   const payments = await getPayments();
   const todayPayments = payments.filter(payment => 
     new Date(payment.date).toISOString().split('T')[0] === todayStr
   );
   
-  // Count refunds made today for early checkouts
-  const earlyCheckoutRefunds = todayPayments.filter(payment => 
-    payment.isRefund && payment.notes?.toLowerCase().includes('early checkout')
-  );
-  
-  // Get all complete checkouts for today (scheduled and early)
+  // Find all completed checkouts for today (scheduled)
   const { data: completedCheckouts, error: checkoutsError } = await supabase
     .from('customers')
     .select('*')
@@ -69,8 +64,59 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
     console.error('Error fetching completed checkouts:', checkoutsError);
   }
   
-  // Total checkouts = regular checkouts + early checkouts
-  const totalCheckouts = (completedCheckouts?.length || 0) + earlyCheckoutRefunds.length;
+  // Find early checkouts that happened today
+  // This captures checkouts where the actual checkout date was updated to today
+  const { data: earlyCheckouts, error: earlyCheckoutsError } = await supabase
+    .from('customers')
+    .select('*')
+    .eq('checkoutdate', todayStr)
+    .neq('checkoutdate', 'checkindate'); // Ensure it's not the same as check-in date
+    
+  if (earlyCheckoutsError) {
+    console.error('Error fetching early checkouts:', earlyCheckoutsError);
+  }
+  
+  // Count refunds made today for early checkouts
+  const earlyCheckoutRefunds = todayPayments.filter(payment => 
+    payment.isRefund && payment.notes?.toLowerCase().includes('early checkout')
+  );
+  
+  // Get early checkouts from reminders that were updated to today
+  const { data: acknowledgedReminders, error: remindersError } = await supabase
+    .from('rent_reminders')
+    .select('*')
+    .eq('checkoutdate', todayStr)
+    .eq('status', 'acknowledged');
+    
+  if (remindersError) {
+    console.error('Error fetching acknowledged reminders:', remindersError);
+  }
+  
+  // Total checkouts = regular checkouts + early checkouts + acknowledged reminders
+  // Avoid double counting by using Set to store unique customer IDs
+  const checkoutCustomerIds = new Set<string>();
+  
+  // Add completed checkouts
+  (completedCheckouts || []).forEach(checkout => 
+    checkoutCustomerIds.add(checkout.id)
+  );
+  
+  // Add early checkouts
+  (earlyCheckouts || []).forEach(checkout => 
+    checkoutCustomerIds.add(checkout.id)
+  );
+  
+  // Add customers from early checkout refunds
+  earlyCheckoutRefunds.forEach(payment => 
+    checkoutCustomerIds.add(payment.customerId)
+  );
+  
+  // Add customers from acknowledged reminders
+  (acknowledgedReminders || []).forEach(reminder => 
+    checkoutCustomerIds.add(reminder.customerid)
+  );
+  
+  const totalCheckouts = checkoutCustomerIds.size;
   
   // Calculate cash in (regular payments)
   const cashIn = todayPayments
