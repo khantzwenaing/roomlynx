@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Payment } from "@/types";
 
@@ -22,13 +21,13 @@ export const getPayments = async (): Promise<Payment[]> => {
     collectedBy: payment.collectedby,
     status: payment.status as 'paid' | 'pending' | 'partial',
     notes: payment.notes || '',
-    paymentType: payment.paymenttype as 'deposit' | 'checkout' | 'other' || 'other',
+    paymentType: 'checkout', // Default value since it's not in the database
     isRefund: payment.isrefund || false
   }));
 };
 
 export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment | null> => {
-  // Remove paymentType field if it doesn't exist in the database
+  // Remove paymentType field as it doesn't exist in the database
   const newPayment = {
     customerid: payment.customerId,
     roomid: payment.roomId,
@@ -39,7 +38,6 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     status: payment.status,
     notes: payment.notes || null,
     isrefund: payment.isRefund || false
-    // paymenttype field removed as it doesn't exist in the database
   };
   
   const { data, error } = await supabase

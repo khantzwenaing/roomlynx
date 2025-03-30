@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
@@ -9,6 +10,7 @@ import AddCustomerSidebar from "@/components/customers/AddCustomerSidebar";
 import { useSearchParams } from "react-router-dom";
 import { resetDatabase } from "@/services/utilityService";
 import { toast } from "sonner";
+import { Room } from "@/types"; // Add this import
 
 const Rooms = () => {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);

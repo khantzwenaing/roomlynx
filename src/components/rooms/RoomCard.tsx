@@ -3,15 +3,15 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Room, Customer } from "@/types";
 import { useNavigate } from "react-router-dom";
-import { CleaningCompleteButton } from "./card/CleaningCompleteButton";
-import { RoomActionButtons } from "./card/RoomActionButtons";
-import { RoomCardHeader } from "./card/RoomCardHeader";
-import { RoomCardInfo } from "./card/RoomCardInfo";
-import { GuestInfo } from "./card/GuestInfo";
-import { CheckoutDialog } from "./dialogs/CheckoutDialog";
-import { DeleteRoomDialog } from "./dialogs/DeleteRoomDialog";
+import CleaningCompleteButton from "./card/CleaningCompleteButton";
+import RoomActionButtons from "./card/RoomActionButtons";
+import RoomCardHeader from "./card/RoomCardHeader";
+import RoomCardInfo from "./card/RoomCardInfo";
+import GuestInfo from "./card/GuestInfo";
+import CheckoutDialog from "./dialogs/CheckoutDialog";
+import DeleteRoomDialog from "./dialogs/DeleteRoomDialog";
 import { useRoomOperations } from "@/hooks/useRoomOperations";
-import { AddCustomerDialog } from "./dialogs/AddCustomerDialog";
+import AddCustomerDialog from "./dialogs/AddCustomerDialog";
 
 interface RoomCardProps {
   room: Room;
@@ -91,8 +91,8 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
             {room.status === "cleaning" && (
               <CleaningCompleteButton
                 onComplete={handleCleaningSubmit}
-                cleanerName={cleanedBy}
-                setCleanerName={setCleanedBy}
+                cleanedBy={cleanedBy}
+                setCleanedBy={setCleanedBy}
               />
             )}
             

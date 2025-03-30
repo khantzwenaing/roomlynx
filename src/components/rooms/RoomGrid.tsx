@@ -7,11 +7,11 @@ interface RoomGridProps {
   rooms: Room[];
   isLoading: boolean;
   roomCustomers: {[key: string]: Customer | null};
-  onRoomClick: (room: Room) => void;
+  onRoomClick?: (room: Room) => void;
   onCustomerAdded: () => void;
 }
 
-const RoomGrid = ({ rooms, isLoading, roomCustomers, onRoomClick, onCustomerAdded }: RoomGridProps) => {
+const RoomGrid = ({ rooms, isLoading, roomCustomers, onCustomerAdded }: RoomGridProps) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -36,8 +36,7 @@ const RoomGrid = ({ rooms, isLoading, roomCustomers, onRoomClick, onCustomerAdde
           key={room.id} 
           room={room} 
           customer={roomCustomers[room.id] || null}
-          onRoomClick={() => onRoomClick(room)}
-          onCustomerAdded={onCustomerAdded}
+          onRoomUpdated={onCustomerAdded}
         />
       ))}
     </div>

@@ -6,24 +6,28 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 interface CleaningCompleteButtonProps {
-  onCleaningComplete: (cleanedBy: string) => Promise<void>;
+  onComplete: (cleanedBy: string) => Promise<void>;
+  cleanedBy: string;
+  setCleanedBy: (cleanedBy: string) => void;
 }
 
-const CleaningCompleteButton = ({ onCleaningComplete }: CleaningCompleteButtonProps) => {
-  const [cleanedBy, setCleanedBy] = useState("");
-
-  const handleComplete = async () => {
-    await onCleaningComplete(cleanedBy);
+const CleaningCompleteButton = ({ onComplete, cleanedBy, setCleanedBy }: CleaningCompleteButtonProps) => {
+  const handleComplete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click event
+    await onComplete(cleanedBy);
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="w-full py-6 text-lg bg-green-600 hover:bg-green-700">
+        <Button 
+          className="w-full py-6 text-lg bg-green-600 hover:bg-green-700"
+          onClick={(e) => e.stopPropagation()} // Prevent card click event
+        >
           Complete Cleaning
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle className="text-xl">Mark Room as Cleaned</DialogTitle>
           <DialogDescription>
@@ -39,6 +43,7 @@ const CleaningCompleteButton = ({ onCleaningComplete }: CleaningCompleteButtonPr
               value={cleanedBy}
               onChange={(e) => setCleanedBy(e.target.value)}
               className="text-lg h-12"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
           <Button 
