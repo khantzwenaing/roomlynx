@@ -1,10 +1,11 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getRoomDetails } from "@/services/roomsService";
 import { Room, Customer } from "@/types";
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
-import { User, Phone, Home, Calendar, CreditCard, ArrowLeft } from "lucide-react";
+import { User, Phone, Home, Calendar, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
@@ -41,13 +42,6 @@ const RoomDetailsPage = () => {
 
   const handleBackClick = () => {
     navigate(-1);
-  };
-
-  const handleCheckoutClick = () => {
-    if (room?.currentCustomer) {
-      // Navigate directly to the rooms page with checkout action
-      navigate(`/rooms?roomId=${roomId}&action=checkout`);
-    }
   };
 
   if (loading) {
@@ -171,13 +165,6 @@ const RoomDetailsPage = () => {
                   </div>
                 )}
               </div>
-              <Button
-                className="w-full mt-4 bg-red-600 hover:bg-red-700"
-                onClick={handleCheckoutClick}
-              >
-                <CreditCard className="mr-2" />
-                Checkout & Payment
-              </Button>
             </div>
           </div>
         )}
