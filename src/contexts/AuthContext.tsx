@@ -88,17 +88,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("hotel_user");
   };
 
+  const contextValue = {
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    login,
+    logout,
+    error,
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        logout,
-        error,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
