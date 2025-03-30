@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Payment } from "@/types";
 
@@ -104,18 +105,29 @@ export const processEarlyCheckout = async (
       if (!payment) return false;
     }
     
-    // 2. Update customer's checkout date
-    const { error } = await supabase
+    // 2. Update customer's checkout date to mark that they have checked out
+    const { error: customerError } = await supabase
       .from('customers')
       .update({ checkoutdate: actualCheckoutDate })
       .eq('id', customerId);
       
-    if (error) {
-      console.error('Error updating customer checkout date:', error);
+    if (customerError) {
+      console.error('Error updating customer checkout date:', customerError);
       return false;
     }
     
-    // 3. Update or delete the checkout reminder
+    // 3. Update room status to cleaning
+    const { error: roomError } = await supabase
+      .from('rooms')
+      .update({ status: 'cleaning' })
+      .eq('id', roomId);
+      
+    if (roomError) {
+      console.error('Error updating room status:', roomError);
+      return false;
+    }
+    
+    // 4. Update or delete the checkout reminder
     const reminderResult = await supabase
       .from('rent_reminders')
       .update({ 

@@ -43,31 +43,39 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   
-  // Count check-ins and check-outs for today
+  // Count check-ins for today
   const checkIns = customers.filter(customer => 
     new Date(customer.checkInDate).toISOString().split('T')[0] === todayStr
   ).length;
   
-  // Get all customers who checked out today (including early checkouts)
+  // Count all checkouts for today (both regular and early)
   const checkOuts = customers.filter(customer => 
     new Date(customer.checkOutDate).toISOString().split('T')[0] === todayStr
   ).length;
   
-  // Get reminders with 'acknowledged' status for today (early checkouts)
+  // Get all reminders to find early checkouts
   const reminders = await getCheckoutReminders();
+  
+  // Count acknowledged reminders (meaning early checkouts) that happened today
   const acknowledgedToday = reminders.filter(reminder => 
     reminder.status === 'acknowledged' &&
     new Date(reminder.checkOutDate).toISOString().split('T')[0] === todayStr
   ).length;
   
-  // Combine regular checkouts with acknowledged reminders
-  const totalCheckouts = checkOuts + acknowledgedToday;
-  
-  // Get payments for today to calculate revenue
+  // Get all payments for today to identify early checkouts via refunds
   const payments = await getPayments();
   const todayPayments = payments.filter(payment => 
     new Date(payment.date).toISOString().split('T')[0] === todayStr
   );
+  
+  // Count refunds made today (additional way to track early checkouts)
+  const refundsToday = todayPayments.filter(payment => 
+    payment.isRefund && payment.notes?.includes('early checkout')
+  ).length;
+  
+  // Total checkouts = regular checkouts + acknowledged reminders + refunds for early checkouts
+  // We need to be careful not to double count, so we'll use the maximum value
+  const totalCheckouts = Math.max(checkOuts, acknowledgedToday, refundsToday);
   
   // Calculate cash in (regular payments)
   const cashIn = todayPayments

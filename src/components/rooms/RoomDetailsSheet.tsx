@@ -81,6 +81,9 @@ const RoomDetailsSheet = ({
     if (!customer) return;
     
     try {
+      console.log(`Processing early checkout for room: ${selectedRoom.id}, customer: ${customer.id}`);
+      console.log(`Actual checkout date: ${actualCheckoutDate}, refund amount: ${refundAmount}`);
+      
       const success = await processEarlyCheckout(
         selectedRoom.id, 
         customer.id, 
@@ -90,8 +93,7 @@ const RoomDetailsSheet = ({
       );
       
       if (success) {
-        // Update room status
-        await updateRoom(selectedRoom.id, { status: 'cleaning' });
+        // No need to update room status here as processEarlyCheckout already does it
         
         toast({
           title: "Checkout Complete",
@@ -99,7 +101,11 @@ const RoomDetailsSheet = ({
         });
         
         onOpenChange(false);
-        onRoomUpdated();
+        
+        // Give time for the database to update before refreshing data
+        setTimeout(() => {
+          onRoomUpdated();
+        }, 1000);
       } else {
         toast({
           title: "Error",

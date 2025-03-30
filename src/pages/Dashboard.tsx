@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { BedDouble, ChartPieIcon, CreditCard, Users, Calendar, Clock, Bell, BellRing, Brush, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { format, parseISO, isAfter, isBefore, addDays } from "date-fns";
+import { format, parseISO, isAfter, isBefore, addDays, isPast } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import CheckoutReminderAlert from "@/components/reminders/CheckoutReminderAlert";
@@ -55,11 +55,22 @@ const Dashboard = () => {
     cleaning: rooms.filter((r) => r.status === "cleaning").length,
   };
 
+  // Filter out customers who have already checked out (showing only future checkouts)
   const upcomingCheckouts = customers
     .filter(customer => {
       const checkoutDate = parseISO(customer.checkOutDate);
       const today = new Date();
-      return isAfter(checkoutDate, today) && isBefore(checkoutDate, addDays(today, 7));
+      
+      // Only include if:
+      // 1. Checkout date is in the future
+      // 2. Checkout date is within next 7 days
+      // 3. The customer's room is still occupied (important for early checkouts)
+      const customerRoom = rooms.find(r => r.id === customer.roomId);
+      const isRoomOccupied = customerRoom && customerRoom.status === "occupied";
+      
+      return isAfter(checkoutDate, today) && 
+             isBefore(checkoutDate, addDays(today, 7)) &&
+             isRoomOccupied; // This ensures early checkouts don't show up
     })
     .sort((a, b) => {
       return parseISO(a.checkOutDate).getTime() - parseISO(b.checkOutDate).getTime();
