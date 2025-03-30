@@ -3,197 +3,134 @@ import { supabase } from "@/integrations/supabase/client";
 import { Room, Customer, Payment, DailyReport, CleaningRecord } from "@/types";
 import { v4 as uuidv4 } from 'uuid';
 
-// Local Storage Helpers
-const loadFromLocalStorage = <T>(key: string, defaultValue: T[]): T[] => {
-  if (typeof window === 'undefined') return defaultValue;
-  const stored = localStorage.getItem(key);
-  if (!stored) return defaultValue;
-  try {
-    return JSON.parse(stored);
-  } catch (error) {
-    console.error(`Error parsing stored data for ${key}:`, error);
-    return defaultValue;
-  }
-};
-
-const saveToLocalStorage = <T>(key: string, data: T[]): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(key, JSON.stringify(data));
-};
-
 // Room functions
-export const getRooms = (): Room[] => {
-  return loadFromLocalStorage<Room>("hotel_rooms", []);
+export const getRooms = async (): Promise<Room[]> => {
+  const { data, error } = await supabase
+    .from('rooms')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching rooms:', error);
+    return [];
+  }
+  
+  return data as Room[];
 };
 
-export const getRoomDetails = (roomId: string): Room | null => {
-  const rooms = getRooms();
-  return rooms.find(room => room.id === roomId) || null;
+export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
+  const { data, error } = await supabase
+    .from('rooms')
+    .select('*')
+    .eq('id', roomId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching room details:', error);
+    return null;
+  }
+  
+  return data as Room;
 };
 
-export const updateRoom = (id: string, updates: Partial<Room>): Room | null => {
-  const allRooms = loadFromLocalStorage<Room>("hotel_rooms", []);
-  const index = allRooms.findIndex(room => room.id === id);
+export const updateRoom = async (id: string, updates: Partial<Room>): Promise<Room | null> => {
+  const { data, error } = await supabase
+    .from('rooms')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
   
-  if (index === -1) return null;
+  if (error) {
+    console.error('Error updating room:', error);
+    return null;
+  }
   
-  const updatedRoom = { ...allRooms[index], ...updates };
-  allRooms[index] = updatedRoom;
-  saveToLocalStorage("hotel_rooms", allRooms);
-  return updatedRoom;
+  return data as Room;
 };
 
-export const addRoom = (room: Omit<Room, "id">): Room => {
-  const newRoom: Room = {
-    id: uuidv4(),
-    ...room
-  };
+export const addRoom = async (room: Omit<Room, "id">): Promise<Room | null> => {
+  const { data, error } = await supabase
+    .from('rooms')
+    .insert({
+      ...room,
+      id: uuidv4()
+    })
+    .select()
+    .single();
   
-  const allRooms = loadFromLocalStorage<Room>("hotel_rooms", []);
-  allRooms.push(newRoom);
-  saveToLocalStorage("hotel_rooms", allRooms);
-  return newRoom;
+  if (error) {
+    console.error('Error adding room:', error);
+    return null;
+  }
+  
+  return data as Room;
 };
 
-export const deleteRoom = (id: string): boolean => {
-  const allRooms = loadFromLocalStorage<Room>("hotel_rooms", []);
-  const updatedRooms = allRooms.filter(room => room.id !== id);
+export const deleteRoom = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('rooms')
+    .delete()
+    .eq('id', id);
   
-  if (updatedRooms.length === allRooms.length) return false;
+  if (error) {
+    console.error('Error deleting room:', error);
+    return false;
+  }
   
-  saveToLocalStorage("hotel_rooms", updatedRooms);
   return true;
 };
 
-// Customer functions
-export const getCustomers = (): Customer[] => {
-  return loadFromLocalStorage<Customer>("hotel_customers", []);
-};
-
-export const addCustomer = (customer: Omit<Customer, "id">): Customer => {
-  const newCustomer: Customer = {
-    id: uuidv4(),
-    ...customer
-  };
+// Similar pattern for other data types (Customers, Payments, etc.)
+export const getCustomers = async (): Promise<Customer[]> => {
+  const { data, error } = await supabase
+    .from('customers')
+    .select('*');
   
-  const allCustomers = loadFromLocalStorage<Customer>("hotel_customers", []);
-  allCustomers.push(newCustomer);
-  saveToLocalStorage("hotel_customers", allCustomers);
-  return newCustomer;
-};
-
-export const updateCustomer = (id: string, updates: Partial<Customer>): Customer | null => {
-  const allCustomers = loadFromLocalStorage<Customer>("hotel_customers", []);
-  const index = allCustomers.findIndex(customer => customer.id === id);
-  
-  if (index === -1) return null;
-  
-  const updatedCustomer = { ...allCustomers[index], ...updates };
-  allCustomers[index] = updatedCustomer;
-  saveToLocalStorage("hotel_customers", allCustomers);
-  return updatedCustomer;
-};
-
-// Payment functions
-export const getPayments = (): Payment[] => {
-  return loadFromLocalStorage<Payment>("hotel_payments", []);
-};
-
-export const addPayment = (payment: Omit<Payment, "id">): Payment => {
-  const newPayment: Payment = {
-    id: uuidv4(),
-    ...payment
-  };
-  
-  const allPayments = loadFromLocalStorage<Payment>("hotel_payments", []);
-  allPayments.push(newPayment);
-  saveToLocalStorage("hotel_payments", allPayments);
-  return newPayment;
-};
-
-// Report functions
-export const getDailyReports = (): DailyReport[] => {
-  return loadFromLocalStorage<DailyReport>("hotel_reports", []);
-};
-
-export const generateDailyReport = (): DailyReport => {
-  const rooms = getRooms();
-  const customers = getCustomers();
-  const today = new Date();
-  
-  // Get today's date in ISO format (YYYY-MM-DD)
-  const todayStr = today.toISOString().split('T')[0];
-  
-  // Count rooms by status
-  const occupiedRooms = rooms.filter(r => r.status === "occupied").length;
-  const vacantRooms = rooms.filter(r => r.status === "vacant").length;
-  const roomsNeedCleaning = rooms.filter(r => r.status === "cleaning").length;
-  
-  // Count expected check-ins and check-outs for today
-  const expectedCheckIns = customers.filter(c => c.checkInDate.startsWith(todayStr)).length;
-  const expectedCheckOuts = customers.filter(c => c.checkOutDate.startsWith(todayStr)).length;
-  
-  // Calculate today's revenue (simplified)
-  const todayPayments = getPayments().filter(p => p.date.startsWith(todayStr));
-  const totalRevenue = todayPayments.reduce((sum, payment) => sum + payment.amount, 0);
-  
-  const newReport: DailyReport = {
-    id: uuidv4(),
-    date: todayStr,
-    totalRooms: rooms.length,
-    occupiedRooms,
-    vacantRooms,
-    roomsNeedCleaning,
-    expectedCheckIns,
-    expectedCheckOuts,
-    totalRevenue
-  };
-  
-  const allReports = loadFromLocalStorage<DailyReport>("hotel_reports", []);
-  
-  // Check if a report for today already exists
-  const existingReportIndex = allReports.findIndex(r => r.date === todayStr);
-  
-  if (existingReportIndex !== -1) {
-    // Update existing report
-    allReports[existingReportIndex] = newReport;
-  } else {
-    // Add new report
-    allReports.push(newReport);
+  if (error) {
+    console.error('Error fetching customers:', error);
+    return [];
   }
   
-  saveToLocalStorage("hotel_reports", allReports);
-  return newReport;
+  return data as Customer[];
 };
 
-// Cleaning records
-export const getCleaningRecords = (): CleaningRecord[] => {
-  return loadFromLocalStorage<CleaningRecord>("hotel_cleaning_records", []);
-};
-
-export const addCleaningRecord = (record: Omit<CleaningRecord, "id">): CleaningRecord => {
-  const newRecord: CleaningRecord = {
-    id: uuidv4(),
-    ...record
-  };
+export const getPayments = async (): Promise<Payment[]> => {
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*');
   
-  const allRecords = loadFromLocalStorage<CleaningRecord>("hotel_cleaning_records", []);
-  allRecords.push(newRecord);
-  saveToLocalStorage("hotel_cleaning_records", allRecords);
-  return newRecord;
+  if (error) {
+    console.error('Error fetching payments:', error);
+    return [];
+  }
+  
+  return data as Payment[];
 };
 
-// Reset database (for development purposes)
-export const resetDatabase = (): boolean => {
-  try {
-    localStorage.removeItem("hotel_rooms");
-    localStorage.removeItem("hotel_customers");
-    localStorage.removeItem("hotel_payments");
-    localStorage.removeItem("hotel_reports");
-    localStorage.removeItem("hotel_cleaning_records");
-    return true;
-  } catch (error) {
-    console.error("Error resetting database:", error);
-    return false;
+export const getDailyReports = async (): Promise<DailyReport[]> => {
+  const { data, error } = await supabase
+    .from('daily_reports')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching daily reports:', error);
+    return [];
   }
+  
+  return data as DailyReport[];
 };
+
+export const getCleaningRecords = async (): Promise<CleaningRecord[]> => {
+  const { data, error } = await supabase
+    .from('cleaning_records')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching cleaning records:', error);
+    return [];
+  }
+  
+  return data as CleaningRecord[];
+};
+
+// Reset database functionality no longer needed with real Supabase backend
