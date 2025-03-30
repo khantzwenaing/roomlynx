@@ -21,7 +21,8 @@ export const getPayments = async (): Promise<Payment[]> => {
     method: payment.method as 'cash' | 'bank_transfer' | 'other',
     collectedBy: payment.collectedby,
     status: payment.status as 'paid' | 'pending' | 'partial',
-    notes: payment.notes || ''
+    notes: payment.notes || '',
+    paymentType: payment.paymenttype || 'other'
   }));
 };
 
@@ -34,7 +35,8 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     method: payment.method,
     collectedby: payment.collectedBy,
     status: payment.status,
-    notes: payment.notes || null
+    notes: payment.notes || null,
+    paymenttype: payment.paymentType || 'other'
   };
   
   const { data, error } = await supabase
@@ -57,7 +59,8 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     method: data.method as 'cash' | 'bank_transfer' | 'other',
     collectedBy: data.collectedby,
     status: data.status as 'paid' | 'pending' | 'partial',
-    notes: data.notes || ''
+    notes: data.notes || '',
+    paymentType: data.paymenttype || 'other'
   };
 };
 

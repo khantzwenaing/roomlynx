@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { getPayments, getCustomers, getRooms, addPayment, resetDatabase } from "@/services/dataService";
 import { Payment, Customer, Room } from "@/types";
@@ -15,7 +16,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { RotateCcw, Banknote, CreditCard } from "lucide-react";
+import { RotateCcw, Banknote, CreditCard, WalletCards, LogIn, LogOut } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const paymentSchema = z.object({
   customerId: z.string({required_error: "Customer is required"}),
@@ -29,6 +31,9 @@ const paymentSchema = z.object({
   status: z.enum(["paid", "pending", "partial"], {
     required_error: "Payment status is required",
   }),
+  paymentType: z.enum(["deposit", "checkout", "other"], {
+    required_error: "Payment type is required",
+  }),
   collectedBy: z.string({required_error: "Collector name is required"}),
   notes: z.string().optional().or(z.literal("")),
   bankRefNo: z.string().optional(),
@@ -41,6 +46,7 @@ const Payments = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>("all");
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const { toast } = useToast();
 
@@ -52,6 +58,7 @@ const Payments = () => {
       amount: "",
       method: "cash",
       status: "paid",
+      paymentType: "other",
       collectedBy: "",
       notes: "",
     }
@@ -92,11 +99,17 @@ const Payments = () => {
     const customer = customers.find((c) => c.id === payment.customerId);
     const room = rooms.find((r) => r.id === payment.roomId);
     
-    return (
+    const matchesSearch = (
       (customer && customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (room && room.roomNumber.includes(searchTerm)) ||
       payment.amount.toString().includes(searchTerm)
     );
+
+    const matchesTypeFilter = 
+      paymentTypeFilter === "all" || 
+      payment.paymentType === paymentTypeFilter;
+    
+    return matchesSearch && matchesTypeFilter;
   });
 
   const getCustomerName = (customerId: string) => {
@@ -122,6 +135,28 @@ const Payments = () => {
     }
   };
 
+  const getPaymentTypeIcon = (paymentType?: string) => {
+    switch (paymentType) {
+      case "deposit":
+        return <LogIn className="h-4 w-4 mr-1 text-blue-500" />;
+      case "checkout":
+        return <LogOut className="h-4 w-4 mr-1 text-red-500" />;
+      default:
+        return <WalletCards className="h-4 w-4 mr-1" />;
+    }
+  };
+
+  const getPaymentTypeBadge = (paymentType?: string) => {
+    switch (paymentType) {
+      case "deposit":
+        return <Badge className="bg-blue-500">Check-in Deposit</Badge>;
+      case "checkout":
+        return <Badge className="bg-red-500">Checkout Payment</Badge>;
+      default:
+        return <Badge className="bg-gray-500">Other Payment</Badge>;
+    }
+  };
+
   const onSubmit = async (data: PaymentFormValues) => {
     try {
       const newPayment = await addPayment({
@@ -131,6 +166,7 @@ const Payments = () => {
         date: new Date().toISOString(),
         method: data.method as 'cash' | 'card' | 'bank_transfer' | 'other',
         status: data.status as 'paid' | 'pending' | 'partial',
+        paymentType: data.paymentType,
         collectedBy: data.collectedBy,
         notes: data.method === "bank_transfer" 
           ? `Bank Ref: ${data.bankRefNo || "N/A"}` 
@@ -350,6 +386,47 @@ const Payments = () => {
                     
                     <FormField
                       control={form.control}
+                      name="paymentType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Payment Type</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select payment type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="deposit">
+                                <div className="flex items-center">
+                                  <LogIn className="mr-2" size={16} />
+                                  Check-in Deposit
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="checkout">
+                                <div className="flex items-center">
+                                  <LogOut className="mr-2" size={16} />
+                                  Checkout Payment
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="other">
+                                <div className="flex items-center">
+                                  <WalletCards className="mr-2" size={16} />
+                                  Other Payment
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
                       name="status"
                       render={({ field }) => (
                         <FormItem>
@@ -410,14 +487,50 @@ const Payments = () => {
         </div>
       </div>
 
-      <div className="w-full md:w-1/2 lg:w-1/3">
-        <Label htmlFor="search">Search Payments</Label>
-        <Input
-          id="search"
-          placeholder="Search by customer, room or amount..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+        <div className="w-full md:w-1/3">
+          <Label htmlFor="search">Search Payments</Label>
+          <Input
+            id="search"
+            placeholder="Search by customer, room or amount..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="w-full md:w-1/4">
+          <Label htmlFor="payment-type-filter">Filter by Type</Label>
+          <Select value={paymentTypeFilter} onValueChange={setPaymentTypeFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Payment Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <div className="flex items-center">
+                  <WalletCards className="mr-2" size={16} />
+                  All Payments
+                </div>
+              </SelectItem>
+              <SelectItem value="deposit">
+                <div className="flex items-center">
+                  <LogIn className="mr-2" size={16} />
+                  Check-in Deposits
+                </div>
+              </SelectItem>
+              <SelectItem value="checkout">
+                <div className="flex items-center">
+                  <LogOut className="mr-2" size={16} />
+                  Checkout Payments
+                </div>
+              </SelectItem>
+              <SelectItem value="other">
+                <div className="flex items-center">
+                  <WalletCards className="mr-2" size={16} />
+                  Other Payments
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -429,6 +542,9 @@ const Payments = () => {
                 <Badge className={getPaymentStatusColor(payment.status)}>
                   {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                 </Badge>
+              </div>
+              <div className="mt-2">
+                {getPaymentTypeBadge(payment.paymentType)}
               </div>
             </CardHeader>
             <CardContent>

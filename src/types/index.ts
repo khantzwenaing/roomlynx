@@ -42,6 +42,7 @@ export type Payment = {
   collectedBy: string;
   status: 'paid' | 'pending' | 'partial';
   notes?: string;
+  paymentType?: 'deposit' | 'checkout' | 'other';
 };
 
 export type DailyReport = {

@@ -32,6 +32,7 @@ const RoomDetailsSheet = ({
     method: "cash",
     bankRefNo: "",
     collectedBy: "",
+    paymentType: "checkout"
   });
 
   const handleCheckout = () => {
@@ -51,6 +52,7 @@ const RoomDetailsSheet = ({
         method: "cash",
         bankRefNo: "",
         collectedBy: "",
+        paymentType: "checkout"
       });
       
       onOpenChange(false);
