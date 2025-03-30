@@ -1,16 +1,12 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { Customer, Room } from "@/types";
 import AddCustomerForm from "./AddCustomerForm";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -19,24 +15,25 @@ interface AddCustomerSidebarProps {
   onCustomerAdded: (customer: Customer) => void;
   preselectedRoomId?: string;
   triggerClassName?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const AddCustomerSidebar = ({ 
   rooms, 
   onCustomerAdded, 
   preselectedRoomId,
-  triggerClassName
+  open,
+  onOpenChange
 }: AddCustomerSidebarProps) => {
-  const [open, setOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
+  
+  // Use either controlled or uncontrolled state
+  const isOpen = open !== undefined ? open : localOpen;
+  const setIsOpen = onOpenChange || setLocalOpen;
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button className={triggerClassName}>
-          <Plus className="mr-2" size={18} />
-          Add New Customer
-        </Button>
-      </DrawerTrigger>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerContent className="h-[90vh] md:h-[85vh] max-w-md mx-auto">
         <div className="mx-auto w-full max-w-md">
           <DrawerHeader>
@@ -47,9 +44,9 @@ const AddCustomerSidebar = ({
               rooms={rooms} 
               onCustomerAdded={(customer) => {
                 onCustomerAdded(customer);
-                setOpen(false);
+                setIsOpen(false);
               }}
-              onClose={() => setOpen(false)}
+              onClose={() => setIsOpen(false)}
               preselectedRoomId={preselectedRoomId}
             />
           </ScrollArea>

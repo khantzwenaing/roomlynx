@@ -6,7 +6,7 @@ import AddRoomForm from "@/components/AddRoomForm";
 import RoomGrid from "@/components/rooms/RoomGrid";
 import RoomFilters from "@/components/rooms/RoomFilters";
 import { useRooms } from "@/hooks/useRooms";
-import AddCustomerSidebar from "@/components/customers/AddCustomerSidebar";
+import AddCustomerDialog from "@/components/customers/AddCustomerDialog";
 
 const Rooms = () => {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
@@ -33,11 +33,10 @@ const Rooms = () => {
         <h1 className="text-3xl font-bold text-gray-800">Rooms</h1>
         
         <div className="flex gap-2">
-          <AddCustomerSidebar 
+          <AddCustomerDialog 
             rooms={filteredRooms}
             onCustomerAdded={() => loadRooms()}
             preselectedRoomId={selectedRoomId}
-            triggerClassName="bg-blue-600 hover:bg-blue-700"
           />
           
           <Button onClick={() => setIsAddRoomOpen(true)} size="default">
