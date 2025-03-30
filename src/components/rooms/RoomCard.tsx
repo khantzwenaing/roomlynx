@@ -124,15 +124,15 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
         calculateTotalStay={calculateTotalStay}
       />
       
-      <AddCustomerDialog 
-        isOpen={isAddCustomerDialogOpen}
-        onOpenChange={setIsAddCustomerDialogOpen}
-        preselectedRoomId={room.id}
-        onCustomerAdded={() => {
-          setIsAddCustomerDialogOpen(false);
-          onRoomUpdated();
-        }}
-      />
+      {/* Only render AddCustomerDialog when isAddCustomerDialogOpen is true and we have a valid room */}
+      {isAddCustomerDialogOpen && (
+        <AddCustomerDialog 
+          isOpen={isAddCustomerDialogOpen}
+          onOpenChange={setIsAddCustomerDialogOpen}
+          room={room}
+          onCustomerAdded={onRoomUpdated}
+        />
+      )}
     </>
   );
 };

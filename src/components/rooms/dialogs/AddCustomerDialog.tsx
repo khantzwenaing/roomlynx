@@ -20,6 +20,12 @@ const AddCustomerDialog = ({
 }: AddCustomerDialogProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Guard against undefined room
+  if (!room) {
+    console.error("AddCustomerDialog: Room prop is undefined");
+    return null;
+  }
+
   const handleCustomerAdded = async (customer: Customer) => {
     try {
       setIsProcessing(true);

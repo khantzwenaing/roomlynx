@@ -11,7 +11,7 @@ interface RoomGridProps {
   onCustomerAdded: () => void;
 }
 
-const RoomGrid = ({ rooms, isLoading, roomCustomers, onCustomerAdded }: RoomGridProps) => {
+const RoomGrid = ({ rooms, isLoading, roomCustomers, onCustomerAdded, onRoomClick }: RoomGridProps) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
