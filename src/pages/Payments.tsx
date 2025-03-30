@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { getPayments, getCustomers, getRooms, addPayment, resetDatabase } from "@/services/dataService";
 import { Payment, Customer, Room } from "@/types";
@@ -16,7 +15,6 @@ const Payments = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>("all");
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const { toast } = useToast();
 
@@ -143,8 +141,6 @@ const Payments = () => {
       <PaymentFilters 
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        paymentTypeFilter={paymentTypeFilter}
-        setPaymentTypeFilter={setPaymentTypeFilter}
       />
 
       <PaymentList 
@@ -152,7 +148,6 @@ const Payments = () => {
         customers={customers}
         rooms={rooms}
         searchTerm={searchTerm}
-        paymentTypeFilter={paymentTypeFilter}
       />
     </div>
   );

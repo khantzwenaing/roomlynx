@@ -8,10 +8,9 @@ interface PaymentListProps {
   customers: Customer[];
   rooms: Room[];
   searchTerm: string;
-  paymentTypeFilter: string;
 }
 
-const PaymentList = ({ payments, customers, rooms, searchTerm, paymentTypeFilter }: PaymentListProps) => {
+const PaymentList = ({ payments, customers, rooms, searchTerm }: PaymentListProps) => {
   const getCustomerName = (customerId: string) => {
     const customer = customers.find((c) => c.id === customerId);
     return customer ? customer.name : "Unknown";
@@ -31,12 +30,8 @@ const PaymentList = ({ payments, customers, rooms, searchTerm, paymentTypeFilter
       (room && room.roomNumber.includes(searchTerm)) ||
       payment.amount.toString().includes(searchTerm)
     );
-
-    const matchesTypeFilter = 
-      paymentTypeFilter === "all" || 
-      payment.paymentType === paymentTypeFilter;
     
-    return matchesSearch && matchesTypeFilter;
+    return matchesSearch;
   });
 
   return (
