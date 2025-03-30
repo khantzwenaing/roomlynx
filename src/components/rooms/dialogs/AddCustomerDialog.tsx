@@ -1,8 +1,9 @@
 
 import React from "react";
-import { Room } from "@/types";
+import { Room, Customer } from "@/types";
 import AddCustomerSidebar from "@/components/customers/AddCustomerSidebar";
 import { updateRoom } from "@/services/dataService";
+import { toast } from "sonner";
 
 interface AddCustomerDialogProps {
   isOpen: boolean;
@@ -17,11 +18,29 @@ const AddCustomerDialog = ({
   room, 
   onCustomerAdded
 }: AddCustomerDialogProps) => {
-  const handleCustomerAdded = async (customer: any) => {
-    // Update room status to occupied when customer is added
-    await updateRoom(room.id, { status: "occupied" });
-    onCustomerAdded();
-    onOpenChange(false);
+  const handleCustomerAdded = async (customer: Customer) => {
+    try {
+      console.log("Customer added successfully:", customer);
+      console.log("Updating room status to occupied for room ID:", room.id);
+      
+      // Update room status to occupied when customer is added
+      const updatedRoom = await updateRoom(room.id, { status: "occupied" });
+      
+      if (updatedRoom) {
+        console.log("Room status updated successfully to occupied");
+        toast.success("Customer checked in successfully");
+      } else {
+        console.error("Failed to update room status");
+        toast.error("Failed to update room status");
+      }
+      
+      // Notify parent to refresh data
+      onCustomerAdded();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error in handleCustomerAdded:", error);
+      toast.error("An error occurred during check-in");
+    }
   };
 
   return (

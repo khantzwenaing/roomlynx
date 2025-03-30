@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
@@ -44,6 +43,7 @@ const Rooms = () => {
   }, [searchParams]);
 
   const handleDataRefresh = () => {
+    console.log("Triggering data refresh...");
     loadRooms();
     loadCustomersForRooms();
   };
@@ -52,20 +52,27 @@ const Rooms = () => {
     try {
       setIsResetting(true);
       toast.loading("Resetting database...");
+      console.log("Starting database reset...");
       
       const success = await resetDatabase();
       
       if (success) {
+        console.log("Database reset successful, refreshing data...");
         toast.success("Database reset successfully");
-        // Force reload to ensure everything is refreshed
-        window.location.reload();
+        
+        // Force data refresh after a short delay to ensure the database operations complete
+        setTimeout(() => {
+          handleDataRefresh();
+          setIsResetting(false);
+        }, 1000);
       } else {
+        console.error("Database reset failed");
         toast.error("Failed to reset database");
+        setIsResetting(false);
       }
     } catch (error) {
       console.error("Error resetting database:", error);
       toast.error("An error occurred while resetting the database");
-    } finally {
       setIsResetting(false);
     }
   };
