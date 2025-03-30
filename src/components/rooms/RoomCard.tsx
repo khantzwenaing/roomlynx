@@ -60,8 +60,14 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
           
           <RoomActionButtons 
             room={room} 
-            onAddCustomer={() => setIsAddCustomerDialogOpen(true)}
-            onCheckout={() => setIsCheckoutDialogOpen(true)}
+            onAddCustomer={(e) => {
+              e.stopPropagation();
+              setIsAddCustomerDialogOpen(true);
+            }}
+            onCheckout={(e) => {
+              e.stopPropagation();
+              setIsCheckoutDialogOpen(true);
+            }}
           />
           
           {room.status === "cleaning" && (
@@ -95,10 +101,7 @@ const RoomCard = ({ room, customer, onRoomClick, onCustomerAdded }: RoomCardProp
         isOpen={isAddCustomerDialogOpen}
         onOpenChange={setIsAddCustomerDialogOpen}
         room={room}
-        onCustomerAdded={() => {
-          setIsAddCustomerDialogOpen(false);
-          onCustomerAdded();
-        }}
+        onCustomerAdded={onCustomerAdded}
       />
     </Card>
   );
