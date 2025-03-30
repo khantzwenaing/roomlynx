@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { getRooms, getDailyReports, getCustomers } from "@/services/dataService";
 import { Room, DailyReport, Customer } from "@/types";
@@ -9,7 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, 
   Legend, ResponsiveContainer, PieChart, Pie 
 } from "recharts";
-import { BedDouble, ChartPieIcon, CreditCard, Users, Calendar, Clock, Bell, BellRing, Broom } from "lucide-react";
+import { BedDouble, ChartPieIcon, CreditCard, Users, Calendar, Clock, Bell, BellRing, Brush } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isAfter, isBefore, addDays } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -52,12 +51,10 @@ const Dashboard = () => {
     cleaning: rooms.filter((r) => r.status === "cleaning").length,
   };
 
-  // Sort checkout reminders by date (closest first)
   const upcomingCheckouts = customers
     .filter(customer => {
       const checkoutDate = parseISO(customer.checkOutDate);
       const today = new Date();
-      // Only include upcoming checkouts within the next 7 days
       return isAfter(checkoutDate, today) && isBefore(checkoutDate, addDays(today, 7));
     })
     .sort((a, b) => {
@@ -68,7 +65,6 @@ const Dashboard = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
 
-      {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -114,7 +110,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <Broom className="h-4 w-4 text-hotel-warning" />
+              <Brush className="h-4 w-4 text-hotel-warning" />
               <div className="text-2xl font-bold">{roomStatusCounts.cleaning}</div>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -125,7 +121,6 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Checkout Reminders */}
         <Card className="lg:col-span-3">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Upcoming Checkouts</CardTitle>
@@ -176,7 +171,6 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Room Status Overview */}
       <Card>
         <CardHeader>
           <CardTitle>Room Status Overview</CardTitle>
