@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
-import { getRooms, getDailyReports } from "@/services/dataService";
-import { Room, DailyReport } from "@/types";
+import { getRooms, getDailyReports, getCustomers } from "@/services/dataService";
+import { Room, DailyReport, Customer } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -9,12 +9,15 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, 
   Legend, ResponsiveContainer, PieChart, Pie 
 } from "recharts";
-import { BedDouble, ChartPieIcon, CreditCard, Users } from "lucide-react";
+import { BedDouble, ChartPieIcon, CreditCard, Users, Calendar, Clock, Bell, BellRing, Broom } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { format, parseISO, isAfter, isBefore, addDays } from "date-fns";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [reports, setReports] = useState<DailyReport[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -23,8 +26,10 @@ const Dashboard = () => {
       try {
         const roomsData = await getRooms();
         const reportsData = await getDailyReports();
+        const customersData = await getCustomers();
         setRooms(roomsData);
         setReports(reportsData);
+        setCustomers(customersData);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         toast({
@@ -47,26 +52,17 @@ const Dashboard = () => {
     cleaning: rooms.filter((r) => r.status === "cleaning").length,
   };
 
-  const statusColors = {
-    vacant: "#10B981",
-    occupied: "#0EA5E9",
-    maintenance: "#F87333",
-    cleaning: "#F87333",
-  };
-
-  const COLORS = [
-    "#10B981",
-    "#0EA5E9",
-    "#F87333",
-    "#F87333",
-  ];
-
-  const chartData = reports.slice(0, 7).map((report) => ({
-    date: new Date(report.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    occupiedRooms: report.occupiedRooms,
-    vacantRooms: report.vacantRooms,
-    revenue: report.totalRevenue,
-  })).reverse();
+  // Sort checkout reminders by date (closest first)
+  const upcomingCheckouts = customers
+    .filter(customer => {
+      const checkoutDate = parseISO(customer.checkOutDate);
+      const today = new Date();
+      // Only include upcoming checkouts within the next 7 days
+      return isAfter(checkoutDate, today) && isBefore(checkoutDate, addDays(today, 7));
+    })
+    .sort((a, b) => {
+      return parseISO(a.checkOutDate).getTime() - parseISO(b.checkOutDate).getTime();
+    });
 
   return (
     <div className="space-y-6">
@@ -113,40 +109,69 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              Needs Attention
+              Cleaning
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {roomStatusCounts.cleaning + roomStatusCounts.maintenance}
+            <div className="flex items-center gap-2">
+              <Broom className="h-4 w-4 text-hotel-warning" />
+              <div className="text-2xl font-bold">{roomStatusCounts.cleaning}</div>
             </div>
-            <div className="flex gap-2 mt-1">
-              <Badge className="bg-hotel-warning">{roomStatusCounts.cleaning} cleaning</Badge>
-              <Badge className="bg-hotel-danger">{roomStatusCounts.maintenance} maintenance</Badge>
-            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Rooms pending cleaning
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Occupancy Chart */}
+        {/* Checkout Reminders */}
         <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Room Occupancy Trend</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Upcoming Checkouts</CardTitle>
+            <BellRing className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="occupiedRooms" name="Occupied" fill="#0EA5E9" />
-                  <Bar dataKey="vacantRooms" name="Vacant" fill="#10B981" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {upcomingCheckouts.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Room</TableHead>
+                    <TableHead>Guest</TableHead>
+                    <TableHead>Check-in Date</TableHead>
+                    <TableHead>Check-out Date</TableHead>
+                    <TableHead>Phone</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {upcomingCheckouts.map((customer) => {
+                    const room = rooms.find(r => r.id === customer.roomId);
+                    return (
+                      <TableRow key={customer.id}>
+                        <TableCell className="font-medium">
+                          {room ? room.roomNumber : 'Unknown'}
+                        </TableCell>
+                        <TableCell>{customer.name}</TableCell>
+                        <TableCell>
+                          {format(parseISO(customer.checkInDate), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Clock className="mr-2 h-4 w-4 text-hotel-primary" />
+                            {format(parseISO(customer.checkOutDate), 'MMM dd, yyyy')}
+                          </div>
+                        </TableCell>
+                        <TableCell>{customer.phone}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                No upcoming checkouts in the next 7 days
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
