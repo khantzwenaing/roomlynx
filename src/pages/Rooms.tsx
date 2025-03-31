@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
@@ -8,16 +7,14 @@ import RoomFilters from "@/components/rooms/RoomFilters";
 import { useRooms } from "@/hooks/useRooms";
 import AddCustomerSidebar from "@/components/customers/AddCustomerSidebar";
 import { useSearchParams } from "react-router-dom";
-import { resetDatabase } from "@/services/utilityService";
 import { toast } from "sonner";
-import { Room } from "@/types"; // Add this import
+import { Room } from "@/types";
 
 const Rooms = () => {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>(undefined);
   const [searchParams] = useSearchParams();
-  const [isResetting, setIsResetting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { 
@@ -56,35 +53,6 @@ const Rooms = () => {
     });
   };
 
-  const handleResetDatabase = async () => {
-    try {
-      setIsResetting(true);
-      toast.loading("Resetting database...");
-      console.log("Starting database reset...");
-      
-      const success = await resetDatabase();
-      
-      if (success) {
-        console.log("Database reset successful, refreshing data...");
-        toast.success("Database reset successfully");
-        
-        // Force data refresh after a short delay to ensure the database operations complete
-        setTimeout(() => {
-          handleDataRefresh();
-          setIsResetting(false);
-        }, 1500);
-      } else {
-        console.error("Database reset failed");
-        toast.error("Failed to reset database");
-        setIsResetting(false);
-      }
-    } catch (error) {
-      console.error("Error resetting database:", error);
-      toast.error("An error occurred while resetting the database");
-      setIsResetting(false);
-    }
-  };
-
   // Automatic refresh when loading the page
   useEffect(() => {
     handleDataRefresh();
@@ -111,16 +79,6 @@ const Rooms = () => {
           >
             <RefreshCw className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} size={18} />
             Refresh Data
-          </Button>
-          
-          <Button 
-            onClick={handleResetDatabase} 
-            variant="outline" 
-            size="default"
-            disabled={isResetting}
-          >
-            <RefreshCw className={`mr-2 ${isResetting ? 'animate-spin' : ''}`} size={18} />
-            Reset Database
           </Button>
           
           <Button onClick={() => setIsAddRoomOpen(true)} size="default">
