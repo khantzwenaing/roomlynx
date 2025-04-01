@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { isBefore, parseISO } from "date-fns";
 import { CheckoutDetails } from "./types";
 import { calculateTotalStay, calculateAmountDue } from "./roomCalculations";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useRoomCheckout = (room: Room, customer: Customer | null) => {
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
@@ -97,6 +98,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
             notes: checkoutDetails.bankRefNo 
               ? `Bank Ref: ${checkoutDetails.bankRefNo}` 
               : "Early checkout payment",
+            paymentType: 'checkout' as 'deposit' | 'checkout' | 'other',
             isRefund: false
           };
           
@@ -106,7 +108,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
             if (!payment) throw new Error("Failed to record payment");
           }
           
-          // Update customer checkout date and room status
+          // Update customer checkout date and roomid and room status
           const earlyCheckoutSuccess = await processEarlyCheckout(
             room.id,
             customer.id,
@@ -128,7 +130,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
         }
       } else {
         // Regular checkout (on planned date)
-        // 1. Add payment record - removed paymentType field to match database schema
+        // 1. Add payment record
         const paymentData = {
           customerId: customer.id,
           roomId: room.id,
@@ -138,6 +140,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
           collectedBy: checkoutDetails.collectedBy,
           status: "paid" as "paid" | "pending" | "partial",
           notes: checkoutDetails.bankRefNo ? `Bank Ref: ${checkoutDetails.bankRefNo}` : "",
+          paymentType: 'checkout' as 'deposit' | 'checkout' | 'other',
           isRefund: false
         };
         
@@ -152,13 +155,24 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
         
         if (!updatedRoom) throw new Error("Failed to update room status");
         
-        // 3. Show success message
+        // 3. Nullify customer roomid to allow room deletion
+        const { error: customerError } = await supabase
+          .from('customers')
+          .update({ roomid: null })
+          .eq('id', customer.id);
+          
+        if (customerError) {
+          console.error('Error updating customer roomid:', customerError);
+          throw new Error("Failed to update customer record");
+        }
+        
+        // 4. Show success message
         toast.success("Checkout Complete", {
           description: `Room ${room.roomNumber} has been checked out and payment processed`
         });
       }
       
-      // 4. Close dialog and reload page
+      // 5. Close dialog and reload page
       setIsCheckoutDialogOpen(false);
       
       // Add a small delay to ensure database operations are completed

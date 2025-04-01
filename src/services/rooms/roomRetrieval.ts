@@ -5,13 +5,15 @@ import { Room, Customer } from "@/types";
 export const getRooms = async (): Promise<Room[]> => {
   const { data, error } = await supabase
     .from('rooms')
-    .select('*');
+    .select('*')
+    .order('roomnumber', { ascending: true }); // Sort rooms by room number in ascending order
   
   if (error) {
     console.error('Error fetching rooms:', error);
     return [];
   }
   
+  // Transform data into Room objects
   return data.map(room => ({
     id: room.id,
     roomNumber: room.roomnumber,

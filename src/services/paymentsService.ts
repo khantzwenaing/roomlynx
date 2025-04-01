@@ -5,7 +5,8 @@ import { Payment } from "@/types";
 export const getPayments = async (): Promise<Payment[]> => {
   const { data, error } = await supabase
     .from('payments')
-    .select('*');
+    .select('*')
+    .order('date', { ascending: false });
   
   if (error) {
     console.error('Error fetching payments:', error);
@@ -22,12 +23,22 @@ export const getPayments = async (): Promise<Payment[]> => {
     collectedBy: payment.collectedby,
     status: payment.status as 'paid' | 'pending' | 'partial',
     notes: payment.notes || '',
-    paymentType: 'checkout', // Default value since it's not in the database
+    paymentType: payment.notes?.toLowerCase().includes('deposit') ? 'deposit' : 
+                payment.notes?.toLowerCase().includes('refund') || payment.isrefund ? 'refund' : 'checkout',
     isRefund: payment.isrefund || false
   }));
 };
 
 export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment | null> => {
+  // Determine the payment type based on context
+  let paymentType = payment.paymentType || 'checkout';
+  let notes = payment.notes || '';
+  
+  // Add payment type to notes if not already included
+  if (!notes.toLowerCase().includes(paymentType.toLowerCase())) {
+    notes = `${paymentType}: ${notes}`.trim();
+  }
+  
   // Remove paymentType field as it doesn't exist in the database
   const newPayment = {
     customerid: payment.customerId,
@@ -37,7 +48,7 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     method: payment.method,
     collectedby: payment.collectedBy,
     status: payment.status,
-    notes: payment.notes || null,
+    notes: notes,
     isrefund: payment.isRefund || false
   };
   
@@ -62,7 +73,8 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     collectedBy: data.collectedby,
     status: data.status as 'paid' | 'pending' | 'partial',
     notes: data.notes || '',
-    paymentType: 'checkout', // Default value since it's not in the database
+    paymentType: data.notes?.toLowerCase().includes('deposit') ? 'deposit' : 
+                data.notes?.toLowerCase().includes('refund') || data.isrefund ? 'refund' : 'checkout',
     isRefund: data.isrefund || false
   };
 };
@@ -97,7 +109,7 @@ export const processEarlyCheckout = async (
         collectedBy: refundDetails.collectedBy,
         status: 'paid' as 'paid', 
         notes: `Refund for early checkout: ${refundDetails.notes || ''}`,
-        paymentType: 'checkout' as 'checkout',
+        paymentType: 'refund' as 'refund',
         isRefund: true
       };
       
@@ -105,10 +117,13 @@ export const processEarlyCheckout = async (
       if (!payment) return false;
     }
     
-    // 2. Update customer's checkout date to mark that they have checked out
+    // 2. Update customer's checkout date and NULLIFY roomid to mark that they have checked out
     const { error: customerError } = await supabase
       .from('customers')
-      .update({ checkoutdate: actualCheckoutDate })
+      .update({ 
+        checkoutdate: actualCheckoutDate,
+        roomid: null // Nullify roomid to allow room deletion
+      })
       .eq('id', customerId);
       
     if (customerError) {

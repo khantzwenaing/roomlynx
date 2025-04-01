@@ -11,6 +11,16 @@ interface DeleteRoomDialogProps {
 }
 
 const DeleteRoomDialog = ({ isOpen, onOpenChange, onConfirm, roomNumber }: DeleteRoomDialogProps) => {
+  const handleDelete = () => {
+    try {
+      onConfirm();
+    } catch (error) {
+      toast.error("Failed to delete room", {
+        description: "An unexpected error occurred."
+      });
+    }
+  };
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -23,7 +33,7 @@ const DeleteRoomDialog = ({ isOpen, onOpenChange, onConfirm, roomNumber }: Delet
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>
+          <AlertDialogAction onClick={handleDelete}>
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

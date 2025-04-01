@@ -10,8 +10,9 @@ export const deleteRoom = async (id: string): Promise<boolean> => {
   }
   
   try {
-    // First, check if there are any customers associated with this room
-    const { data: customers, error: customerCheckError } = await supabase
+    // First, check if there are any active customers associated with this room
+    // Active customers are those who haven't checked out yet
+    const { data: activeCustomers, error: customerCheckError } = await supabase
       .from('customers')
       .select('id')
       .eq('roomid', id);
@@ -21,12 +22,12 @@ export const deleteRoom = async (id: string): Promise<boolean> => {
       return false;
     }
     
-    if (customers && customers.length > 0) {
+    if (activeCustomers && activeCustomers.length > 0) {
       console.error('Cannot delete room: Room has associated customers');
       return false;
     }
     
-    // Now that we've confirmed there are no customers, we can delete the room
+    // Now that we've confirmed there are no active customers, we can delete the room
     const { error } = await supabase
       .from('rooms')
       .delete()

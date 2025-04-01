@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Room } from "@/types";
-import { deleteRoom } from "@/services/dataService";
+import { deleteRoom } from "@/services/rooms/roomDeletion";
 import { toast } from "sonner";
 
 export const useRoomDeletion = (room: Room) => {
