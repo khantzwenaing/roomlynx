@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Banknote, CreditCard } from "lucide-react";
 import { Payment } from "@/types";
 
@@ -12,16 +11,17 @@ interface PaymentCardProps {
 }
 
 const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardProps) => {
+  // Helper function to get text color based on payment status
   const getPaymentStatusColor = (status: Payment["status"]) => {
     switch (status) {
       case "paid":
-        return "bg-hotel-success";
+        return "text-green-600 font-semibold";
       case "pending":
-        return "bg-hotel-warning";
+        return "text-yellow-600 font-semibold";
       case "partial":
-        return "bg-hotel-primary";
+        return "text-blue-600 font-semibold";
       default:
-        return "bg-gray-500";
+        return "text-gray-500";
     }
   };
 
@@ -48,9 +48,10 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg">${payment.amount}</CardTitle>
-          <Badge className={getPaymentStatusColor(payment.status)}>
+          {/* Removed Badge component */}
+          <span className={getPaymentStatusColor(payment.status)}>
             {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-          </Badge>
+          </span>
         </div>
       </CardHeader>
       <CardContent>
