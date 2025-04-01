@@ -30,7 +30,6 @@ const Rooms = () => {
     refreshData
   } = useRooms();
 
-  // Check URL parameters for actions
   useEffect(() => {
     const roomId = searchParams.get('roomId');
     const action = searchParams.get('action');
@@ -53,15 +52,12 @@ const Rooms = () => {
     });
   };
 
-  // Automatic refresh when loading the page
   useEffect(() => {
     handleDataRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRoomClick = (room: Room) => {
-    // Navigate to room details page, but use window.location to ensure full page load
-    // This helps avoid state retention issues
     window.location.href = `/room-details?roomId=${room.id}`;
   };
 
@@ -112,7 +108,6 @@ const Rooms = () => {
         }} 
       />
       
-      {/* Keep this hidden sidebar for when needed, but don't show the button */}
       <AddCustomerSidebar
         rooms={filteredRooms.filter(room => room.status === 'vacant')}
         onCustomerAdded={(customer) => {
