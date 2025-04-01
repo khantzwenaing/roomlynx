@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw } from "lucide-react";
@@ -37,22 +38,25 @@ const Rooms = () => {
     if (roomId) {
       setSelectedRoomId(roomId);
       if (action === 'checkout') {
-        // Handle checkout action if needed
+        console.log("Checkout action detected for room:", roomId);
+        // Trigger data refresh to ensure we have the latest data
+        handleDataRefresh();
       }
     }
   }, [searchParams]);
 
   const handleDataRefresh = () => {
     setIsRefreshing(true);
-    console.log("Triggering full data refresh...");
+    console.log("Triggering full data refresh on Rooms page...");
     
     refreshData().finally(() => {
       setIsRefreshing(false);
-      console.log("Data refresh complete");
+      console.log("Data refresh complete on Rooms page");
     });
   };
 
   useEffect(() => {
+    console.log("Initial data load on Rooms page...");
     handleDataRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -112,7 +116,8 @@ const Rooms = () => {
         rooms={filteredRooms.filter(room => room.status === 'vacant')}
         onCustomerAdded={(customer) => {
           console.log("Customer added from sidebar:", customer);
-          setTimeout(handleDataRefresh, 1000);
+          // Use a longer delay to ensure database operations complete
+          setTimeout(handleDataRefresh, 1500);
           setIsAddCustomerOpen(false);
         }}
         preselectedRoomId={selectedRoomId}

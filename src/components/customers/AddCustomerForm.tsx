@@ -64,6 +64,17 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
       setIsSubmitting(true);
       console.log("Adding customer with data:", data);
       
+      // Validate required fields
+      if (!data.depositAmount || !data.depositPaymentMethod || !data.depositCollectedBy) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter all required deposit information",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       const newCustomer = await addCustomer({
         name: data.name,
         phone: data.phone,

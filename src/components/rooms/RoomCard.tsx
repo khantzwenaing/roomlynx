@@ -22,7 +22,7 @@ interface RoomCardProps {
 const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
   const navigate = useNavigate();
   
-  console.info(`RoomCard ${room.roomNumber} - Status: ${room.status}, Customer:`, customer);
+  console.log(`RoomCard ${room.roomNumber} - Status: ${room.status}, Customer:`, customer ? customer.name : "None");
   
   const {
     isDeleteDialogOpen,
@@ -49,11 +49,17 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
 
   const handleAddCustomer = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
+    console.log(`Opening add customer dialog for room ${room.roomNumber}`);
     setIsAddCustomerDialogOpen(true);
   };
 
   const handleCheckoutClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
+    if (!customer) {
+      console.error("Cannot checkout: no customer found for room", room.id);
+      return;
+    }
+    console.log(`Opening checkout dialog for customer ${customer.name} in room ${room.roomNumber}`);
     setIsCheckoutDialogOpen(true);
   };
 
@@ -112,19 +118,20 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
         roomNumber={room.roomNumber}
       />
       
-      <CheckoutDialog 
-        isOpen={isCheckoutDialogOpen}
-        onOpenChange={setIsCheckoutDialogOpen}
-        room={room}
-        customer={customer}
-        checkoutDetails={checkoutDetails}
-        setCheckoutDetails={setCheckoutDetails}
-        onCheckout={handleCheckout}
-        calculateAmountDue={calculateAmountDue}
-        calculateTotalStay={calculateTotalStay}
-      />
+      {room.status === "occupied" && customer && (
+        <CheckoutDialog 
+          isOpen={isCheckoutDialogOpen}
+          onOpenChange={setIsCheckoutDialogOpen}
+          room={room}
+          customer={customer}
+          checkoutDetails={checkoutDetails}
+          setCheckoutDetails={setCheckoutDetails}
+          onCheckout={handleCheckout}
+          calculateAmountDue={calculateAmountDue}
+          calculateTotalStay={calculateTotalStay}
+        />
+      )}
       
-      {/* Only render AddCustomerDialog when isAddCustomerDialogOpen is true and we have a valid room */}
       {isAddCustomerDialogOpen && room && (
         <AddCustomerDialog 
           isOpen={isAddCustomerDialogOpen}

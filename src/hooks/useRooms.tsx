@@ -78,7 +78,7 @@ export const useRooms = () => {
           setIsRefreshing(false);
           console.log("Data refresh complete");
           resolve();
-        }, 800);
+        }, 1000); // Extended delay to ensure DB consistency
       });
     } catch (error) {
       console.error("Error during data refresh:", error);

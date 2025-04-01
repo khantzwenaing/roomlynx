@@ -15,6 +15,23 @@ export const addCustomer = async (customerData: Omit<Customer, "id">): Promise<C
     
     const customerId = uuidv4();
     
+    // Log the data being sent to the database
+    console.log("Creating new customer with data:", {
+      id: customerId,
+      name: customerData.name,
+      email: customerData.email,
+      phone: customerData.phone,
+      address: customerData.address,
+      idnumber: customerData.idNumber,
+      roomid: customerData.roomId,
+      checkindate: customerData.checkInDate,
+      checkoutdate: customerData.checkOutDate,
+      depositamount: customerData.depositAmount,
+      depositpaymentmethod: customerData.depositPaymentMethod,
+      depositcollectedby: customerData.depositCollectedBy,
+      bankrefno: customerData.bankRefNo
+    });
+    
     const { data, error } = await supabase
       .from("customers")
       .insert({
@@ -42,6 +59,7 @@ export const addCustomer = async (customerData: Omit<Customer, "id">): Promise<C
 
     // After successfully adding the customer, create a checkout reminder
     if (data) {
+      console.log("Created customer record:", data);
       try {
         await createCheckoutReminder(
           customerData.roomId,
