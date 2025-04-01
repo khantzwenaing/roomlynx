@@ -23,6 +23,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
       toast.error("Error", {
         description: "No customer information found"
       });
+      setIsCheckoutDialogOpen(false);
       return;
     }
     
@@ -98,7 +99,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
             notes: checkoutDetails.bankRefNo 
               ? `Bank Ref: ${checkoutDetails.bankRefNo}` 
               : "Early checkout payment",
-            paymentType: 'checkout' as 'deposit' | 'checkout' | 'other',
+            paymentType: 'checkout' as 'deposit' | 'checkout' | 'refund' | 'other',
             isRefund: false
           };
           
@@ -140,7 +141,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
           collectedBy: checkoutDetails.collectedBy,
           status: "paid" as "paid" | "pending" | "partial",
           notes: checkoutDetails.bankRefNo ? `Bank Ref: ${checkoutDetails.bankRefNo}` : "",
-          paymentType: 'checkout' as 'deposit' | 'checkout' | 'other',
+          paymentType: 'checkout' as 'deposit' | 'checkout' | 'refund' | 'other',
           isRefund: false
         };
         

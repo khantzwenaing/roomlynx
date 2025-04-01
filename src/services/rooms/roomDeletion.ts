@@ -11,7 +11,7 @@ export const deleteRoom = async (id: string): Promise<boolean> => {
   
   try {
     // First, check if there are any active customers associated with this room
-    // Active customers are those who haven't checked out yet
+    // Active customers are those who have a roomid that matches this room's id
     const { data: activeCustomers, error: customerCheckError } = await supabase
       .from('customers')
       .select('id')
@@ -27,7 +27,24 @@ export const deleteRoom = async (id: string): Promise<boolean> => {
       return false;
     }
     
-    // Now that we've confirmed there are no active customers, we can delete the room
+    // Check for pending payments associated with this room
+    const { data: pendingPayments, error: paymentsCheckError } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('roomid', id)
+      .eq('status', 'pending');
+    
+    if (paymentsCheckError) {
+      console.error('Error checking for payments associated with room:', paymentsCheckError);
+      return false;
+    }
+    
+    if (pendingPayments && pendingPayments.length > 0) {
+      console.error('Cannot delete room: Room has pending payments');
+      return false;
+    }
+    
+    // Now that we've confirmed there are no active customers or pending payments, we can delete the room
     const { error } = await supabase
       .from('rooms')
       .delete()

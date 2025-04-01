@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 export const useRoomDeletion = (room: Room) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteRoom = async () => {
     if (!room || !room.id) {
@@ -25,6 +26,7 @@ export const useRoomDeletion = (room: Room) => {
     }
 
     try {
+      setIsDeleting(true);
       console.log(`Attempting to delete room with ID: ${room.id}`);
       const success = await deleteRoom(room.id);
       
@@ -33,7 +35,9 @@ export const useRoomDeletion = (room: Room) => {
           description: `Room ${room.roomNumber} has been removed`
         });
         // Reload the page to refresh the room list
-        window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         toast.error("Error", {
           description: "Failed to delete the room. It may have associated customers or payments."
@@ -44,10 +48,16 @@ export const useRoomDeletion = (room: Room) => {
       toast.error("Error", {
         description: "An unexpected error occurred while deleting the room"
       });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
-    
-    setIsDeleteDialogOpen(false);
   };
 
-  return { isDeleteDialogOpen, setIsDeleteDialogOpen, handleDeleteRoom };
+  return { 
+    isDeleteDialogOpen, 
+    setIsDeleteDialogOpen, 
+    handleDeleteRoom,
+    isDeleting 
+  };
 };

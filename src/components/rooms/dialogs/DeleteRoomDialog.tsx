@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
@@ -11,10 +11,16 @@ interface DeleteRoomDialogProps {
 }
 
 const DeleteRoomDialog = ({ isOpen, onOpenChange, onConfirm, roomNumber }: DeleteRoomDialogProps) => {
-  const handleDelete = () => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
     try {
-      onConfirm();
+      setIsDeleting(true);
+      await onConfirm();
+      setIsDeleting(false);
+      onOpenChange(false);
     } catch (error) {
+      setIsDeleting(false);
       toast.error("Failed to delete room", {
         description: "An unexpected error occurred."
       });
@@ -32,9 +38,9 @@ const DeleteRoomDialog = ({ isOpen, onOpenChange, onConfirm, roomNumber }: Delet
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete}>
-            Delete
+          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+            {isDeleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
