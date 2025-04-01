@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Banknote, CreditCard } from "lucide-react";
@@ -87,9 +86,6 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
               )}
             </div>
           </div>
-          <span className={getPaymentStatusColor(payment.status)}>
-            {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-          </span>
         </div>
       </CardHeader>
       <CardContent>
