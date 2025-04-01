@@ -25,18 +25,27 @@ const PaymentList = ({ payments, customers, rooms, searchTerm }: PaymentListProp
     const customer = customers.find((c) => c.id === payment.customerId);
     const room = rooms.find((r) => r.id === payment.roomId);
     
+    // Check if payment matches search term
     const matchesSearch = (
       (customer && customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (room && room.roomNumber.includes(searchTerm)) ||
-      payment.amount.toString().includes(searchTerm)
+      payment.amount.toString().includes(searchTerm) ||
+      (payment.notes && payment.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (payment.paymentType && payment.paymentType.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (payment.isRefund && 'refund'.includes(searchTerm.toLowerCase()))
     );
     
     return matchesSearch;
   });
 
+  // Sort payments by date with most recent first
+  const sortedPayments = [...filteredPayments].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {filteredPayments.map((payment) => (
+      {sortedPayments.map((payment) => (
         <PaymentCard 
           key={payment.id} 
           payment={payment} 

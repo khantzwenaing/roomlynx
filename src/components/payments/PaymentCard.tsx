@@ -25,6 +25,32 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
     }
   };
 
+  // Helper function to determine payment type and return appropriate styling
+  const getPaymentTypeStyle = (payment: Payment) => {
+    if (payment.isRefund) {
+      return "bg-red-50 border-red-200"; // Red for refunds
+    } else if (payment.paymentType === 'deposit' || (payment.notes && payment.notes.toLowerCase().includes('deposit'))) {
+      return "bg-green-50 border-green-200"; // Soft green for deposits
+    } else if (payment.notes && payment.notes.toLowerCase().includes('early checkout')) {
+      return "bg-orange-50 border-orange-200"; // Orange for early checkout
+    } else {
+      return ""; // Default styling for normal checkout
+    }
+  };
+
+  // Function to get payment type label
+  const getPaymentTypeLabel = (payment: Payment) => {
+    if (payment.isRefund) {
+      return "Refund";
+    } else if (payment.paymentType === 'deposit' || (payment.notes && payment.notes.toLowerCase().includes('deposit'))) {
+      return "Deposit";
+    } else if (payment.notes && payment.notes.toLowerCase().includes('early checkout')) {
+      return "Early Checkout";
+    } else {
+      return "Checkout";
+    }
+  };
+
   // Function to render notes with "Deposit" in bold
   const renderNotes = (notes: string) => {
     if (!notes) return null;
@@ -44,11 +70,23 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
   };
 
   return (
-    <Card>
+    <Card className={`border ${getPaymentTypeStyle(payment)}`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">${payment.amount}</CardTitle>
-          {/* Removed Badge component */}
+          <div className="flex flex-col">
+            <CardTitle className="text-lg">${payment.amount}</CardTitle>
+            <div className="text-xs mt-1 font-medium">
+              {payment.isRefund ? (
+                <span className="text-red-600">{getPaymentTypeLabel(payment)}</span>
+              ) : payment.paymentType === 'deposit' || (payment.notes && payment.notes.toLowerCase().includes('deposit')) ? (
+                <span className="text-green-600">{getPaymentTypeLabel(payment)}</span>
+              ) : payment.notes && payment.notes.toLowerCase().includes('early checkout') ? (
+                <span className="text-orange-600">{getPaymentTypeLabel(payment)}</span>
+              ) : (
+                <span className="text-gray-500">{getPaymentTypeLabel(payment)}</span>
+              )}
+            </div>
+          </div>
           <span className={getPaymentStatusColor(payment.status)}>
             {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
           </span>
@@ -76,11 +114,6 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
           {payment.notes && (
             <div className="text-sm text-gray-500">
               Notes: {renderNotes(payment.notes)}
-            </div>
-          )}
-          {payment.isRefund && (
-            <div className="text-sm text-red-500 font-medium">
-              Refund
             </div>
           )}
         </div>
