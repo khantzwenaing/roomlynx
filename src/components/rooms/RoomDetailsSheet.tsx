@@ -6,7 +6,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import { calculateDays } from "@/utils/date-utils";
 import { processCheckout, addPayment, processEarlyCheckout } from "@/services/dataService";
-import { updateRoom } from "@/services/roomsService";
+import { updateRoom } from "@/services/rooms";
 import { useToast } from "@/hooks/use-toast";
 
 interface RoomDetailsSheetProps {

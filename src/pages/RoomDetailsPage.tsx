@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getRoomDetails, updateRoom } from "@/services/roomsService";
+import { getRoomDetails, updateRoom } from "@/services/rooms";
 import { Room, Customer } from "@/types";
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
