@@ -35,7 +35,7 @@ export const createCheckoutReminder = async (
       id: data.id,
       roomId: data.roomid,
       customerId: data.customerid,
-      checkOutDate: data.checkoutdate,
+      checkoutDate: data.checkoutdate,
       reminderDate: data.reminderdate,
       status: data.status as "pending" | "sent" | "acknowledged",
     };

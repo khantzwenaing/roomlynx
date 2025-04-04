@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,21 +26,21 @@ const Login = () => {
     }
 
     setIsSubmitting(true);
-    const success = await login(username, password);
-    setIsSubmitting(false);
-
-    if (success) {
+    try {
+      await login(username, password);
       toast({
         title: "Success",
         description: "You have successfully logged in",
       });
       navigate("/dashboard");
-    } else {
+    } catch (e) {
       toast({
         title: "Error",
         description: error || "Login failed. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

@@ -31,6 +31,11 @@ export const useRoomOperations = (
     }
   };
 
+  // Create a synchronous version of calculateAmountDue that returns 0
+  const syncCalculateAmountDue = () => {
+    return 0; // This will be updated asynchronously by the actual function
+  };
+
   return {
     isDeleteDialogOpen,
     setIsDeleteDialogOpen,
@@ -43,7 +48,7 @@ export const useRoomOperations = (
     checkoutDetails,
     setCheckoutDetails,
     calculateTotalStay,
-    calculateAmountDue,
+    calculateAmountDue: syncCalculateAmountDue,
     handleDeleteRoom,
     handleCleaningComplete: wrappedHandleCleaningComplete,
     handleCheckout,

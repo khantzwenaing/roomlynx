@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GasAndChargesSettings from "@/components/settings/GasAndChargesSettings";
-import { getGasSettings, saveGasSettings } from "@/services/settingsService";
+import { getGasSettings, updateGasSettings } from "@/services/settingsService";
 import { GasSettings } from "@/types";
 
 const Settings = () => {
@@ -68,9 +68,19 @@ const Settings = () => {
     });
   };
 
-  const handleSaveGasSettings = async (settings: Omit<GasSettings, 'id'>) => {
+  const handleSaveGasSettings = async (settings: Omit<GasSettings, 'id' | 'created_at'>) => {
     try {
-      const updatedSettings = await saveGasSettings(settings);
+      // If we have existing settings, update them, otherwise use addDefaultGasSettings
+      let updatedSettings;
+      if (gasSettings && gasSettings.id) {
+        updatedSettings = await updateGasSettings({
+          ...settings,
+          id: gasSettings.id
+        });
+      } else {
+        updatedSettings = await getGasSettings(); // This should call addDefaultGasSettings if none exist
+      }
+      
       if (updatedSettings) {
         setGasSettings(updatedSettings);
         return true;

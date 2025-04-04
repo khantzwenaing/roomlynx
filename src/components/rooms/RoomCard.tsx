@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Room, Customer } from "@/types";
@@ -64,7 +63,8 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
   };
 
   const handleCleaningSubmit = async (cleanerName: string) => {
-    await handleCleaningComplete(cleanerName);
+    setCleanedBy(cleanerName);
+    await handleCleaningComplete();
   };
 
   return (

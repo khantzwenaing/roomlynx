@@ -15,7 +15,7 @@ export const getGasSettings = async (): Promise<GasSettings | null> => {
     
     if (error) {
       console.error("Error fetching gas settings:", error);
-      return null;
+      return addDefaultGasSettings();
     }
     
     return {
@@ -66,10 +66,6 @@ export const updateGasSettings = async (settings: Partial<GasSettings>): Promise
 // Add default gas settings if none exist
 export const addDefaultGasSettings = async (): Promise<GasSettings | null> => {
   try {
-    // Check if we already have settings
-    const existingSettings = await getGasSettings();
-    if (existingSettings) return existingSettings;
-    
     // Create default settings
     const defaultSettings = {
       priceperkg: 100, // Default price per kg
@@ -97,6 +93,53 @@ export const addDefaultGasSettings = async (): Promise<GasSettings | null> => {
     };
   } catch (error) {
     console.error("Error in addDefaultGasSettings:", error);
+    return null;
+  }
+};
+
+// Function to save gas settings - wrapper around updateGasSettings or addDefaultGasSettings
+export const saveGasSettings = async (
+  settings: Omit<GasSettings, 'id' | 'created_at'>
+): Promise<GasSettings | null> => {
+  try {
+    // First check if we have settings already
+    const existingSettings = await getGasSettings();
+    
+    if (existingSettings) {
+      // Update existing settings
+      return updateGasSettings({
+        ...settings,
+        id: existingSettings.id
+      });
+    } else {
+      // Create new settings
+      const defaultSettings = {
+        priceperkg: settings.pricePerKg, 
+        freepersonlimit: settings.freePersonLimit,
+        extrapersoncharge: settings.extraPersonCharge,
+      };
+      
+      const { data, error } = await supabase
+        .from("gas_settings")
+        .insert(defaultSettings)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("Error creating gas settings:", error);
+        return null;
+      }
+      
+      return {
+        id: data.id,
+        pricePerKg: data.priceperkg,
+        freePersonLimit: data.freepersonlimit,
+        extraPersonCharge: data.extrapersoncharge,
+        created_at: data.created_at
+      };
+    }
+  } catch (error) {
+    console.error("Error in saveGasSettings:", error);
     return null;
   }
 };

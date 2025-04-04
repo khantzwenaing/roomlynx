@@ -21,8 +21,8 @@ export interface UseRoomOperationsReturn {
   checkoutDetails: CheckoutDetails;
   setCheckoutDetails: React.Dispatch<React.SetStateAction<CheckoutDetails>>;
   calculateTotalStay: () => number;
-  calculateAmountDue: () => Promise<number>;
+  calculateAmountDue: () => number; // Changed to be synchronous for the UI
   handleDeleteRoom: () => Promise<void>;
-  handleCleaningComplete: () => Promise<void>;
+  handleCleaningComplete: () => Promise<void>; // No arguments expected
   handleCheckout: () => Promise<void>;
 }
