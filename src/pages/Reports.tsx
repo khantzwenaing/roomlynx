@@ -167,8 +167,8 @@ const Reports = () => {
                       <td className="px-4 py-2 text-right">{report.occupiedRooms}</td>
                       <td className="px-4 py-2 text-right">{report.vacantRooms}</td>
                       <td className="px-4 py-2 text-right">{report.roomsNeedCleaning}</td>
-                      <td className="px-4 py-2 text-right">{report.expectedCheckIns}</td>
-                      <td className="px-4 py-2 text-right">{report.expectedCheckOuts}</td>
+                      <td className="px-4 py-2 text-right">{report.expectedCheckins}</td>
+                      <td className="px-4 py-2 text-right">{report.expectedCheckouts}</td>
                       <td className="px-4 py-2 text-right font-medium text-green-600">${report.cashIn || 0}</td>
                       <td className="px-4 py-2 text-right font-medium text-red-600">${report.cashOut || 0}</td>
                       <td className="px-4 py-2 text-right font-medium">${report.totalRevenue}</td>

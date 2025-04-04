@@ -37,7 +37,7 @@ export interface Customer {
 
 // Payment types
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'other';
-export type PaymentStatus = 'completed' | 'pending' | 'partial';
+export type PaymentStatus = 'completed' | 'pending' | 'partial' | 'paid';
 export type PaymentType = 'deposit' | 'rent' | 'refund' | 'checkout' | 'other';
 
 export interface Payment {
@@ -87,7 +87,7 @@ export interface RentReminder {
   customerId: string;
   checkoutDate: string;
   reminderDate: string;
-  status: 'pending' | 'acknowledged';
+  status: 'pending' | 'acknowledged' | 'sent';
 }
 
 // Settings types

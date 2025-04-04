@@ -24,6 +24,13 @@ export const useRoomOperations = (
   } = useRoomCheckout(room, customer);
   const { isAddCustomerDialogOpen, setIsAddCustomerDialogOpen } = useCustomerOperations();
 
+  // Create wrapper functions to match the expected signatures
+  const wrappedHandleCleaningComplete = async () => {
+    if (cleanedBy.trim()) {
+      await handleCleaningComplete(cleanedBy);
+    }
+  };
+
   return {
     isDeleteDialogOpen,
     setIsDeleteDialogOpen,
@@ -38,7 +45,7 @@ export const useRoomOperations = (
     calculateTotalStay,
     calculateAmountDue,
     handleDeleteRoom,
-    handleCleaningComplete,
+    handleCleaningComplete: wrappedHandleCleaningComplete,
     handleCheckout,
   };
 };

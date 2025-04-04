@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Room, Customer } from "@/types";
+import { Room, Customer, PaymentStatus } from "@/types";
 import { processCheckout, addPayment, processEarlyCheckout } from "@/services/paymentsService";
 import { updateRoom } from "@/services/roomsService";
 import { toast } from "sonner";
@@ -119,7 +119,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
             date: new Date().toISOString(),
             method: checkoutDetails.paymentMethod as 'cash' | 'bank_transfer' | 'other',
             collectedBy: checkoutDetails.collectedBy,
-            status: "paid" as "paid" | "pending" | "partial",
+            status: "completed" as PaymentStatus,
             notes: checkoutDetails.bankRefNo 
               ? `Bank Ref: ${checkoutDetails.bankRefNo}, Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}` 
               : `Early checkout payment, Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}`,
@@ -172,7 +172,7 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
           date: new Date().toISOString(),
           method: checkoutDetails.paymentMethod as 'cash' | 'bank_transfer' | 'other',
           collectedBy: checkoutDetails.collectedBy,
-          status: "paid" as "paid" | "pending" | "partial",
+          status: "completed" as PaymentStatus,
           notes: checkoutDetails.bankRefNo 
             ? `Bank Ref: ${checkoutDetails.bankRefNo}, Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}` 
             : `Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}`,

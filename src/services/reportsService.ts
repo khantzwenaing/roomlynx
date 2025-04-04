@@ -23,8 +23,8 @@ export const getDailyReports = async (): Promise<DailyReport[]> => {
     occupiedRooms: report.occupiedrooms,
     vacantRooms: report.vacantrooms,
     roomsNeedCleaning: report.roomsneedcleaning,
-    expectedCheckIns: report.expectedcheckins,
-    expectedCheckOuts: report.expectedcheckouts,
+    expectedCheckins: report.expectedcheckins,
+    expectedCheckouts: report.expectedcheckouts,
     totalRevenue: Number(report.totalrevenue),
     cashIn: Number(report.cashin || 0),
     cashOut: Number(report.cashout || 0)
@@ -162,8 +162,8 @@ export const generateDailyReport = async (): Promise<DailyReport | null> => {
     occupiedRooms: data.occupiedrooms,
     vacantRooms: data.vacantrooms,
     roomsNeedCleaning: data.roomsneedcleaning,
-    expectedCheckIns: data.expectedcheckins,
-    expectedCheckOuts: data.expectedcheckouts,
+    expectedCheckins: data.expectedcheckins,
+    expectedCheckouts: data.expectedcheckouts,
     totalRevenue: Number(data.totalrevenue),
     cashIn: Number(data.cashin || 0),
     cashOut: Number(data.cashout || 0)

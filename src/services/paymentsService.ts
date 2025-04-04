@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Payment } from "@/types";
+import { Payment, PaymentStatus } from "@/types";
 
 export const getPayments = async (): Promise<Payment[]> => {
   const { data, error } = await supabase
@@ -21,11 +21,13 @@ export const getPayments = async (): Promise<Payment[]> => {
     date: payment.date,
     method: payment.method as 'cash' | 'bank_transfer' | 'other',
     collectedBy: payment.collectedby,
-    status: payment.status as 'paid' | 'pending' | 'partial',
+    status: payment.status as PaymentStatus,
     notes: payment.notes || '',
     paymentType: payment.notes?.toLowerCase().includes('deposit') ? 'deposit' : 
                 payment.notes?.toLowerCase().includes('refund') || payment.isrefund ? 'refund' : 'checkout',
-    isRefund: payment.isrefund || false
+    isRefund: payment.isrefund || false,
+    gasUsageCharge: payment.gasusagecharge || undefined,
+    extraPersonsCharge: payment.extrapersonscharge || undefined
   }));
 };
 
@@ -39,7 +41,7 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     notes = `${paymentType}: ${notes}`.trim();
   }
   
-  // Remove paymentType field as it doesn't exist in the database
+  // Prepare the payment object
   const newPayment = {
     customerid: payment.customerId,
     roomid: payment.roomId,
@@ -49,7 +51,9 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     collectedby: payment.collectedBy,
     status: payment.status,
     notes: notes,
-    isrefund: payment.isRefund || false
+    isrefund: payment.isRefund || false,
+    gasusagecharge: payment.gasUsageCharge || 0,
+    extrapersonscharge: payment.extraPersonsCharge || 0
   };
   
   const { data, error } = await supabase
@@ -71,11 +75,13 @@ export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment 
     date: data.date,
     method: data.method as 'cash' | 'bank_transfer' | 'other',
     collectedBy: data.collectedby,
-    status: data.status as 'paid' | 'pending' | 'partial',
+    status: data.status as PaymentStatus,
     notes: data.notes || '',
     paymentType: data.notes?.toLowerCase().includes('deposit') ? 'deposit' : 
                 data.notes?.toLowerCase().includes('refund') || data.isrefund ? 'refund' : 'checkout',
-    isRefund: data.isrefund || false
+    isRefund: data.isrefund || false,
+    gasUsageCharge: data.gasusagecharge,
+    extraPersonsCharge: data.extrapersonscharge
   };
 };
 
@@ -107,7 +113,7 @@ export const processEarlyCheckout = async (
         date: new Date().toISOString(),
         method: refundDetails.method,
         collectedBy: refundDetails.collectedBy,
-        status: 'paid' as 'paid', 
+        status: 'completed' as PaymentStatus, 
         notes: `Refund for early checkout: ${refundDetails.notes || ''}`,
         paymentType: 'refund' as 'refund',
         isRefund: true

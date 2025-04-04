@@ -1,7 +1,8 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Banknote, CreditCard } from "lucide-react";
-import { Payment } from "@/types";
+import { Payment, PaymentStatus } from "@/types";
 
 interface PaymentCardProps {
   payment: Payment;
@@ -11,9 +12,10 @@ interface PaymentCardProps {
 
 const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardProps) => {
   // Helper function to get text color based on payment status
-  const getPaymentStatusColor = (status: Payment["status"]) => {
+  const getPaymentStatusColor = (status: PaymentStatus) => {
     switch (status) {
       case "paid":
+      case "completed":
         return "text-green-600 font-semibold";
       case "pending":
         return "text-yellow-600 font-semibold";

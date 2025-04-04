@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { getPayments, getCustomers, getRooms, addPayment, resetDatabase } from "@/services/dataService";
-import { Payment, Customer, Room } from "@/types";
+import { Payment, Customer, Room, PaymentStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RotateCcw } from "lucide-react";
@@ -48,12 +48,13 @@ const Payments = () => {
         amount: Number(data.amount),
         date: new Date().toISOString(),
         method: data.method as 'cash' | 'card' | 'bank_transfer' | 'other',
-        status: data.status as 'paid' | 'pending' | 'partial',
+        status: data.status as PaymentStatus,
         paymentType: data.paymentType,
         collectedBy: data.collectedBy,
         notes: data.method === "bank_transfer" 
           ? `Bank Ref: ${data.bankRefNo || "N/A"}` 
-          : data.notes || undefined
+          : data.notes || "",
+        isRefund: false
       });
 
       if (newPayment) {

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { addRoom } from "@/services/rooms";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,6 +25,7 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
   const [roomNumber, setRoomNumber] = useState("");
   const [roomType, setRoomType] = useState<'single' | 'double' | 'suite' | 'deluxe'>('single');
   const [rate, setRate] = useState("");  // Keep as empty string for the input
+  const [hasGas, setHasGas] = useState(true); // Default to true
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -52,6 +54,7 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
         status: 'vacant',
         lastCleaned: new Date().toISOString(),
         cleanedBy: 'System',
+        hasGas: hasGas
       });
       
       if (newRoom) {
@@ -64,6 +67,7 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
         setRoomNumber("");
         setRoomType('single');
         setRate("");
+        setHasGas(true);
         onRoomAdded();
         onClose();
       } else {
@@ -128,6 +132,13 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
               min={1}
               className="text-lg h-12"
             />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="hasGas" className="text-lg">Gas Available</Label>
+              <Switch id="hasGas" checked={hasGas} onCheckedChange={setHasGas} />
+            </div>
+            <p className="text-sm text-gray-500">{hasGas ? "Room has gas facility" : "Room does not have gas"}</p>
           </div>
           <DialogFooter className="pt-4">
             <Button 

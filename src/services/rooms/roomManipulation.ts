@@ -12,6 +12,7 @@ export const updateRoom = async (id: string, updates: Partial<Room>): Promise<Ro
   if (updates.status) dbUpdates.status = updates.status;
   if (updates.lastCleaned) dbUpdates.lastcleaned = updates.lastCleaned;
   if (updates.cleanedBy) dbUpdates.cleanedby = updates.cleanedBy;
+  if (typeof updates.hasGas !== 'undefined') dbUpdates.hasgas = updates.hasGas;
   
   const { data, error } = await supabase
     .from('rooms')
@@ -32,7 +33,8 @@ export const updateRoom = async (id: string, updates: Partial<Room>): Promise<Ro
     rate: Number(data.rate),
     status: data.status as 'vacant' | 'occupied' | 'maintenance' | 'cleaning',
     lastCleaned: data.lastcleaned,
-    cleanedBy: data.cleanedby
+    cleanedBy: data.cleanedby,
+    hasGas: data.hasgas || false
   };
 };
 
@@ -43,7 +45,8 @@ export const addRoom = async (room: Omit<Room, "id">): Promise<Room | null> => {
     rate: room.rate,
     status: room.status,
     lastcleaned: room.lastCleaned,
-    cleanedby: room.cleanedBy
+    cleanedby: room.cleanedBy,
+    hasgas: room.hasGas
   };
   
   const { data, error } = await supabase
@@ -64,6 +67,7 @@ export const addRoom = async (room: Omit<Room, "id">): Promise<Room | null> => {
     rate: Number(data.rate),
     status: data.status as 'vacant' | 'occupied' | 'maintenance' | 'cleaning',
     lastCleaned: data.lastcleaned,
-    cleanedBy: data.cleanedby
+    cleanedBy: data.cleanedby,
+    hasGas: data.hasgas || false
   };
 };

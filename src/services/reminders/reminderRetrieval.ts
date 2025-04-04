@@ -18,9 +18,9 @@ export const getCheckoutReminders = async (): Promise<RentReminder[]> => {
       id: reminder.id,
       roomId: reminder.roomid,
       customerId: reminder.customerid,
-      checkOutDate: reminder.checkoutdate,
+      checkoutDate: reminder.checkoutdate,
       reminderDate: reminder.reminderdate,
-      status: reminder.status as "pending" | "sent" | "acknowledged",
+      status: reminder.status as "pending" | "acknowledged" | "sent",
     }));
   } catch (error) {
     console.error("Error in getCheckoutReminders:", error);
@@ -48,9 +48,9 @@ export const getPendingReminders = async (): Promise<RentReminder[]> => {
       id: reminder.id,
       roomId: reminder.roomid,
       customerId: reminder.customerid,
-      checkOutDate: reminder.checkoutdate,
+      checkoutDate: reminder.checkoutdate,
       reminderDate: reminder.reminderdate,
-      status: reminder.status as "pending" | "sent" | "acknowledged",
+      status: reminder.status as "pending" | "acknowledged" | "sent",
     }));
   } catch (error) {
     console.error("Error in getPendingReminders:", error);

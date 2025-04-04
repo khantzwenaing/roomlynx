@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { Room, Customer } from "@/types";
+import { Room, Customer, RoomType, RoomStatus, PaymentMethod } from "@/types";
 
 export const getRooms = async (): Promise<Room[]> => {
   const { data, error } = await supabase
@@ -16,11 +17,12 @@ export const getRooms = async (): Promise<Room[]> => {
   return data.map(room => ({
     id: room.id,
     roomNumber: room.roomnumber,
-    type: room.type as 'single' | 'double' | 'suite' | 'deluxe',
+    type: room.type as RoomType,
     rate: Number(room.rate),
-    status: room.status as 'vacant' | 'occupied' | 'maintenance' | 'cleaning',
+    status: room.status as RoomStatus,
     lastCleaned: room.lastcleaned,
-    cleanedBy: room.cleanedby
+    cleanedBy: room.cleanedby,
+    hasGas: room.hasgas || false
   }));
 };
 
@@ -46,11 +48,12 @@ export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
     const room: Room = {
       id: roomData.id,
       roomNumber: roomData.roomnumber,
-      type: roomData.type as 'single' | 'double' | 'suite' | 'deluxe',
+      type: roomData.type as RoomType,
       rate: Number(roomData.rate),
-      status: roomData.status as 'vacant' | 'occupied' | 'maintenance' | 'cleaning',
+      status: roomData.status as RoomStatus,
       lastCleaned: roomData.lastcleaned,
-      cleanedBy: roomData.cleanedby
+      cleanedBy: roomData.cleanedby,
+      hasGas: roomData.hasgas || false
     };
     
     // Get the customer for this room if it's occupied
@@ -79,9 +82,13 @@ export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
           checkInDate: customerData.checkindate,
           checkOutDate: customerData.checkoutdate,
           roomId: customerData.roomid,
-          depositAmount: customerData.depositamount ? Number(customerData.depositamount) : undefined,
-          depositPaymentMethod: customerData.depositpaymentmethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
-          bankRefNo: customerData.bankrefno
+          depositAmount: customerData.depositamount ? Number(customerData.depositamount) : 0,
+          depositPaymentMethod: customerData.depositpaymentmethod as PaymentMethod,
+          depositCollectedBy: customerData.depositcollectedby || '',
+          bankRefNo: customerData.bankrefno || '',
+          numberOfPersons: customerData.numberofpersons || 1,
+          hasGas: customerData.hasgas || false,
+          initialGasWeight: customerData.initialgasweight
         };
         
         room.currentCustomer = customer;
@@ -115,9 +122,9 @@ export const getRoomWithCustomer = async (id: string): Promise<{ room: Room; cus
     const room: Room = {
       id: roomData.id,
       roomNumber: roomData.roomnumber,
-      type: roomData.type,
+      type: roomData.type as RoomType,
       rate: roomData.rate,
-      status: roomData.status,
+      status: roomData.status as RoomStatus,
       lastCleaned: roomData.lastcleaned,
       cleanedBy: roomData.cleanedby,
       hasGas: roomData.hasgas || false
@@ -147,7 +154,7 @@ export const getRoomWithCustomer = async (id: string): Promise<{ room: Room; cus
         checkOutDate: customerData.checkoutdate,
         roomId: customerData.roomid,
         depositAmount: customerData.depositamount,
-        depositPaymentMethod: customerData.depositpaymentmethod,
+        depositPaymentMethod: customerData.depositpaymentmethod as PaymentMethod,
         depositCollectedBy: customerData.depositcollectedby,
         bankRefNo: customerData.bankrefno,
         numberOfPersons: customerData.numberofpersons || 1,
