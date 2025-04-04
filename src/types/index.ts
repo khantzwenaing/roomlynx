@@ -15,6 +15,8 @@ export type Room = {
   lastCleaned?: string;
   cleanedBy?: string;
   currentCustomer?: Customer | null;
+  hasGas?: boolean;
+  initialGasWeight?: number; // Weight in kg when customer checks in
 };
 
 export type Customer = {
@@ -31,6 +33,9 @@ export type Customer = {
   depositPaymentMethod?: 'cash' | 'card' | 'bank_transfer' | 'other';
   depositCollectedBy?: string;
   bankRefNo?: string;
+  numberOfPersons: number; // New field for tracking number of people
+  hasGas?: boolean; // Whether this customer is using gas
+  initialGasWeight?: number; // Initial gas weight at check-in
 };
 
 export type Payment = {
@@ -45,6 +50,8 @@ export type Payment = {
   notes?: string;
   paymentType?: 'deposit' | 'checkout' | 'refund' | 'other';
   isRefund?: boolean;
+  extraPersonsCharge?: number; // Additional charge for extra persons
+  gasUsageCharge?: number; // Additional charge for gas usage
 };
 
 export type DailyReport = {
@@ -77,4 +84,11 @@ export type RentReminder = {
   checkOutDate: string;
   reminderDate: string;
   status: 'pending' | 'sent' | 'acknowledged';
+};
+
+export type GasSettings = {
+  id: string;
+  pricePerKg: number;
+  freePersonLimit: number;
+  extraPersonCharge: number;
 };

@@ -15,7 +15,10 @@ export const customerSchema = z.object({
   }),
   depositPaymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'other']).optional(),
   depositCollectedBy: z.string().optional(),
-  bankRefNo: z.string().optional()
+  bankRefNo: z.string().optional(),
+  numberOfPersons: z.number().min(1, "Number of persons is required").default(1),
+  hasGas: z.boolean().default(false),
+  initialGasWeight: z.number().optional(),
 }).refine(data => {
   // Ensure check-out date is after check-in date
   if (data.checkInDate && data.checkOutDate) {
@@ -25,6 +28,15 @@ export const customerSchema = z.object({
 }, {
   message: "Check-out date must be after check-in date",
   path: ["checkOutDate"]
+}).refine(data => {
+  // Ensure gas weight is provided if gas is selected
+  if (data.hasGas) {
+    return data.initialGasWeight !== undefined && data.initialGasWeight > 0;
+  }
+  return true;
+}, {
+  message: "Initial gas weight is required when gas is selected",
+  path: ["initialGasWeight"]
 });
 
 export type CustomerFormValues = z.infer<typeof customerSchema>;

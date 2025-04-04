@@ -10,6 +10,7 @@ import { customerSchema, CustomerFormValues } from "./schema";
 import PersonalInfoFields from "./form-sections/PersonalInfoFields";
 import BookingFields from "./form-sections/BookingFields";
 import DepositFields from "./form-sections/DepositFields";
+import AdditionalChargesFields from "./form-sections/AdditionalChargesFields";
 import FormActions from "./form-sections/FormActions";
 
 interface AddCustomerFormProps {
@@ -42,7 +43,10 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
       depositAmount: "",
       depositPaymentMethod: undefined,
       depositCollectedBy: "",
-      bankRefNo: undefined
+      bankRefNo: undefined,
+      numberOfPersons: 1,
+      hasGas: false,
+      initialGasWeight: undefined
     }
   });
 
@@ -87,7 +91,10 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         depositAmount: data.depositAmount ? Number(data.depositAmount) : undefined,
         depositPaymentMethod: data.depositPaymentMethod,
         depositCollectedBy: data.depositCollectedBy,
-        bankRefNo: data.depositPaymentMethod === 'bank_transfer' ? data.bankRefNo : undefined
+        bankRefNo: data.depositPaymentMethod === 'bank_transfer' ? data.bankRefNo : undefined,
+        numberOfPersons: data.numberOfPersons,
+        hasGas: data.hasGas,
+        initialGasWeight: data.hasGas ? data.initialGasWeight : undefined
       });
 
       if (newCustomer) {
@@ -128,6 +135,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         </div>
         
         <DepositFields control={form.control} watch={form.watch} />
+        <AdditionalChargesFields control={form.control} watch={form.watch} />
         <FormActions isSubmitting={isSubmitting} onClose={onClose} />
       </form>
     </Form>

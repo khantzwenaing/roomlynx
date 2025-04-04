@@ -6,8 +6,9 @@ import { updateRoom } from "@/services/roomsService";
 import { toast } from "sonner";
 import { isBefore, parseISO } from "date-fns";
 import { CheckoutDetails } from "./types";
-import { calculateTotalStay, calculateAmountDue } from "./roomCalculations";
+import { calculateTotalStay, calculateExtraPersonsCharge } from "./roomCalculations";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateGasCharge } from "@/services/settingsService";
 
 export const useRoomCheckout = (room: Room, customer: Customer | null) => {
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
@@ -15,7 +16,10 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
     paymentMethod: "cash",
     bankRefNo: "",
     collectedBy: "",
-    showCheckoutForm: false
+    showCheckoutForm: false,
+    gasCharge: 0,
+    finalGasWeight: 0,
+    extraPersonCharge: 0
   });
 
   const handleCheckout = async () => {
@@ -47,6 +51,23 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
       const plannedCheckout = parseISO(customer.checkOutDate);
       const isEarlyCheckout = isBefore(today, plannedCheckout);
       
+      // Calculate extra person charges
+      const extraPersonCharge = await calculateExtraPersonsCharge(customer);
+      
+      // Calculate gas usage charge if applicable
+      let gasCharge = 0;
+      if (customer.hasGas && customer.initialGasWeight) {
+        if (checkoutDetails.finalGasWeight > 0) {
+          gasCharge = checkoutDetails.gasCharge || 0;
+        } else if (customer.initialGasWeight) {
+          // If final gas weight not entered, show error
+          toast.error("Error", {
+            description: "Please calculate gas usage before checkout"
+          });
+          return;
+        }
+      }
+      
       if (isEarlyCheckout) {
         // Calculate refund amount for early checkout
         const checkInDate = parseISO(customer.checkInDate);
@@ -59,9 +80,12 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
         // Amount due for actual stay
         const actualStayAmount = actualDaysStayed * room.rate;
         
+        // Add extra person and gas charges
+        const totalCharges = actualStayAmount + extraPersonCharge + gasCharge;
+        
         // Calculate potential refund (if deposit was more than actual stay cost)
         const depositAmount = customer.depositAmount || 0;
-        const refundAmount = Math.max(0, depositAmount - actualStayAmount);
+        const refundAmount = Math.max(0, depositAmount - totalCharges);
         
         if (refundAmount > 0) {
           // Process as early checkout with refund
@@ -71,11 +95,11 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
             today.toISOString(),
             refundAmount,
             {
-              method: checkoutDetails.paymentMethod,
+              method: checkoutDetails.paymentMethod as 'cash' | 'bank_transfer' | 'other',
               collectedBy: checkoutDetails.collectedBy,
               notes: checkoutDetails.bankRefNo 
-                ? `Bank Ref: ${checkoutDetails.bankRefNo}` 
-                : "Early checkout refund"
+                ? `Bank Ref: ${checkoutDetails.bankRefNo}, Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}` 
+                : `Early checkout refund, Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}`
             }
           );
           
@@ -91,16 +115,18 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
           const paymentData = {
             customerId: customer.id,
             roomId: room.id,
-            amount: Math.max(0, actualStayAmount - depositAmount),
+            amount: Math.max(0, totalCharges - depositAmount),
             date: new Date().toISOString(),
-            method: checkoutDetails.paymentMethod,
+            method: checkoutDetails.paymentMethod as 'cash' | 'bank_transfer' | 'other',
             collectedBy: checkoutDetails.collectedBy,
             status: "paid" as "paid" | "pending" | "partial",
             notes: checkoutDetails.bankRefNo 
-              ? `Bank Ref: ${checkoutDetails.bankRefNo}` 
-              : "Early checkout payment",
+              ? `Bank Ref: ${checkoutDetails.bankRefNo}, Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}` 
+              : `Early checkout payment, Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}`,
             paymentType: 'checkout' as 'deposit' | 'checkout' | 'refund' | 'other',
-            isRefund: false
+            isRefund: false,
+            extraPersonsCharge: extraPersonCharge,
+            gasUsageCharge: gasCharge
           };
           
           // Add payment record if there's an amount due
@@ -116,8 +142,9 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
             today.toISOString(),
             0, // No refund
             {
-              method: checkoutDetails.paymentMethod,
-              collectedBy: checkoutDetails.collectedBy
+              method: checkoutDetails.paymentMethod as 'cash' | 'bank_transfer' | 'other',
+              collectedBy: checkoutDetails.collectedBy,
+              notes: `Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}`
             }
           );
           
@@ -131,18 +158,28 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
         }
       } else {
         // Regular checkout (on planned date)
+        // Calculate total amount due including extra charges
+        const roomCharge = calculateTotalStay(room, customer);
+        const totalCharges = roomCharge + extraPersonCharge + gasCharge;
+        const depositAmount = customer.depositAmount || 0;
+        const amountDue = Math.max(0, totalCharges - depositAmount);
+        
         // 1. Add payment record
         const paymentData = {
           customerId: customer.id,
           roomId: room.id,
-          amount: calculateAmountDue(room, customer),
+          amount: amountDue,
           date: new Date().toISOString(),
-          method: checkoutDetails.paymentMethod,
+          method: checkoutDetails.paymentMethod as 'cash' | 'bank_transfer' | 'other',
           collectedBy: checkoutDetails.collectedBy,
           status: "paid" as "paid" | "pending" | "partial",
-          notes: checkoutDetails.bankRefNo ? `Bank Ref: ${checkoutDetails.bankRefNo}` : "",
+          notes: checkoutDetails.bankRefNo 
+            ? `Bank Ref: ${checkoutDetails.bankRefNo}, Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}` 
+            : `Gas: ${gasCharge}, Extra persons: ${extraPersonCharge}`,
           paymentType: 'checkout' as 'deposit' | 'checkout' | 'refund' | 'other',
-          isRefund: false
+          isRefund: false,
+          extraPersonsCharge: extraPersonCharge,
+          gasUsageCharge: gasCharge
         };
         
         const payment = await addPayment(paymentData);
@@ -189,6 +226,22 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
     }
   };
 
+  const calculateAmountDue = async (): Promise<number> => {
+    if (!customer) return 0;
+    
+    const totalStay = calculateTotalStay(room, customer);
+    const depositAmount = customer.depositAmount || 0;
+    
+    // Calculate extra person charge
+    const extraPersonCharge = await calculateExtraPersonsCharge(customer);
+    
+    // Get gas charge from checkout details or calculate it
+    let gasCharge = checkoutDetails.gasCharge || 0;
+    
+    // Return total amount due
+    return Math.max(0, totalStay + extraPersonCharge + gasCharge - depositAmount);
+  };
+
   return {
     isCheckoutDialogOpen, 
     setIsCheckoutDialogOpen,
@@ -196,6 +249,6 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
     setCheckoutDetails,
     handleCheckout,
     calculateTotalStay: () => calculateTotalStay(room, customer),
-    calculateAmountDue: () => calculateAmountDue(room, customer)
+    calculateAmountDue
   };
 };

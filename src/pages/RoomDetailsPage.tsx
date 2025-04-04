@@ -9,12 +9,15 @@ import RoomInformation from "@/components/room-details/RoomInformation";
 import GuestSection from "@/components/room-details/GuestSection";
 import LoadingState from "@/components/room-details/LoadingState";
 import NotFoundState from "@/components/room-details/NotFoundState";
+import DeleteRoomDialog from "@/components/rooms/dialogs/DeleteRoomDialog";
+import { deleteRoom } from "@/services/rooms/roomDeletion";
 
 const RoomDetailsPage = () => {
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedRoom, setEditedRoom] = useState<Partial<Room>>({});
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -43,6 +46,7 @@ const RoomDetailsPage = () => {
         roomNumber: roomData?.roomNumber,
         type: roomData?.type,
         rate: roomData?.rate,
+        hasGas: roomData?.hasGas || false,
       });
     } catch (error) {
       console.error("Error fetching room details:", error);
@@ -86,6 +90,7 @@ const RoomDetailsPage = () => {
         roomNumber: room.roomNumber,
         type: room.type,
         rate: room.rate,
+        hasGas: room.hasGas || false,
       });
     }
     setIsEditing(false);
@@ -93,6 +98,25 @@ const RoomDetailsPage = () => {
 
   const handleRefreshData = async () => {
     await fetchRoomDetails();
+  };
+
+  const handleDeleteRoom = async () => {
+    if (!room || !roomId) return;
+    
+    try {
+      const success = await deleteRoom(roomId);
+      if (success) {
+        toast.success(`Room ${room.roomNumber} deleted successfully`);
+        navigate("/rooms");
+      } else {
+        toast.error("Failed to delete room. It might be occupied or have active records.");
+      }
+    } catch (error) {
+      console.error("Error deleting room:", error);
+      toast.error("An error occurred while deleting the room");
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
   };
 
   if (loading) {
@@ -113,6 +137,7 @@ const RoomDetailsPage = () => {
         onRefreshData={handleRefreshData}
         onSave={handleSave}
         onCancelEdit={handleCancelEdit}
+        onDeleteClick={() => setIsDeleteDialogOpen(true)}
       />
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -131,6 +156,13 @@ const RoomDetailsPage = () => {
           onRefreshData={handleRefreshData}
         />
       </div>
+
+      <DeleteRoomDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteRoom}
+        roomNumber={room.roomNumber}
+      />
     </div>
   );
 };

@@ -1,8 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Room, Customer } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isBefore } from "date-fns";
+import { calculateExtraPersonsCharge } from "@/hooks/roomOperations/roomCalculations";
 
 import AmountSummary from "./checkout/AmountSummary";
 import PaymentMethodSelector from "./checkout/PaymentMethodSelector";
@@ -10,6 +11,7 @@ import BankReferenceInput from "./checkout/BankReferenceInput";
 import CollectedByInput from "./checkout/CollectedByInput";
 import CheckoutActions from "./checkout/CheckoutActions";
 import EarlyCheckoutDialog from "./checkout/EarlyCheckoutDialog";
+import GasUsageFields from "./checkout/GasUsageFields";
 
 interface CheckoutFormProps {
   checkoutDetails: {
@@ -48,6 +50,20 @@ const CheckoutForm = ({
 }: CheckoutFormProps) => {
   const { toast } = useToast();
   const [showEarlyCheckoutDialog, setShowEarlyCheckoutDialog] = useState(false);
+  const [gasCharge, setGasCharge] = useState(0);
+  const [finalGasWeight, setFinalGasWeight] = useState(0);
+  const [extraPersonCharge, setExtraPersonCharge] = useState(0);
+  
+  useEffect(() => {
+    const loadExtraCharges = async () => {
+      if (customer) {
+        const personCharge = await calculateExtraPersonsCharge(customer);
+        setExtraPersonCharge(personCharge);
+      }
+    };
+    
+    loadExtraCharges();
+  }, [customer]);
 
   const handleCompleteCheckout = () => {
     if (!checkoutDetails.collectedBy) {
@@ -67,14 +83,31 @@ const CheckoutForm = ({
       });
       return;
     }
+    
+    // If gas is being used but no final weight entered, show an error
+    if (customer.hasGas && customer.initialGasWeight && gasCharge === 0) {
+      toast({
+        title: "Error",
+        description: "Please calculate gas usage charge before checking out",
+        variant: "destructive"
+      });
+      return;
+    }
 
     onCompleteCheckout();
   };
 
-  // Check if early checkout is possible
-  const checkOutDate = parseISO(customer.checkOutDate);
-  const today = new Date();
-  const isEarlyCheckout = isBefore(today, checkOutDate);
+  const handleGasChargeCalculated = (charge: number, weight: number) => {
+    setGasCharge(charge);
+    setFinalGasWeight(weight);
+    
+    // Update the checkout details with gas usage information
+    setCheckoutDetails(prev => ({
+      ...prev,
+      gasCharge: charge,
+      finalGasWeight: weight
+    }));
+  };
 
   return (
     <div className="mt-6 space-y-4 bg-white p-5 rounded-lg border border-gray-200">
@@ -82,8 +115,17 @@ const CheckoutForm = ({
       
       <AmountSummary 
         room={room} 
-        customer={customer} 
+        customer={customer}
+        gasCharge={gasCharge}
       />
+      
+      {/* Show gas usage calculation if applicable */}
+      {customer.hasGas && customer.initialGasWeight && (
+        <GasUsageFields
+          initialWeight={customer.initialGasWeight}
+          onGasChargeCalculated={handleGasChargeCalculated}
+        />
+      )}
       
       <PaymentMethodSelector 
         paymentMethod={checkoutDetails.paymentMethod}
@@ -105,7 +147,7 @@ const CheckoutForm = ({
       <CheckoutActions 
         onCompleteCheckout={handleCompleteCheckout}
         onEarlyCheckoutClick={() => setShowEarlyCheckoutDialog(true)}
-        isEarlyCheckoutAvailable={isEarlyCheckout && !!onEarlyCheckout}
+        isEarlyCheckoutAvailable={isBefore(new Date(), parseISO(customer.checkOutDate)) && !!onEarlyCheckout}
       />
       
       {/* Early Checkout Dialog */}
@@ -116,6 +158,8 @@ const CheckoutForm = ({
           room={room}
           customer={customer}
           onEarlyCheckout={onEarlyCheckout}
+          gasCharge={gasCharge}
+          extraPersonCharge={extraPersonCharge}
         />
       )}
     </div>

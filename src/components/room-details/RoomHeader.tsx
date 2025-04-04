@@ -1,7 +1,7 @@
 
 import React from "react";
-import { ArrowLeft, Pencil, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, Save, X, Edit, RefreshCw, Trash2 } from "lucide-react";
 
 interface RoomHeaderProps {
   roomNumber: string;
@@ -11,51 +11,57 @@ interface RoomHeaderProps {
   onRefreshData: () => void;
   onSave: () => void;
   onCancelEdit: () => void;
+  onDeleteClick: () => void;
 }
 
-const RoomHeader = ({
-  roomNumber,
-  isEditing,
-  onBackClick,
+const RoomHeader = ({ 
+  roomNumber, 
+  isEditing, 
+  onBackClick, 
   onEditClick,
   onRefreshData,
-  onSave,
-  onCancelEdit
+  onSave, 
+  onCancelEdit,
+  onDeleteClick
 }: RoomHeaderProps) => {
   return (
-    <div className="mb-6 flex items-center justify-between">
-      <div className="flex items-center">
-        <Button variant="outline" onClick={onBackClick} className="mr-4">
-          <ArrowLeft className="mr-2" />
-          Back
+    <div className="flex flex-col md:flex-row md:justify-between md:items-center pb-6 border-b mb-6">
+      <div className="flex items-center mb-4 md:mb-0">
+        <Button variant="ghost" size="icon" onClick={onBackClick} className="mr-2">
+          <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold">Room {roomNumber} Details</h1>
+        <h1 className="text-2xl font-bold">
+          Room {roomNumber} {isEditing ? "(Editing)" : ""}
+        </h1>
       </div>
-      <div className="flex gap-2">
-        <Button onClick={onRefreshData} variant="outline" className="mr-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 2v6h-6"></path>
-            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
-            <path d="M3 22v-6h6"></path>
-            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
-          </svg>
+      <div className="flex items-center space-x-2">
+        <Button variant="outline" size="sm" onClick={onRefreshData}>
+          <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
-        {!isEditing ? (
-          <Button onClick={onEditClick} variant="outline">
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit Room
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button onClick={onCancelEdit} variant="outline">
+        
+        {isEditing ? (
+          <>
+            <Button variant="default" size="sm" onClick={onSave}>
+              <Save className="h-4 w-4 mr-2" />
+              Save
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onCancelEdit}>
+              <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
-            <Button onClick={onSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Save Changes
+          </>
+        ) : (
+          <>
+            <Button variant="outline" size="sm" onClick={onEditClick}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
             </Button>
-          </div>
+            <Button variant="destructive" size="sm" onClick={onDeleteClick}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Room
+            </Button>
+          </>
         )}
       </div>
     </div>
