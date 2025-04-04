@@ -6,18 +6,22 @@ import { Input } from "@/components/ui/input";
 interface BankReferenceInputProps {
   bankRefNo: string;
   onBankRefNoChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-const BankReferenceInput = ({ bankRefNo, onBankRefNoChange }: BankReferenceInputProps) => {
+const BankReferenceInput = ({ bankRefNo, onBankRefNoChange, disabled }: BankReferenceInputProps) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor="bank-ref" className="text-lg">Bank Reference Number</Label>
+      <Label htmlFor="bank-ref" className="text-base font-medium">
+        Bank Reference Number
+      </Label>
       <Input
         id="bank-ref"
         placeholder="Enter transaction reference"
         value={bankRefNo}
         onChange={(e) => onBankRefNoChange(e.target.value)}
-        className="text-lg h-12"
+        disabled={disabled}
+        className="h-10"
       />
     </div>
   );

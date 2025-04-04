@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Room, Customer } from "@/types";
 import { format, parseISO, isBefore } from "date-fns";
-import { calculateExtraPersonsCharge } from "@/hooks/roomOperations/roomCalculations";
+import { calculateExtraPersonCharge } from "@/services/settingsService";
 
 interface AmountSummaryProps {
   room: Room;
@@ -17,7 +17,7 @@ const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharg
   
   useEffect(() => {
     const loadExtraCharges = async () => {
-      const personCharge = await calculateExtraPersonsCharge(customer);
+      const personCharge = await calculateExtraPersonCharge(customer);
       setExtraPersonCharge(personCharge);
     };
     

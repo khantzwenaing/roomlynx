@@ -1,44 +1,33 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { Room, Customer } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 import EarlyCheckoutDialog from "./checkout/EarlyCheckoutDialog";
+import PaymentMethodSelector from "./checkout/PaymentMethodSelector";
+import BankReferenceInput from "./checkout/BankReferenceInput";
+import CollectedByInput from "./checkout/CollectedByInput";
+import CheckoutActions from "./checkout/CheckoutActions";
+import GasUsageFields from "./checkout/GasUsageFields";
+import AmountSummary from "./checkout/AmountSummary";
+import { calculateExtraPersonCharge } from "@/services/settingsService";
+import { isBefore, parseISO } from "date-fns";
 
-interface EarlyCheckoutDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  room: Room;
-  customer: Customer;
-  onEarlyCheckout: (
-    actualCheckoutDate: string,
-    refundAmount: number,
-    refundDetails: {
-      method: 'cash' | 'bank_transfer' | 'other',
-      collectedBy: string,
-      notes?: string
-    }
-  ) => Promise<void>;
-  gasCharge?: number;
-  extraPersonCharge?: number;
-}
-
-const CheckoutForm = ({ 
-  checkoutDetails, 
-  setCheckoutDetails, 
-  customer, 
-  room,
-  onCompleteCheckout,
-  onEarlyCheckout
-}: {
+interface CheckoutFormProps {
   checkoutDetails: {
     paymentMethod: string;
     bankRefNo: string;
     collectedBy: string;
     showCheckoutForm: boolean;
+    gasCharge?: number;
+    finalGasWeight?: number;
   };
   setCheckoutDetails: React.Dispatch<React.SetStateAction<{
     paymentMethod: string;
     bankRefNo: string;
     collectedBy: string;
     showCheckoutForm: boolean;
+    gasCharge?: number;
+    finalGasWeight?: number;
   }>>;
   customer: Customer;
   room: Room;
@@ -52,7 +41,16 @@ const CheckoutForm = ({
       notes?: string
     }
   ) => Promise<void>;
-}) => {
+}
+
+const CheckoutForm = ({ 
+  checkoutDetails, 
+  setCheckoutDetails, 
+  customer, 
+  room,
+  onCompleteCheckout,
+  onEarlyCheckout
+}: CheckoutFormProps) => {
   const { toast } = useToast();
   const [showEarlyCheckoutDialog, setShowEarlyCheckoutDialog] = useState(false);
   const [gasCharge, setGasCharge] = useState(0);
@@ -62,7 +60,7 @@ const CheckoutForm = ({
   useEffect(() => {
     const loadExtraCharges = async () => {
       if (customer) {
-        const personCharge = await calculateExtraPersonsCharge(customer);
+        const personCharge = await calculateExtraPersonCharge(customer);
         setExtraPersonCharge(personCharge);
       }
     };

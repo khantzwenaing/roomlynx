@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Room, Customer } from "@/types";
 
@@ -96,6 +95,72 @@ export const getRoomDetails = async (roomId: string): Promise<Room | null> => {
     return room;
   } catch (error) {
     console.error('Unexpected error in getRoomDetails:', error);
+    return null;
+  }
+};
+
+export const getRoomWithCustomer = async (id: string): Promise<{ room: Room; customer: Customer | null } | null> => {
+  try {
+    const { data: roomData, error: roomError } = await supabase
+      .from('rooms')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (roomError) {
+      console.error('Error fetching room:', roomError);
+      return null;
+    }
+
+    const room: Room = {
+      id: roomData.id,
+      roomNumber: roomData.roomnumber,
+      type: roomData.type,
+      rate: roomData.rate,
+      status: roomData.status,
+      lastCleaned: roomData.lastcleaned,
+      cleanedBy: roomData.cleanedby,
+      hasGas: roomData.hasgas || false
+    };
+
+    // If room is occupied, fetch customer data
+    if (room.status === 'occupied') {
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('roomid', id)
+        .single();
+
+      if (customerError) {
+        console.error('Error fetching customer for room:', customerError);
+        return { room, customer: null };
+      }
+
+      const customer: Customer = {
+        id: customerData.id,
+        name: customerData.name,
+        email: customerData.email,
+        phone: customerData.phone,
+        address: customerData.address,
+        idNumber: customerData.idnumber,
+        checkInDate: customerData.checkindate,
+        checkOutDate: customerData.checkoutdate,
+        roomId: customerData.roomid,
+        depositAmount: customerData.depositamount,
+        depositPaymentMethod: customerData.depositpaymentmethod,
+        depositCollectedBy: customerData.depositcollectedby,
+        bankRefNo: customerData.bankrefno,
+        numberOfPersons: customerData.numberofpersons || 1,
+        hasGas: customerData.hasgas || false,
+        initialGasWeight: customerData.initialgasweight
+      };
+
+      return { room, customer };
+    }
+
+    return { room, customer: null };
+  } catch (error) {
+    console.error('Error in getRoomWithCustomer:', error);
     return null;
   }
 };

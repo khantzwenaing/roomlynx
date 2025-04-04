@@ -1,87 +1,173 @@
+import { supabase } from "@/integrations/supabase/client";
+import { Customer, Room, Payment } from "@/types";
 
-// Re-export all service functions from the modular services
-export * from './rooms';
-export * from './customersService';
-export * from './paymentsService';
-export * from './reportsService';
-export * from './utilityService';
-export * from './remindersService';
-
-// Helper function to load customers for rooms
-export const loadCustomersForRooms = async () => {
-  const { getRooms } = await import('./roomsService');
+export const getCustomers = async (): Promise<Customer[]> => {
+  const { data, error } = await supabase
+    .from('customers')
+    .select('*')
+    .order('name');
   
+  if (error) {
+    console.error('Error fetching customers:', error);
+    return [];
+  }
+  
+  return data.map(customer => ({
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    address: customer.address,
+    idNumber: customer.idnumber,
+    checkInDate: customer.checkindate,
+    checkOutDate: customer.checkoutdate,
+    roomId: customer.roomid,
+    depositAmount: customer.depositamount,
+    depositPaymentMethod: customer.depositpaymentmethod,
+    depositCollectedBy: customer.depositcollectedby,
+    bankRefNo: customer.bankrefno,
+    numberOfPersons: customer.numberofpersons || 1,
+    hasGas: customer.hasgas || false,
+    initialGasWeight: customer.initialgasweight
+  }));
+};
+
+export const getRooms = async (): Promise<Room[]> => {
+  const { data, error } = await supabase
+    .from('rooms')
+    .select('*')
+    .order('roomnumber');
+  
+  if (error) {
+    console.error('Error fetching rooms:', error);
+    return [];
+  }
+  
+  return data.map(room => ({
+    id: room.id,
+    roomNumber: room.roomnumber,
+    type: room.type as 'single' | 'double' | 'suite' | 'deluxe',
+    rate: room.rate,
+    status: room.status as 'vacant' | 'occupied' | 'maintenance' | 'cleaning',
+    lastCleaned: room.lastcleaned,
+    cleanedBy: room.cleanedby,
+    hasGas: room.hasgas || false
+  }));
+};
+
+export const addCustomer = async (customer: Omit<Customer, 'id'>): Promise<Customer | null> => {
   try {
-    const allRooms = await getRooms();
-    const customerMap: {[key: string]: import('@/types').Customer | null} = {};
-    
-    console.log("loadCustomersForRooms: processing rooms");
-    
-    // Get customers for occupied rooms
-    for (const room of allRooms) {
-      console.log(`Processing room ${room.roomNumber}, status: ${room.status}`);
-      
-      if (room.status === "occupied") {
-        console.log(`Fetching customer details for occupied room ${room.roomNumber}`);
-        try {
-          // Get customer information
-          const { data: customers, error } = await import('@/integrations/supabase/client').then(
-            module => module.supabase
-              .from('customers')
-              .select('*')
-              .eq('roomid', room.id)
-              .order('checkindate', { ascending: false })
-              .limit(1)
-          );
-          
-          if (error) {
-            console.error(`Error fetching customer for room ${room.roomNumber}:`, error);
-            customerMap[room.id] = null;
-            continue;
-          }
-          
-          if (customers && customers.length > 0) {
-            const customerData = customers[0];
-            const customer: import('@/types').Customer = {
-              id: customerData.id,
-              name: customerData.name,
-              email: customerData.email || '',
-              phone: customerData.phone,
-              address: customerData.address || '',
-              idNumber: customerData.idnumber || '',
-              checkInDate: customerData.checkindate,
-              checkOutDate: customerData.checkoutdate,
-              roomId: customerData.roomid,
-              depositAmount: customerData.depositamount ? Number(customerData.depositamount) : undefined,
-              depositPaymentMethod: customerData.depositpaymentmethod as 'cash' | 'card' | 'bank_transfer' | 'other' | undefined,
-              depositCollectedBy: customerData.depositcollectedby,
-              bankRefNo: customerData.bankrefno
-            };
-            
-            console.log(`Found customer ${customer.name} for room ${room.roomNumber}`);
-            customerMap[room.id] = customer;
-          } else {
-            console.log(`No customer found for occupied room ${room.roomNumber}`);
-            customerMap[room.id] = null;
-            
-            // Room is marked as occupied but has no customer - this is an inconsistency
-            // Consider updating the room status to vacant
-            console.warn(`Room ${room.roomNumber} is marked as occupied but has no customer. Consider fixing this inconsistency.`);
-          }
-        } catch (detailsError) {
-          console.error(`Error fetching details for room ${room.roomNumber}:`, detailsError);
-          customerMap[room.id] = null;
-        }
-      } else {
-        console.log(`Room ${room.roomNumber} is not occupied, skipping customer lookup`);
-        customerMap[room.id] = null;
-      }
+    const { data, error } = await supabase
+      .from('customers')
+      .insert({
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        address: customer.address,
+        idnumber: customer.idNumber,
+        checkindate: customer.checkInDate,
+        checkoutdate: customer.checkOutDate,
+        roomid: customer.roomId,
+        depositamount: customer.depositAmount || 0,
+        depositpaymentmethod: customer.depositPaymentMethod,
+        depositcollectedby: customer.depositCollectedBy,
+        bankrefno: customer.bankRefNo,
+        numberofpersons: customer.numberOfPersons || 1,  // Set default to 1
+        hasgas: customer.hasGas || false,  // Set default to false
+        initialgasweight: customer.initialGasWeight || null  // Set default to null
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding customer:', error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      idNumber: data.idnumber,
+      checkInDate: data.checkindate,
+      checkOutDate: data.checkoutdate,
+      roomId: data.roomid,
+      depositAmount: data.depositamount,
+      depositPaymentMethod: data.depositpaymentmethod,
+      depositCollectedBy: data.depositcollectedby,
+      bankRefNo: data.bankrefno,
+      numberOfPersons: data.numberofpersons || 1,
+      hasGas: data.hasgas || false,
+      initialGasWeight: data.initialgasweight || undefined
+    };
+  } catch (error) {
+    console.error('Error in addCustomer:', error);
+    return null;
+  }
+};
+
+export const resetDatabase = async (): Promise<boolean> => {
+  try {
+    // Delete all records from customers table
+    const { error: deleteCustomersError } = await supabase
+      .from('customers')
+      .delete()
+      .neq('id', null); // Delete all records
+
+    if (deleteCustomersError) {
+      console.error('Error deleting customers:', deleteCustomersError);
+      return false;
+    }
+
+    // Delete all records from payments table
+    const { error: deletePaymentsError } = await supabase
+      .from('payments')
+      .delete()
+      .neq('id', null); // Delete all records
+
+    if (deletePaymentsError) {
+      console.error('Error deleting payments:', deletePaymentsError);
+      return false;
     }
     
-    console.log(`Finished processing, found customers for ${Object.values(customerMap).filter(Boolean).length} rooms`);
-    return customerMap;
+    // Delete all records from rent_reminders table
+    const { error: deleteRemindersError } = await supabase
+      .from('rent_reminders')
+      .delete()
+      .neq('id', null); // Delete all records
+
+    if (deleteRemindersError) {
+      console.error('Error deleting rent reminders:', deleteRemindersError);
+      return false;
+    }
+
+    // Reset rooms to initial state
+    const { error: updateRoomsError } = await supabase
+      .from('rooms')
+      .update([
+        { id: '1', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { id: '2', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
+        { id: '3', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { id: '4', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
+        { id: '5', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { id: '6', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
+        { id: '7', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { id: '8', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
+        { id: '9', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { id: '10', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false }
+      ])
+      .in('id', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
+
+    if (updateRoomsError) {
+      console.error('Error updating rooms:', updateRoomsError);
+      return false;
+    }
+
+    return true;
   } catch (error) {
-    console.error("Error loading customers for rooms:", error);
-    return {};
+    console.error('Error resetting database:', error);
+    return false;
   }
 };

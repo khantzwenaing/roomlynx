@@ -25,6 +25,8 @@ interface EarlyCheckoutDialogProps {
       notes?: string;
     }
   ) => Promise<void>;
+  gasCharge?: number;
+  extraPersonCharge?: number;
 }
 
 const EarlyCheckoutDialog = ({
@@ -32,7 +34,9 @@ const EarlyCheckoutDialog = ({
   onOpenChange,
   room,
   customer,
-  onEarlyCheckout
+  onEarlyCheckout,
+  gasCharge = 0,
+  extraPersonCharge = 0
 }: EarlyCheckoutDialogProps) => {
   const [checkoutDate, setCheckoutDate] = useState<Date | undefined>(new Date());
   const [refundDetails, setRefundDetails] = useState({
@@ -64,10 +68,13 @@ const EarlyCheckoutDialog = ({
     // Calculate refund amount
     const refundAmount = daysNotStaying * room.rate;
     
+    // Subtract any additional charges
+    const netRefund = Math.max(0, refundAmount - (gasCharge + extraPersonCharge));
+    
     // Check if the refund is valid
     if (isBefore(checkoutDate, checkInDate)) return 0;
     
-    return refundAmount;
+    return netRefund;
   };
 
   const handleEarlyCheckout = async () => {
@@ -113,6 +120,12 @@ const EarlyCheckoutDialog = ({
               Based on {checkoutDate ? format(checkoutDate, 'PPP') : 'today'} checkout 
               (Original: {format(checkOutDate, 'PPP')})
             </p>
+            {gasCharge > 0 && (
+              <p className="text-sm text-gray-600">Gas charge: ${gasCharge}</p>
+            )}
+            {extraPersonCharge > 0 && (
+              <p className="text-sm text-gray-600">Extra person charge: ${extraPersonCharge}</p>
+            )}
           </div>
           
           <div className="space-y-2">

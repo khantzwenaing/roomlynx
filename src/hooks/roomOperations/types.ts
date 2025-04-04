@@ -4,7 +4,25 @@ export interface CheckoutDetails {
   bankRefNo: string;
   collectedBy: string;
   showCheckoutForm: boolean;
-  gasCharge?: number; // Add these new optional properties
+  gasCharge?: number; 
   finalGasWeight?: number;
   extraPersonCharge?: number;
+}
+
+export interface UseRoomOperationsReturn {
+  isDeleteDialogOpen: boolean;
+  setIsDeleteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  cleanedBy: string;
+  setCleanedBy: React.Dispatch<React.SetStateAction<string>>;
+  isCheckoutDialogOpen: boolean;
+  setIsCheckoutDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isAddCustomerDialogOpen: boolean;
+  setIsAddCustomerDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  checkoutDetails: CheckoutDetails;
+  setCheckoutDetails: React.Dispatch<React.SetStateAction<CheckoutDetails>>;
+  calculateTotalStay: () => number;
+  calculateAmountDue: () => Promise<number>;
+  handleDeleteRoom: () => Promise<void>;
+  handleCleaningComplete: () => Promise<void>;
+  handleCheckout: () => Promise<void>;
 }
