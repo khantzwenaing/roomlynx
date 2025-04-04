@@ -148,18 +148,12 @@ export const resetDatabase = async (): Promise<boolean> => {
     // Reset rooms to initial state
     const { error: updateRoomsError } = await supabase
       .from('rooms')
-      .update([
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false }
-      ])
+      .update({ 
+        status: 'vacant', 
+        cleanedby: null, 
+        lastcleaned: null, 
+        hasgas: true 
+      })
       .in('id', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
 
     if (updateRoomsError) {
@@ -176,9 +170,9 @@ export const resetDatabase = async (): Promise<boolean> => {
 
 // Re-export functions from other services
 export { deleteCheckoutReminder } from './reminders';
-export { getDailyReports } from './reportsService';
-export { loadCustomersForRooms, updateRoom } from './roomsService';
+export { getDailyReports, getCheckoutReminders } from './reportsService';
+export { loadCustomersForRooms } from './rooms';
+export { updateRoom } from './rooms';
 export { getPayments, addPayment } from './paymentsService';
-export { generateDailyReport, getCheckoutReminders } from './reportsService';
-export { processCheckout, processEarlyCheckout } from './roomsService';
-
+export { generateDailyReport } from './reportsService';
+export { processCheckout, processEarlyCheckout } from './rooms/roomCheckout';

@@ -3,3 +3,4 @@
 export * from './roomRetrieval';
 export * from './roomManipulation';
 export * from './roomDeletion';
+export * from './roomCustomers';
