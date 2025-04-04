@@ -1,5 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Customer, Room, Payment } from "@/types";
+import { deleteCheckoutReminder } from "./reminders";
 
 export const getCustomers = async (): Promise<Customer[]> => {
   const { data, error } = await supabase
@@ -23,7 +25,7 @@ export const getCustomers = async (): Promise<Customer[]> => {
     checkOutDate: customer.checkoutdate,
     roomId: customer.roomid,
     depositAmount: customer.depositamount,
-    depositPaymentMethod: customer.depositpaymentmethod,
+    depositPaymentMethod: customer.depositpaymentmethod as "cash" | "card" | "bank_transfer" | "other",
     depositCollectedBy: customer.depositcollectedby,
     bankRefNo: customer.bankrefno,
     numberOfPersons: customer.numberofpersons || 1,
@@ -72,9 +74,9 @@ export const addCustomer = async (customer: Omit<Customer, 'id'>): Promise<Custo
         depositpaymentmethod: customer.depositPaymentMethod,
         depositcollectedby: customer.depositCollectedBy,
         bankrefno: customer.bankRefNo,
-        numberofpersons: customer.numberOfPersons || 1,  // Set default to 1
-        hasgas: customer.hasGas || false,  // Set default to false
-        initialgasweight: customer.initialGasWeight || null  // Set default to null
+        numberofpersons: customer.numberOfPersons || 1,
+        hasgas: customer.hasGas || false,
+        initialgasweight: customer.initialGasWeight || null
       })
       .select()
       .single();
@@ -95,7 +97,7 @@ export const addCustomer = async (customer: Omit<Customer, 'id'>): Promise<Custo
       checkOutDate: data.checkoutdate,
       roomId: data.roomid,
       depositAmount: data.depositamount,
-      depositPaymentMethod: data.depositpaymentmethod,
+      depositPaymentMethod: data.depositpaymentmethod as "cash" | "card" | "bank_transfer" | "other",
       depositCollectedBy: data.depositcollectedby,
       bankRefNo: data.bankrefno,
       numberOfPersons: data.numberofpersons || 1,
@@ -147,16 +149,16 @@ export const resetDatabase = async (): Promise<boolean> => {
     const { error: updateRoomsError } = await supabase
       .from('rooms')
       .update([
-        { id: '1', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { id: '2', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
-        { id: '3', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { id: '4', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
-        { id: '5', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { id: '6', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
-        { id: '7', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { id: '8', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
-        { id: '9', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
-        { id: '10', status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false }
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: true },
+        { status: 'vacant', cleanedby: null, lastcleaned: null, hasgas: false }
       ])
       .in('id', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
 
@@ -171,3 +173,12 @@ export const resetDatabase = async (): Promise<boolean> => {
     return false;
   }
 };
+
+// Re-export functions from other services
+export { deleteCheckoutReminder } from './reminders';
+export { getDailyReports } from './reportsService';
+export { loadCustomersForRooms, updateRoom } from './roomsService';
+export { getPayments, addPayment } from './paymentsService';
+export { generateDailyReport, getCheckoutReminders } from './reportsService';
+export { processCheckout, processEarlyCheckout } from './roomsService';
+

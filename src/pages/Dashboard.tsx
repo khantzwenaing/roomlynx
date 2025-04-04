@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { getRooms, getDailyReports, getCustomers, deleteCheckoutReminder } from "@/services/dataService";
 import { Room, DailyReport, Customer } from "@/types";
@@ -55,22 +54,17 @@ const Dashboard = () => {
     cleaning: rooms.filter((r) => r.status === "cleaning").length,
   };
 
-  // Filter out customers who have already checked out (showing only future checkouts)
   const upcomingCheckouts = customers
     .filter(customer => {
       const checkoutDate = parseISO(customer.checkOutDate);
       const today = new Date();
       
-      // Only include if:
-      // 1. Checkout date is in the future
-      // 2. Checkout date is within next 7 days
-      // 3. The customer's room is still occupied (important for early checkouts)
-      const customerRoom = rooms.find(r => r.id === customer.roomId);
-      const isRoomOccupied = customerRoom && customerRoom.status === "occupied";
-      
-      return isAfter(checkoutDate, today) && 
-             isBefore(checkoutDate, addDays(today, 7)) &&
-             isRoomOccupied; // This ensures early checkouts don't show up
+      if (isAfter(checkoutDate, today) && isBefore(checkoutDate, addDays(today, 7))) {
+        const customerRoom = rooms.find(r => r.id === customer.roomId);
+        const isRoomOccupied = customerRoom && customerRoom.status === "occupied";
+        return isRoomOccupied;
+      }
+      return false;
     })
     .sort((a, b) => {
       return parseISO(a.checkOutDate).getTime() - parseISO(b.checkOutDate).getTime();
@@ -78,19 +72,14 @@ const Dashboard = () => {
 
   const handleDeleteCheckout = async (customerId: string) => {
     try {
-      // Delete the checkout reminder if it exists
       await deleteCheckoutReminder(customerId);
       
-      // Update UI (optional)
       toast({
         title: "Success",
         description: "Customer checkout has been removed from the list",
       });
       
-      // Update the local customers list - in a real implementation, 
-      // you might want to refetch data instead
       setCustomers(prev => prev.filter(c => c.id !== customerId));
-      
     } catch (error) {
       console.error("Error removing checkout:", error);
       toast({
@@ -105,7 +94,6 @@ const Dashboard = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
 
-      {/* Add the checkout reminder alert */}
       <CheckoutReminderAlert />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
