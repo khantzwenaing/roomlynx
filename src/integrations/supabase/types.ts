@@ -58,9 +58,12 @@ export type Database = {
           depositcollectedby: string | null
           depositpaymentmethod: string | null
           email: string | null
+          hasgas: boolean
           id: string
           idnumber: string | null
+          initialgasweight: number | null
           name: string
+          numberofpersons: number
           phone: string
           roomid: string | null
         }
@@ -74,9 +77,12 @@ export type Database = {
           depositcollectedby?: string | null
           depositpaymentmethod?: string | null
           email?: string | null
+          hasgas?: boolean
           id?: string
           idnumber?: string | null
+          initialgasweight?: number | null
           name: string
+          numberofpersons?: number
           phone: string
           roomid?: string | null
         }
@@ -90,9 +96,12 @@ export type Database = {
           depositcollectedby?: string | null
           depositpaymentmethod?: string | null
           email?: string | null
+          hasgas?: boolean
           id?: string
           idnumber?: string | null
+          initialgasweight?: number | null
           name?: string
+          numberofpersons?: number
           phone?: string
           roomid?: string | null
         }
@@ -151,6 +160,30 @@ export type Database = {
         }
         Relationships: []
       }
+      gas_settings: {
+        Row: {
+          created_at: string
+          extrapersoncharge: number
+          freepersonlimit: number
+          id: string
+          priceperkg: number
+        }
+        Insert: {
+          created_at?: string
+          extrapersoncharge?: number
+          freepersonlimit?: number
+          id?: string
+          priceperkg?: number
+        }
+        Update: {
+          created_at?: string
+          extrapersoncharge?: number
+          freepersonlimit?: number
+          id?: string
+          priceperkg?: number
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -158,10 +191,13 @@ export type Database = {
           created_at: string | null
           customerid: string | null
           date: string
+          extrapersonscharge: number | null
+          gasusagecharge: number | null
           id: string
           isrefund: boolean | null
           method: string
           notes: string | null
+          paymenttype: string | null
           roomid: string | null
           status: string
         }
@@ -171,10 +207,13 @@ export type Database = {
           created_at?: string | null
           customerid?: string | null
           date?: string
+          extrapersonscharge?: number | null
+          gasusagecharge?: number | null
           id?: string
           isrefund?: boolean | null
           method: string
           notes?: string | null
+          paymenttype?: string | null
           roomid?: string | null
           status: string
         }
@@ -184,10 +223,13 @@ export type Database = {
           created_at?: string | null
           customerid?: string | null
           date?: string
+          extrapersonscharge?: number | null
+          gasusagecharge?: number | null
           id?: string
           isrefund?: boolean | null
           method?: string
           notes?: string | null
+          paymenttype?: string | null
           roomid?: string | null
           status?: string
         }
@@ -257,6 +299,7 @@ export type Database = {
         Row: {
           cleanedby: string | null
           created_at: string | null
+          hasgas: boolean
           id: string
           lastcleaned: string | null
           rate: number
@@ -267,6 +310,7 @@ export type Database = {
         Insert: {
           cleanedby?: string | null
           created_at?: string | null
+          hasgas?: boolean
           id?: string
           lastcleaned?: string | null
           rate: number
@@ -277,6 +321,7 @@ export type Database = {
         Update: {
           cleanedby?: string | null
           created_at?: string | null
+          hasgas?: boolean
           id?: string
           lastcleaned?: string | null
           rate?: number

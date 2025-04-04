@@ -1,7 +1,5 @@
-
 import { Customer } from "@/types";
 
-// Map database fields to camelCase for Customer type
 export const mapDbCustomerToCustomer = (data: any): Customer => {
   return {
     id: data.id,
@@ -16,11 +14,13 @@ export const mapDbCustomerToCustomer = (data: any): Customer => {
     depositAmount: data.depositamount || undefined,
     depositPaymentMethod: data.depositpaymentmethod as any || undefined,
     depositCollectedBy: data.depositcollectedby || undefined,
-    bankRefNo: data.bankrefno || undefined
+    bankRefNo: data.bankrefno || undefined,
+    numberOfPersons: data.numberOfPersons || 1,
+    hasGas: data.hasGas || false,
+    initialGasWeight: data.initialGasWeight
   };
 };
 
-// Map Customer type to database fields
 export const mapCustomerToDbCustomer = (customerData: Partial<Customer>): Record<string, any> => {
   const dbData: Record<string, any> = {};
   
@@ -36,6 +36,9 @@ export const mapCustomerToDbCustomer = (customerData: Partial<Customer>): Record
   if (customerData.depositPaymentMethod !== undefined) dbData.depositpaymentmethod = customerData.depositPaymentMethod;
   if (customerData.depositCollectedBy !== undefined) dbData.depositcollectedby = customerData.depositCollectedBy;
   if (customerData.bankRefNo !== undefined) dbData.bankrefno = customerData.bankRefNo;
+  if (customerData.numberOfPersons !== undefined) dbData.numberOfPersons = customerData.numberOfPersons;
+  if (customerData.hasGas !== undefined) dbData.hasGas = customerData.hasGas;
+  if (customerData.initialGasWeight !== undefined) dbData.initialGasWeight = customerData.initialGasWeight;
   
   return dbData;
 };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,9 +5,10 @@ import { Room } from "@/types";
 
 interface RoomCardHeaderProps {
   room: Room;
+  onDeleteClick?: (e: React.MouseEvent) => void; // Add optional prop
 }
 
-const RoomCardHeader = ({ room }: RoomCardHeaderProps) => {
+const RoomCardHeader = ({ room, onDeleteClick }: RoomCardHeaderProps) => {
   const getStatusColor = (status: Room["status"]) => {
     switch (status) {
       case "vacant":

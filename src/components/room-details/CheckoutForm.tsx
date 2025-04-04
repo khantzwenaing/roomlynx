@@ -1,19 +1,33 @@
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Room, Customer } from "@/types";
-import { useToast } from "@/hooks/use-toast";
-import { format, parseISO, isBefore } from "date-fns";
-import { calculateExtraPersonsCharge } from "@/hooks/roomOperations/roomCalculations";
-
-import AmountSummary from "./checkout/AmountSummary";
-import PaymentMethodSelector from "./checkout/PaymentMethodSelector";
-import BankReferenceInput from "./checkout/BankReferenceInput";
-import CollectedByInput from "./checkout/CollectedByInput";
-import CheckoutActions from "./checkout/CheckoutActions";
 import EarlyCheckoutDialog from "./checkout/EarlyCheckoutDialog";
-import GasUsageFields from "./checkout/GasUsageFields";
 
-interface CheckoutFormProps {
+interface EarlyCheckoutDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  room: Room;
+  customer: Customer;
+  onEarlyCheckout: (
+    actualCheckoutDate: string,
+    refundAmount: number,
+    refundDetails: {
+      method: 'cash' | 'bank_transfer' | 'other',
+      collectedBy: string,
+      notes?: string
+    }
+  ) => Promise<void>;
+  gasCharge?: number;
+  extraPersonCharge?: number;
+}
+
+const CheckoutForm = ({ 
+  checkoutDetails, 
+  setCheckoutDetails, 
+  customer, 
+  room,
+  onCompleteCheckout,
+  onEarlyCheckout
+}: {
   checkoutDetails: {
     paymentMethod: string;
     bankRefNo: string;
@@ -38,16 +52,7 @@ interface CheckoutFormProps {
       notes?: string
     }
   ) => Promise<void>;
-}
-
-const CheckoutForm = ({ 
-  checkoutDetails, 
-  setCheckoutDetails, 
-  customer, 
-  room,
-  onCompleteCheckout,
-  onEarlyCheckout
-}: CheckoutFormProps) => {
+}) => {
   const { toast } = useToast();
   const [showEarlyCheckoutDialog, setShowEarlyCheckoutDialog] = useState(false);
   const [gasCharge, setGasCharge] = useState(0);

@@ -10,7 +10,7 @@ const defaultSettings = {
 
 export const getGasSettings = async (): Promise<GasSettings | null> => {
   try {
-    // Try to get settings from database first
+    // Add table name explicitly
     const { data, error } = await supabase
       .from('gas_settings')
       .select('*')
@@ -19,23 +19,19 @@ export const getGasSettings = async (): Promise<GasSettings | null> => {
     if (error) {
       console.error('Error fetching gas settings from database:', error);
       
-      // If no settings exist yet, use default settings from local storage or hardcoded defaults
-      const storedSettings = localStorage.getItem('gas_settings');
-      if (storedSettings) {
-        const parsedSettings = JSON.parse(storedSettings);
-        return {
-          id: 'local',
-          ...parsedSettings
-        };
-      }
-      
+      // If no settings exist yet, use default settings
       return {
         id: 'default',
         ...defaultSettings
       };
     }
     
-    return data;
+    return {
+      id: data.id,
+      pricePerKg: Number(data.pricePerKg),
+      freePersonLimit: Number(data.freePersonLimit),
+      extraPersonCharge: Number(data.extraPersonCharge)
+    };
   } catch (err) {
     console.error('Unexpected error fetching gas settings:', err);
     return null;
@@ -44,10 +40,7 @@ export const getGasSettings = async (): Promise<GasSettings | null> => {
 
 export const saveGasSettings = async (settings: Omit<GasSettings, 'id'>): Promise<GasSettings | null> => {
   try {
-    // Always save to local storage as backup
-    localStorage.setItem('gas_settings', JSON.stringify(settings));
-    
-    // Try to get existing settings first
+    // Check if existing settings exist
     const { data: existingData } = await supabase
       .from('gas_settings')
       .select('id')
@@ -86,32 +79,14 @@ export const saveGasSettings = async (settings: Omit<GasSettings, 'id'>): Promis
       result = data;
     }
     
-    return result;
+    return {
+      id: result.id,
+      pricePerKg: Number(result.pricePerKg),
+      freePersonLimit: Number(result.freePersonLimit),
+      extraPersonCharge: Number(result.extraPersonCharge)
+    };
   } catch (err) {
     console.error('Unexpected error saving gas settings:', err);
     return null;
   }
-};
-
-// Function to calculate extra person charges
-export const calculateExtraPersonCharge = async (numberOfPersons: number): Promise<number> => {
-  const settings = await getGasSettings();
-  if (!settings) return 0;
-  
-  const { freePersonLimit, extraPersonCharge } = settings;
-  const extraPersons = Math.max(0, numberOfPersons - freePersonLimit);
-  return extraPersons * extraPersonCharge;
-};
-
-// Function to calculate gas usage charge
-export const calculateGasCharge = async (
-  initialWeight: number, 
-  finalWeight: number
-): Promise<number> => {
-  const settings = await getGasSettings();
-  if (!settings) return 0;
-  
-  const { pricePerKg } = settings;
-  const usedKg = Math.max(0, initialWeight - finalWeight);
-  return usedKg * pricePerKg;
 };
