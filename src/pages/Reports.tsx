@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from "react";
-import { getDailyReports, generateDailyReport, getCheckoutReminders } from "@/services/dataService";
+import { getDailyReports, generateDailyReport } from "@/services/dataService";
+import { getCheckoutReminders } from "@/services/remindersService";
 import { DailyReport, RentReminder } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,11 @@ const Reports = () => {
     };
     
     loadReports();
+    
+    // Set up a refresh interval
+    const interval = setInterval(loadReports, 3600000); // Refresh every hour
+    
+    return () => clearInterval(interval);
   }, [toast]);
 
   const handleGenerateReport = async () => {

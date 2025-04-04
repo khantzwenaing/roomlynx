@@ -1,5 +1,5 @@
 
-// Room Types
+// Room types
 export type RoomType = 'single' | 'double' | 'suite' | 'deluxe';
 export type RoomStatus = 'vacant' | 'occupied' | 'maintenance' | 'cleaning';
 
@@ -9,53 +9,54 @@ export interface Room {
   type: RoomType;
   rate: number;
   status: RoomStatus;
-  lastCleaned?: string | null;
-  cleanedBy?: string | null;
+  lastCleaned: string | null;
+  cleanedBy: string | null;
   hasGas: boolean;
+  currentCustomer?: Customer | null;
 }
 
-// Payment Types
+// Customer types
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  idNumber: string;
+  checkInDate: string;
+  checkOutDate: string;
+  roomId: string | null;
+  depositAmount: number;
+  depositPaymentMethod: PaymentMethod;
+  depositCollectedBy: string;
+  bankRefNo: string;
+  numberOfPersons: number;
+  hasGas: boolean;
+  initialGasWeight?: number | null;
+}
+
+// Payment types
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'other';
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
-export type PaymentType = 'deposit' | 'rent' | 'damage' | 'service' | 'refund';
+export type PaymentStatus = 'completed' | 'pending' | 'partial';
+export type PaymentType = 'deposit' | 'rent' | 'refund' | 'checkout' | 'other';
 
 export interface Payment {
   id: string;
-  customerId?: string;
-  roomId?: string;
+  customerId: string;
+  roomId: string;
   amount: number;
-  method: PaymentMethod;
   date: string;
-  status: PaymentStatus;
-  notes?: string;
+  method: PaymentMethod;
   collectedBy: string;
-  paymentType?: PaymentType;
-  isRefund?: boolean;
+  status: PaymentStatus;
+  notes: string;
+  paymentType: PaymentType;
+  isRefund: boolean;
   gasUsageCharge?: number;
   extraPersonsCharge?: number;
 }
 
-// Customer Types
-export interface Customer {
-  id: string;
-  name: string;
-  email?: string;
-  phone: string;
-  address?: string;
-  idNumber?: string;
-  checkInDate: string;
-  checkOutDate: string;
-  roomId: string;
-  depositAmount: number;
-  depositPaymentMethod?: PaymentMethod;
-  depositCollectedBy?: string;
-  bankRefNo?: string;
-  numberOfPersons: number;
-  hasGas: boolean;
-  initialGasWeight?: number;
-}
-
-// Report Types
+// Report types
 export interface DailyReport {
   id: string;
   date: string;
@@ -73,23 +74,23 @@ export interface DailyReport {
 export interface CleaningRecord {
   id: string;
   roomId: string;
-  cleanedBy: string;
   date: string;
-  notes?: string;
+  cleanedBy: string;
   verified: boolean;
+  notes: string;
 }
 
-// Reminder Types
+// Reminder types
 export interface RentReminder {
   id: string;
   roomId: string;
   customerId: string;
-  checkOutDate: string;
+  checkoutDate: string;
   reminderDate: string;
-  status: 'pending' | 'sent' | 'acknowledged';
+  status: 'pending' | 'acknowledged';
 }
 
-// Settings Types
+// Settings types
 export interface GasSettings {
   id: string;
   pricePerKg: number;
@@ -98,24 +99,26 @@ export interface GasSettings {
   created_at: string;
 }
 
-// User Types
+// User type
 export interface User {
   id: string;
   email: string;
   role: 'admin' | 'staff';
-  name?: string;
+  name: string;
+  created_at: string;
 }
 
-// Checkout Types
+// Checkout types
 export interface CheckoutDetails {
-  roomId: string;
-  customerId: string;
-  finalGasWeight?: number;
+  roomId?: string;
+  customerId?: string;
+  finalGasWeight: number;
   gasCharge?: number;
   extraPersonCharge?: number;
-  totalAmount: number;
+  totalAmount?: number;
   paymentMethod: PaymentMethod;
   collectedBy: string;
   bankRefNo?: string;
   notes?: string;
+  showCheckoutForm: boolean;
 }

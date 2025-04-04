@@ -1,3 +1,6 @@
 
-// Re-export all service functions from the modular services
-export * from './reminders';
+// Re-export all reminder-related functions from the modular files
+export * from "./reminders";
+export * from "./reminders/reminderCreation";
+export * from "./reminders/reminderRetrieval";
+export * from "./reminders/reminderUpdate";

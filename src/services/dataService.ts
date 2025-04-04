@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Customer, Room, Payment } from "@/types";
 import { deleteCheckoutReminder } from "./reminders";
@@ -169,10 +168,11 @@ export const resetDatabase = async (): Promise<boolean> => {
 };
 
 // Re-export functions from other services
-export { deleteCheckoutReminder } from './reminders';
-export { getDailyReports, getCheckoutReminders } from './reportsService';
-export { loadCustomersForRooms } from './rooms';
-export { updateRoom } from './rooms';
-export { getPayments, addPayment } from './paymentsService';
-export { generateDailyReport } from './reportsService';
-export { processCheckout, processEarlyCheckout } from './rooms/roomCheckout';
+export { deleteCheckoutReminder } from "./remindersService";
+export { getDailyReports } from "./reportsService";
+export { getCheckoutReminders } from "./remindersService";
+export { loadCustomersForRooms } from "./roomsService";
+export { updateRoom } from "./roomsService";
+export { getPayments, addPayment } from "./paymentsService";
+export { generateDailyReport } from "./reportsService";
+export { processCheckout, processEarlyCheckout } from "./rooms/roomCheckout";
