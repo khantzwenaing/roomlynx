@@ -4,6 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Control } from "react-hook-form";
 import { CustomerFormValues } from "../schema";
+import { Switch } from "@/components/ui/switch";
 
 interface PersonSelectionFieldProps {
   control: Control<CustomerFormValues>;
@@ -16,17 +17,21 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
       name="numberOfPersons"
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-base">Number of Persons</FormLabel>
+          <div className="flex items-center justify-between mb-2">
+            <FormLabel className="text-base">Extra Persons</FormLabel>
+            <Switch
+              checked={field.value > 1}
+              onCheckedChange={(checked) => field.onChange(checked ? 2 : 1)}
+            />
+          </div>
           <FormControl>
             <ToggleGroup
               type="single"
               value={field.value.toString()}
               onValueChange={(value) => field.onChange(parseInt(value) || 1)}
               className="justify-start"
+              disabled={field.value === 1}
             >
-              <ToggleGroupItem value="1" aria-label="1 Person">
-                1
-              </ToggleGroupItem>
               <ToggleGroupItem value="2" aria-label="2 Persons">
                 2
               </ToggleGroupItem>
@@ -36,7 +41,7 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
             </ToggleGroup>
           </FormControl>
           <FormDescription className="text-xs">
-            First 3 persons are free. Each additional person costs ₹50.
+            {field.value > 1 ? "Each additional person costs ₹50" : "Single occupancy selected"}
           </FormDescription>
         </FormItem>
       )}
