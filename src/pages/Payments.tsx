@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { getPayments, getCustomers, getRooms, resetDatabase } from "@/services/dataService";
+import { getPayments, getCustomers, getRooms, resetDatabase, addPayment } from "@/services/dataService";
 import { Payment, Customer, Room, PaymentStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
