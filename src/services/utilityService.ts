@@ -7,22 +7,22 @@ export const resetDatabase = async (): Promise<boolean> => {
     
     // Clear existing data - order matters due to foreign key constraints
     console.log("Deleting payments...");
-    await supabase.from('payments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('payments').delete().not('id', 'is', null);
     
     console.log("Deleting rent reminders...");
-    await supabase.from('rent_reminders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('rent_reminders').delete().not('id', 'is', null);
     
     console.log("Deleting customers...");
-    await supabase.from('customers').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('customers').delete().not('id', 'is', null);
     
     console.log("Deleting daily reports...");
-    await supabase.from('daily_reports').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('daily_reports').delete().not('id', 'is', null);
     
     console.log("Deleting cleaning records...");
-    await supabase.from('cleaning_records').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('cleaning_records').delete().not('id', 'is', null);
     
     console.log("Deleting rooms...");
-    await supabase.from('rooms').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabase.from('rooms').delete().not('id', 'is', null);
     
     // Verification step
     const { data: remainingRooms } = await supabase.from('rooms').select('count');

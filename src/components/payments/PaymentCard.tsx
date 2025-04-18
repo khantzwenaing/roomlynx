@@ -75,7 +75,7 @@ const PaymentCard = ({ payment, getCustomerName, getRoomNumber }: PaymentCardPro
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div className="flex flex-col">
-            <CardTitle className="text-lg">${payment.amount}</CardTitle>
+            <CardTitle className="text-lg">₹{payment.amount}</CardTitle>
             <div className="text-xs mt-1 font-medium">
               {payment.isRefund ? (
                 <span className="text-red-600">{getPaymentTypeLabel(payment)}</span>

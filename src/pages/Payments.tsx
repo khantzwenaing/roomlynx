@@ -63,7 +63,7 @@ const Payments = () => {
 
         toast({
           title: "Success",
-          description: `Payment of $${newPayment.amount} has been recorded successfully`,
+          description: `Payment of ₹${newPayment.amount} has been recorded successfully`,
         });
       } else {
         throw new Error("Failed to add payment");
@@ -81,6 +81,7 @@ const Payments = () => {
     try {
       const success = await resetDatabase();
       if (success) {
+        // Refresh data after reset
         const paymentsData = await getPayments();
         const customersData = await getCustomers();
         const roomsData = await getRooms();
@@ -103,6 +104,7 @@ const Payments = () => {
         throw new Error("Failed to reset database");
       }
     } catch (error) {
+      console.error("Error resetting database:", error);
       toast({
         title: "Error",
         description: "Failed to reset database",

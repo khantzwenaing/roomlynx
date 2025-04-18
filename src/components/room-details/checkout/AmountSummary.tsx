@@ -48,30 +48,30 @@ const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharg
 
   return (
     <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
-      <div className="text-lg font-medium">Amount Due: ${calculateAmountDue()}</div>
+      <div className="text-lg font-medium">Amount Due: ₹{calculateAmountDue()}</div>
       <div className="space-y-1 mt-1">
         <div className="text-sm text-gray-600">
-          Room charge: ${calculateTotalStay()}
+          Room charge: ₹{calculateTotalStay()}
         </div>
         
         {extraPersonCharge > 0 && (
           <div className="text-sm text-gray-600">
-            Extra person charge: ${extraPersonCharge}
+            Extra person charge: ₹{extraPersonCharge}
           </div>
         )}
         
         {gasCharge > 0 && (
           <div className="text-sm text-gray-600">
-            Gas usage charge: ${gasCharge}
+            Gas usage charge: ₹{gasCharge}
           </div>
         )}
         
         <div className="text-sm text-gray-600">
-          Deposit: -${customer.depositAmount || 0}
+          Deposit: -₹{customer.depositAmount || 0}
         </div>
         
         <div className="text-sm font-medium border-t pt-1 mt-1">
-          Total: ${totalWithAllCharges} - Deposit: ${customer.depositAmount || 0} = ${calculateAmountDue()}
+          Total: ₹{totalWithAllCharges} - Deposit: ₹{customer.depositAmount || 0} = ₹{calculateAmountDue()}
         </div>
       </div>
       

@@ -89,14 +89,14 @@ const CheckoutDialog = ({
         </DialogHeader>
         <div className="space-y-6 py-6">
           <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
-            <div className="text-lg font-medium">Amount Due: ${calculateAmountDue()}</div>
+            <div className="text-lg font-medium">Amount Due: ₹{calculateAmountDue()}</div>
             <div className="text-sm text-gray-600">
-              (Total stay: ${calculateTotalStay()} - Deposit: ${customer?.depositAmount || 0})
+              (Total stay: ₹{calculateTotalStay()} - Deposit: ₹{customer?.depositAmount || 0})
             </div>
             
             {isEarlyCheckout && (
               <div className="mt-2 text-sm text-blue-600">
-                This is an early checkout. {refundAmount > 0 && `Refund amount: $${refundAmount}`}
+                This is an early checkout. {refundAmount > 0 && `Refund amount: ₹${refundAmount}`}
               </div>
             )}
           </div>

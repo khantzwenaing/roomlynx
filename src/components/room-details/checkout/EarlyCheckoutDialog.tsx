@@ -115,16 +115,16 @@ const EarlyCheckoutDialog = ({
           </div>
           
           <div className="p-4 bg-yellow-50 rounded-md">
-            <p className="font-medium">Refund Amount: ${calculateRefundAmount()}</p>
+            <p className="font-medium">Refund Amount: ₹{calculateRefundAmount()}</p>
             <p className="text-sm text-gray-600">
               Based on {checkoutDate ? format(checkoutDate, 'PPP') : 'today'} checkout 
               (Original: {format(checkOutDate, 'PPP')})
             </p>
             {gasCharge > 0 && (
-              <p className="text-sm text-gray-600">Gas charge: ${gasCharge}</p>
+              <p className="text-sm text-gray-600">Gas charge: ₹{gasCharge}</p>
             )}
             {extraPersonCharge > 0 && (
-              <p className="text-sm text-gray-600">Extra person charge: ${extraPersonCharge}</p>
+              <p className="text-sm text-gray-600">Extra person charge: ₹{extraPersonCharge}</p>
             )}
           </div>
           
