@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Customer, Room, Payment } from "@/types";
-import { deleteCheckoutReminder } from "./reminders";
 
 export const getCustomers = async (): Promise<Customer[]> => {
   const { data, error } = await supabase
@@ -109,65 +109,8 @@ export const addCustomer = async (customer: Omit<Customer, 'id'>): Promise<Custo
   }
 };
 
-export const resetDatabase = async (): Promise<boolean> => {
-  try {
-    // Delete all records from customers table
-    const { error: deleteCustomersError } = await supabase
-      .from('customers')
-      .delete()
-      .neq('id', null); // Delete all records
-
-    if (deleteCustomersError) {
-      console.error('Error deleting customers:', deleteCustomersError);
-      return false;
-    }
-
-    // Delete all records from payments table
-    const { error: deletePaymentsError } = await supabase
-      .from('payments')
-      .delete()
-      .neq('id', null); // Delete all records
-
-    if (deletePaymentsError) {
-      console.error('Error deleting payments:', deletePaymentsError);
-      return false;
-    }
-    
-    // Delete all records from rent_reminders table
-    const { error: deleteRemindersError } = await supabase
-      .from('rent_reminders')
-      .delete()
-      .neq('id', null); // Delete all records
-
-    if (deleteRemindersError) {
-      console.error('Error deleting rent reminders:', deleteRemindersError);
-      return false;
-    }
-
-    // Reset rooms to initial state
-    const { error: updateRoomsError } = await supabase
-      .from('rooms')
-      .update({ 
-        status: 'vacant', 
-        cleanedby: null, 
-        lastcleaned: null, 
-        hasgas: true 
-      })
-      .in('id', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
-
-    if (updateRoomsError) {
-      console.error('Error updating rooms:', updateRoomsError);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error resetting database:', error);
-    return false;
-  }
-};
-
 // Re-export functions from other services
+export { resetDatabase } from "./utilityService";
 export { deleteCheckoutReminder } from "./remindersService";
 export { getDailyReports } from "./reportsService";
 export { getCheckoutReminders } from "./remindersService";

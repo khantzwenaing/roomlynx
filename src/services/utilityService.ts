@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const resetDatabase = async (): Promise<boolean> => {
   try {
@@ -21,20 +22,37 @@ export const resetDatabase = async (): Promise<boolean> => {
     console.log("Deleting cleaning records...");
     await supabase.from('cleaning_records').delete().not('id', 'is', null);
     
-    console.log("Deleting rooms...");
-    await supabase.from('rooms').delete().not('id', 'is', null);
+    // Reset rooms to vacant status instead of deleting them
+    console.log("Resetting rooms to vacant status...");
+    const { error: roomResetError } = await supabase
+      .from('rooms')
+      .update({ 
+        status: 'vacant',
+        lastCleaned: null,
+        cleanedBy: null
+      })
+      .not('id', 'is', null);
+      
+    if (roomResetError) {
+      console.error('Error resetting rooms:', roomResetError);
+      return false;
+    }
     
     // Verification step
-    const { data: remainingRooms } = await supabase.from('rooms').select('count');
-    const { data: remainingCustomers } = await supabase.from('customers').select('count');
+    const { data: roomsCount } = await supabase.from('rooms').select('count');
+    const { data: customersCount } = await supabase.from('customers').select('count');
+    const { data: paymentsCount } = await supabase.from('payments').select('count');
     
     console.log("Database reset completed successfully");
-    console.log("Remaining rooms:", remainingRooms);
-    console.log("Remaining customers:", remainingCustomers);
+    console.log("Rooms count:", roomsCount);
+    console.log("Customers count:", customersCount);
+    console.log("Payments count:", paymentsCount);
     
+    toast("Database has been reset successfully");
     return true;
   } catch (error) {
     console.error('Error resetting database:', error);
+    toast.error("Failed to reset database: " + (error as Error).message);
     return false;
   }
 };

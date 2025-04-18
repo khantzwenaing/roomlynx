@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Payment, PaymentStatus } from "@/types";
 
@@ -21,7 +20,9 @@ export const getPayments = async (): Promise<Payment[]> => {
     date: payment.date,
     method: payment.method as 'cash' | 'bank_transfer' | 'other',
     collectedBy: payment.collectedby,
-    status: payment.status as PaymentStatus,
+    status: (payment.status === 'completed' || payment.status === 'paid' || payment.status === 'pending' || payment.status === 'partial')
+      ? payment.status as PaymentStatus
+      : 'paid',
     notes: payment.notes || '',
     paymentType: payment.notes?.toLowerCase().includes('deposit') ? 'deposit' : 
                 payment.notes?.toLowerCase().includes('refund') || payment.isrefund ? 'refund' : 'checkout',

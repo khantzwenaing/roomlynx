@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { getPayments, getCustomers, getRooms, addPayment, resetDatabase } from "@/services/dataService";
+import { getPayments, getCustomers, getRooms, resetDatabase } from "@/services/dataService";
 import { Payment, Customer, Room, PaymentStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -10,6 +10,7 @@ import PaymentList from "@/components/payments/PaymentList";
 import PaymentFilters from "@/components/payments/PaymentFilters";
 import PaymentDialog from "@/components/payments/PaymentDialog";
 import { PaymentFormValues } from "@/components/payments/PaymentForm";
+import { toast } from "sonner";
 
 const Payments = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -17,7 +18,8 @@ const Payments = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [openAddDialog, setOpenAddDialog] = useState(false);
-  const { toast } = useToast();
+  const [isResetting, setIsResetting] = useState(false);
+  const { toast: hookToast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +32,7 @@ const Payments = () => {
         setRooms(roomsData);
       } catch (error) {
         console.error("Error fetching payment data:", error);
-        toast({
+        hookToast({
           title: "Error",
           description: "Failed to load payment data",
           variant: "destructive",
@@ -38,7 +40,7 @@ const Payments = () => {
       }
     };
     fetchData();
-  }, [toast]);
+  }, [hookToast]);
 
   const onSubmit = async (data: PaymentFormValues) => {
     try {
@@ -61,25 +63,22 @@ const Payments = () => {
         setPayments([...payments, newPayment]);
         setOpenAddDialog(false);
 
-        toast({
-          title: "Success",
-          description: `Payment of ₹${newPayment.amount} has been recorded successfully`,
-        });
+        toast(`Payment of ₹${newPayment.amount} has been recorded successfully`);
       } else {
         throw new Error("Failed to add payment");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add payment",
-        variant: "destructive",
-      });
+      toast.error("Failed to add payment");
     }
   };
 
   const handleResetDatabase = async () => {
     try {
+      setIsResetting(true);
+      toast("Resetting database...");
+      
       const success = await resetDatabase();
+      
       if (success) {
         // Refresh data after reset
         const paymentsData = await getPayments();
@@ -90,26 +89,20 @@ const Payments = () => {
         setCustomers(customersData);
         setRooms(roomsData);
         
-        toast({
-          title: "Database Reset",
-          description: "Database has been reset to its initial state with fresh rooms.",
-          duration: 5000,
-        });
+        toast("Database reset complete! The system has been reset to its initial state.");
         
         // Force page refresh to update all components
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 1500);
       } else {
         throw new Error("Failed to reset database");
       }
     } catch (error) {
       console.error("Error resetting database:", error);
-      toast({
-        title: "Error",
-        description: "Failed to reset database",
-        variant: "destructive",
-      });
+      toast.error(`Failed to reset database: ${(error as Error).message}`);
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -120,9 +113,9 @@ const Payments = () => {
         <div className="flex gap-2">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <RotateCcw className="h-4 w-4" />
-                Reset Database
+              <Button variant="outline" className="gap-2" disabled={isResetting}>
+                <RotateCcw className={`h-4 w-4 ${isResetting ? 'animate-spin' : ''}`} />
+                {isResetting ? 'Resetting...' : 'Reset Database'}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>

@@ -37,7 +37,8 @@ export interface Customer {
 
 // Payment types
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'other';
-export type PaymentStatus = 'completed' | 'pending' | 'partial' | 'paid';
+// Standardize PaymentStatus across the codebase to use these values only
+export type PaymentStatus = 'paid' | 'pending' | 'partial' | 'completed';
 export type PaymentType = 'deposit' | 'rent' | 'refund' | 'checkout' | 'other';
 
 export interface Payment {
