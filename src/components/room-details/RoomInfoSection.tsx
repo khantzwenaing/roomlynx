@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Room } from "@/types";
 import { Bed, DollarSign, Info, Calendar, Brush } from "lucide-react";
@@ -29,7 +28,7 @@ const RoomInfoSection = ({ room }: RoomInfoSectionProps) => {
           </div>
           <div>
             <h3 className="text-lg font-medium">Rate per Night</h3>
-            <p className="text-xl font-semibold">${room.rate}</p>
+            <p className="text-xl font-semibold">₹{room.rate}</p>
           </div>
         </div>
       </div>

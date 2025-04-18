@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Control, UseFormWatch } from "react-hook-form";
 import { CustomerFormValues } from "../schema";
+import PersonSelectionField from "./PersonSelectionField";
 
 interface AdditionalChargesFieldsProps {
   control: Control<CustomerFormValues>;
@@ -17,28 +18,7 @@ const AdditionalChargesFields = ({ control, watch }: AdditionalChargesFieldsProp
     <div className="space-y-4 border-t pt-4 mt-4">
       <h3 className="text-lg font-medium">Additional Charges</h3>
       
-      <FormField
-        control={control}
-        name="numberOfPersons"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-base">Number of Persons</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                min={1}
-                {...field}
-                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                className="text-base h-10"
-              />
-            </FormControl>
-            <FormDescription className="text-xs">
-              First 3 persons are free. Each additional person costs $50.
-            </FormDescription>
-            <FormMessage className="text-xs" />
-          </FormItem>
-        )}
-      />
+      <PersonSelectionField control={control} />
       
       <FormField
         control={control}
