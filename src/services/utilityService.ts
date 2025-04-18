@@ -23,13 +23,14 @@ export const resetDatabase = async (): Promise<boolean> => {
     await supabase.from('cleaning_records').delete().not('id', 'is', null);
     
     // Reset rooms to vacant status instead of deleting them
+    // Fix: Update the field names to match the database schema (lowercase)
     console.log("Resetting rooms to vacant status...");
     const { error: roomResetError } = await supabase
       .from('rooms')
       .update({ 
         status: 'vacant',
-        lastCleaned: null,
-        cleanedBy: null
+        lastcleaned: null,  // Changed from lastCleaned to lastcleaned
+        cleanedby: null     // Changed from cleanedBy to cleanedby
       })
       .not('id', 'is', null);
       
