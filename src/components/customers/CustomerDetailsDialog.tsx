@@ -1,6 +1,16 @@
 import { Customer } from "@/types";
 import { format, parseISO } from "date-fns";
-import { User, Phone, Mail, Home, Clock, CreditCard, Banknote, Calendar, CheckSquare } from "lucide-react";
+import {
+  User,
+  Phone,
+  Mail,
+  Home,
+  Clock,
+  CreditCard,
+  Banknote,
+  Calendar,
+  CheckSquare,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,14 +22,17 @@ interface CustomerDetailsDialogProps {
   onClose?: () => void;
 }
 
-const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false, onClose }: CustomerDetailsDialogProps) => {
+const CustomerDetailsDialog = ({
+  customer,
+  getRoomNumber,
+  showAsDrawer = false,
+  onClose,
+}: CustomerDetailsDialogProps) => {
   const navigate = useNavigate();
-  
+
   if (!customer) return null;
 
-  const containerClass = showAsDrawer 
-    ? "space-y-6" 
-    : "space-y-6 p-6";
+  const containerClass = showAsDrawer ? "space-y-6" : "space-y-6 p-6";
 
   const getStayStatusBadge = (checkOutDate: string) => {
     const today = new Date();
@@ -27,10 +40,19 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false, 
     const diffTime = checkout.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return { label: "Checked Out", color: "bg-gray-500 text-white" };
-    if (diffDays === 0) return { label: "Checkout Today", color: "bg-amber-500 text-white" };
-    if (diffDays <= 2) return { label: `${diffDays} days remaining`, color: "bg-blue-500 text-white" };
-    return { label: `${diffDays} days remaining`, color: "bg-green-500 text-white" };
+    if (diffDays < 0)
+      return { label: "Checked Out", color: "bg-gray-500 text-white" };
+    if (diffDays === 0)
+      return { label: "Checkout Today", color: "bg-amber-500 text-white" };
+    if (diffDays <= 2)
+      return {
+        label: `${diffDays} days remaining`,
+        color: "bg-blue-500 text-white",
+      };
+    return {
+      label: `${diffDays} days remaining`,
+      color: "bg-green-500 text-white",
+    };
   };
 
   const stayStatus = getStayStatusBadge(customer.checkOutDate);
@@ -53,9 +75,7 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false, 
           <User className="w-8 h-8 text-blue-600" />
         </div>
         <h2 className="text-2xl font-bold">{customer.name}</h2>
-        <Badge className={`mt-2 ${stayStatus.color}`}>
-          {stayStatus.label}
-        </Badge>
+        <Badge className={`mt-2 ${stayStatus.color}`}>{stayStatus.label}</Badge>
       </div>
 
       <div className="grid gap-4">
@@ -66,9 +86,11 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false, 
           </h3>
           <div className="flex justify-between mb-2">
             <span className="text-gray-500">Room Number:</span>
-            <span className="font-medium">{getRoomNumber(customer.roomId)}</span>
+            <span className="font-medium">
+              {getRoomNumber(customer.roomId)}
+            </span>
           </div>
-          <Button 
+          <Button
             variant="outline"
             onClick={handleViewRoomDetails}
             className="w-full mt-1"
@@ -127,7 +149,7 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false, 
         {customer.depositAmount && customer.depositAmount > 0 && (
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h3 className="text-lg font-medium mb-3 text-gray-800 flex items-center">
-              {customer.depositPaymentMethod === 'cash' ? (
+              {customer.depositPaymentMethod === "cash" ? (
                 <Banknote className="mr-2 text-green-500" />
               ) : (
                 <CreditCard className="mr-2 text-green-500" />
@@ -136,20 +158,23 @@ const CustomerDetailsDialog = ({ customer, getRoomNumber, showAsDrawer = false, 
             </h3>
             <div className="flex justify-between">
               <span className="text-gray-500">Deposit Amount:</span>
-              <span className="font-medium text-green-600">${customer.depositAmount}</span>
+              <span className="font-medium text-green-600">
+                ₹{customer.depositAmount}
+              </span>
             </div>
             <div className="flex justify-between mt-1">
               <span className="text-gray-500">Payment Method:</span>
               <span className="font-medium capitalize">
-                {customer.depositPaymentMethod?.replace('_', ' ')}
+                {customer.depositPaymentMethod?.replace("_", " ")}
               </span>
             </div>
-            {customer.depositPaymentMethod === 'bank_transfer' && customer.bankRefNo && (
-              <div className="flex justify-between mt-1">
-                <span className="text-gray-500">Bank Reference:</span>
-                <span className="font-medium">{customer.bankRefNo}</span>
-              </div>
-            )}
+            {customer.depositPaymentMethod === "bank_transfer" &&
+              customer.bankRefNo && (
+                <div className="flex justify-between mt-1">
+                  <span className="text-gray-500">Bank Reference:</span>
+                  <span className="font-medium">{customer.bankRefNo}</span>
+                </div>
+              )}
           </div>
         )}
 

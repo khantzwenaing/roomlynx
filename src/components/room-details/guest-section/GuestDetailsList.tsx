@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Room, Customer } from "@/types";
 import { format, parseISO } from "date-fns";
@@ -40,7 +39,9 @@ const GuestDetailsList = ({ room, customer }: GuestDetailsListProps) => {
       {customer.depositAmount && customer.depositAmount > 0 && (
         <div className="flex justify-between">
           <span className="text-gray-500">Deposit:</span>
-          <span className="font-medium text-green-600">${customer.depositAmount}</span>
+          <span className="font-medium text-green-600">
+            ₹{customer.depositAmount}
+          </span>
         </div>
       )}
     </div>

@@ -20,9 +20,12 @@ interface RoomCardProps {
 
 const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
   const navigate = useNavigate();
-  
-  console.log(`RoomCard ${room.roomNumber} - Status: ${room.status}, Customer:`, customer ? customer.name : "None");
-  
+
+  console.log(
+    `RoomCard ${room.roomNumber} - Status: ${room.status}, Customer:`,
+    customer ? customer.name : "None"
+  );
+
   const {
     isDeleteDialogOpen,
     setIsDeleteDialogOpen,
@@ -58,7 +61,9 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
       console.error("Cannot checkout: no customer found for room", room.id);
       return;
     }
-    console.log(`Opening checkout dialog for customer ${customer.name} in room ${room.roomNumber}`);
+    console.log(
+      `Opening checkout dialog for customer ${customer.name} in room ${room.roomNumber}`
+    );
     setIsCheckoutDialogOpen(true);
   };
 
@@ -69,31 +74,30 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
 
   return (
     <>
-      <Card 
+      <Card
         className={`h-full cursor-pointer hover:shadow-md transition-shadow duration-300 ${
-          room.status === "vacant" ? "bg-white" : 
-          room.status === "occupied" ? "bg-blue-50" : 
-          room.status === "cleaning" ? "bg-yellow-50" : 
-          room.status === "maintenance" ? "bg-red-50" : ""
+          room.status === "vacant"
+            ? "bg-white"
+            : room.status === "occupied"
+            ? "bg-blue-50"
+            : room.status === "cleaning"
+            ? "bg-yellow-50"
+            : room.status === "maintenance"
+            ? "bg-red-50"
+            : ""
         }`}
         onClick={handleCardClick}
       >
         <CardContent className="p-0">
-          <RoomCardHeader 
-            room={room} 
-            onDeleteClick={(e) => {
-              e.stopPropagation();
-              setIsDeleteDialogOpen(true);
-            }}
-          />
-          
+          <RoomCardHeader room={room} />
+
           <div className="p-4">
             <RoomCardInfo room={room} />
-            
+
             {room.status === "occupied" && customer && (
               <GuestInfo customer={customer} />
             )}
-            
+
             {room.status === "cleaning" && (
               <CleaningCompleteButton
                 onComplete={handleCleaningSubmit}
@@ -101,7 +105,7 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
                 setCleanedBy={setCleanedBy}
               />
             )}
-            
+
             <RoomActionButtons
               room={room}
               onAddCustomer={handleAddCustomer}
@@ -111,15 +115,15 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
         </CardContent>
       </Card>
 
-      <DeleteRoomDialog 
+      <DeleteRoomDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDeleteRoom}
         roomNumber={room.roomNumber}
       />
-      
+
       {room.status === "occupied" && customer && (
-        <CheckoutDialog 
+        <CheckoutDialog
           isOpen={isCheckoutDialogOpen}
           onOpenChange={setIsCheckoutDialogOpen}
           room={room}
@@ -131,9 +135,9 @@ const RoomCard = ({ room, customer, onRoomUpdated }: RoomCardProps) => {
           calculateTotalStay={calculateTotalStay}
         />
       )}
-      
+
       {isAddCustomerDialogOpen && room && (
-        <AddCustomerDialog 
+        <AddCustomerDialog
           isOpen={isAddCustomerDialogOpen}
           onOpenChange={setIsAddCustomerDialogOpen}
           room={room}

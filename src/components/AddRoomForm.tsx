@@ -1,16 +1,21 @@
-
 import React, { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { addRoom } from "@/services/rooms";
 import { useToast } from "@/hooks/use-toast";
@@ -23,15 +28,17 @@ type AddRoomFormProps = {
 
 const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
   const [roomNumber, setRoomNumber] = useState("");
-  const [roomType, setRoomType] = useState<'single' | 'double' | 'suite' | 'deluxe'>('single');
-  const [rate, setRate] = useState("");  // Keep as empty string for the input
+  const [roomType, setRoomType] = useState<
+    "single" | "double" | "suite" | "deluxe"
+  >("single");
+  const [rate, setRate] = useState(""); // Keep as empty string for the input
   const [hasGas, setHasGas] = useState(true); // Default to true
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!roomNumber.trim()) {
       toast({
         title: "Error",
@@ -42,30 +49,30 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
     }
 
     // Convert rate to number with a proper default
-    const roomRate = rate.trim() ? Number(rate) : 80;  // Default to 80 if empty
-    
+    const roomRate = rate.trim() ? Number(rate) : 80; // Default to 80 if empty
+
     setIsSubmitting(true);
-    
+
     try {
       const newRoom = await addRoom({
         roomNumber,
         type: roomType,
         rate: roomRate,
-        status: 'vacant',
+        status: "vacant",
         lastCleaned: new Date().toISOString(),
-        cleanedBy: 'System',
-        hasGas: hasGas
+        cleanedBy: "System",
+        hasGas: hasGas,
       });
-      
+
       if (newRoom) {
         toast({
           title: "Room Added",
           description: `Room ${newRoom.roomNumber} has been added successfully`,
         });
-        
+
         // Reset form and close dialog
         setRoomNumber("");
-        setRoomType('single');
+        setRoomType("single");
         setRate("");
         setHasGas(true);
         onRoomAdded();
@@ -78,7 +85,7 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
         });
       }
     } catch (error) {
-      console.error('Error adding room:', error);
+      console.error("Error adding room:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -97,7 +104,9 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label htmlFor="roomNumber" className="text-lg">Room Number</Label>
+            <Label htmlFor="roomNumber" className="text-lg">
+              Room Number
+            </Label>
             <Input
               id="roomNumber"
               value={roomNumber}
@@ -108,8 +117,15 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="roomType" className="text-lg">Room Type</Label>
-            <Select value={roomType} onValueChange={(value: 'single' | 'double' | 'suite' | 'deluxe') => setRoomType(value)}>
+            <Label htmlFor="roomType" className="text-lg">
+              Room Type
+            </Label>
+            <Select
+              value={roomType}
+              onValueChange={(
+                value: "single" | "double" | "suite" | "deluxe"
+              ) => setRoomType(value)}
+            >
               <SelectTrigger className="text-lg h-12">
                 <SelectValue placeholder="Select room type" />
               </SelectTrigger>
@@ -122,35 +138,45 @@ const AddRoomForm = ({ isOpen, onClose, onRoomAdded }: AddRoomFormProps) => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="rate" className="text-lg">Rate per Night ($)</Label>
+            <Label htmlFor="rate" className="text-lg">
+              Rate per Night (₹)
+            </Label>
             <Input
               id="rate"
               type="number"
               value={rate}
               onChange={(e) => setRate(e.target.value)}
-              placeholder="Enter room rate (default: $80)"
+              placeholder="Enter room rate (default: ₹80)"
               min={1}
               className="text-lg h-12"
             />
           </div>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <Label htmlFor="hasGas" className="text-lg">Gas Available</Label>
-              <Switch id="hasGas" checked={hasGas} onCheckedChange={setHasGas} />
+              <Label htmlFor="hasGas" className="text-lg">
+                Gas Available
+              </Label>
+              <Switch
+                id="hasGas"
+                checked={hasGas}
+                onCheckedChange={setHasGas}
+              />
             </div>
-            <p className="text-sm text-gray-500">{hasGas ? "Room has gas facility" : "Room does not have gas"}</p>
+            <p className="text-sm text-gray-500">
+              {hasGas ? "Room has gas facility" : "Room does not have gas"}
+            </p>
           </div>
           <DialogFooter className="pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={onClose}
               className="text-lg h-12"
               disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="submit"
               className="text-lg h-12"
               disabled={isSubmitting}

@@ -1,6 +1,12 @@
-
 import { useState } from "react";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
@@ -16,23 +22,28 @@ interface GasUsageFieldsProps {
 }
 
 const gasUsageSchema = z.object({
-  finalWeight: z.number()
+  finalWeight: z
+    .number()
     .min(0, "Final weight must be 0 or greater")
-    .refine(val => val !== undefined, {
-      message: "Final weight is required"
-    })
+    .refine((val) => val !== undefined, {
+      message: "Final weight is required",
+    }),
 });
 
 type GasUsageFormValues = z.infer<typeof gasUsageSchema>;
 
-const GasUsageFields = ({ initialWeight, onGasChargeCalculated, disabled = false }: GasUsageFieldsProps) => {
+const GasUsageFields = ({
+  initialWeight,
+  onGasChargeCalculated,
+  disabled = false,
+}: GasUsageFieldsProps) => {
   const [calculatedCharge, setCalculatedCharge] = useState<number | null>(null);
 
   const form = useForm<GasUsageFormValues>({
     resolver: zodResolver(gasUsageSchema),
     defaultValues: {
-      finalWeight: 0
-    }
+      finalWeight: 0,
+    },
   });
 
   const handleCalculate = async (values: GasUsageFormValues) => {
@@ -41,11 +52,11 @@ const GasUsageFields = ({ initialWeight, onGasChargeCalculated, disabled = false
       if (finalWeight > initialWeight) {
         form.setError("finalWeight", {
           type: "manual",
-          message: "Final weight cannot be greater than initial weight"
+          message: "Final weight cannot be greater than initial weight",
         });
         return;
       }
-      
+
       const charge = await calculateGasCharge(initialWeight, finalWeight);
       setCalculatedCharge(charge);
       onGasChargeCalculated(charge, finalWeight);
@@ -57,14 +68,17 @@ const GasUsageFields = ({ initialWeight, onGasChargeCalculated, disabled = false
   return (
     <div className="p-4 border border-blue-200 rounded-md bg-blue-50">
       <h3 className="font-medium text-lg mb-3">Gas Usage Calculation</h3>
-      
+
       <div className="mb-4">
         <div className="text-sm font-medium">Initial Gas Weight:</div>
         <div className="text-lg font-bold">{initialWeight} kg</div>
       </div>
-      
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleCalculate)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(handleCalculate)}
+          className="space-y-4"
+        >
           <FormField
             control={form.control}
             name="finalWeight"
@@ -72,7 +86,7 @@ const GasUsageFields = ({ initialWeight, onGasChargeCalculated, disabled = false
               <FormItem>
                 <FormLabel>Final Gas Weight (kg)</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     type="number"
                     step="0.01"
                     min="0"
@@ -80,7 +94,9 @@ const GasUsageFields = ({ initialWeight, onGasChargeCalculated, disabled = false
                     placeholder="Enter final weight"
                     disabled={disabled}
                     {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      field.onChange(parseFloat(e.target.value) || 0)
+                    }
                   />
                 </FormControl>
                 <FormDescription>
@@ -90,19 +106,20 @@ const GasUsageFields = ({ initialWeight, onGasChargeCalculated, disabled = false
               </FormItem>
             )}
           />
-          
-          <Button 
-            type="submit"
-            variant="secondary"
-            disabled={disabled}
-          >
+
+          <Button type="submit" variant="secondary" disabled={disabled}>
             Calculate Gas Charge
           </Button>
-          
+
           {calculatedCharge !== null && (
             <div className="mt-2 p-2 bg-green-100 border border-green-300 rounded-md">
-              <div className="text-sm">Gas Usage: {(initialWeight - form.getValues().finalWeight).toFixed(2)} kg</div>
-              <div className="text-lg font-bold">Gas Charge: ${calculatedCharge.toFixed(2)}</div>
+              <div className="text-sm">
+                Gas Usage:{" "}
+                {(initialWeight - form.getValues().finalWeight).toFixed(2)} kg
+              </div>
+              <div className="text-lg font-bold">
+                Gas Charge: ₹{calculatedCharge.toFixed(2)}
+              </div>
             </div>
           )}
         </form>

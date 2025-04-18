@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { getDailyReports, generateDailyReport } from "@/services/dataService";
 import { getCheckoutReminders } from "@/services/remindersService";
@@ -21,11 +20,11 @@ const Reports = () => {
       try {
         const data = await getDailyReports();
         // Sort reports by date (newest first)
-        const sortedData = [...data].sort((a, b) => 
-          new Date(b.date).getTime() - new Date(a.date).getTime()
+        const sortedData = [...data].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
         setReports(sortedData);
-        
+
         // Also load reminders to make sure we have the latest data
         const remindersData = await getCheckoutReminders();
         setReminders(remindersData);
@@ -40,12 +39,12 @@ const Reports = () => {
         setIsLoading(false);
       }
     };
-    
+
     loadReports();
-    
+
     // Set up a refresh interval
     const interval = setInterval(loadReports, 3600000); // Refresh every hour
-    
+
     return () => clearInterval(interval);
   }, [toast]);
 
@@ -82,10 +81,7 @@ const Reports = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Daily Reports</h1>
-        <Button 
-          onClick={handleGenerateReport} 
-          disabled={isGenerating}
-        >
+        <Button onClick={handleGenerateReport} disabled={isGenerating}>
           {isGenerating ? "Generating..." : "Generate Today's Report"}
         </Button>
       </div>
@@ -105,7 +101,7 @@ const Reports = () => {
             <p className="text-sm text-gray-500">Today's incoming payments</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center text-red-600">
@@ -117,7 +113,9 @@ const Reports = () => {
             <div className="text-3xl font-bold">
               ${reports.length > 0 ? reports[0].cashOut || 0 : 0}
             </div>
-            <p className="text-sm text-gray-500">Today's refunds and expenses</p>
+            <p className="text-sm text-gray-500">
+              Today's refunds and expenses
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -134,8 +132,8 @@ const Reports = () => {
           ) : reports.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-lg text-gray-500">No reports found</div>
-              <Button 
-                onClick={handleGenerateReport} 
+              <Button
+                onClick={handleGenerateReport}
                 className="mt-4"
                 disabled={isGenerating}
               >
@@ -164,14 +162,30 @@ const Reports = () => {
                       <td className="px-4 py-2">
                         {new Date(report.date).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-2 text-right">{report.occupiedRooms}</td>
-                      <td className="px-4 py-2 text-right">{report.vacantRooms}</td>
-                      <td className="px-4 py-2 text-right">{report.roomsNeedCleaning}</td>
-                      <td className="px-4 py-2 text-right">{report.expectedCheckins}</td>
-                      <td className="px-4 py-2 text-right">{report.expectedCheckouts}</td>
-                      <td className="px-4 py-2 text-right font-medium text-green-600">${report.cashIn || 0}</td>
-                      <td className="px-4 py-2 text-right font-medium text-red-600">${report.cashOut || 0}</td>
-                      <td className="px-4 py-2 text-right font-medium">${report.totalRevenue}</td>
+                      <td className="px-4 py-2 text-right">
+                        {report.occupiedRooms}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {report.vacantRooms}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {report.roomsNeedCleaning}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {report.expectedCheckins}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {report.expectedCheckouts}
+                      </td>
+                      <td className="px-4 py-2 text-right font-medium text-green-600">
+                        ₹{report.cashIn || 0}
+                      </td>
+                      <td className="px-4 py-2 text-right font-medium text-red-600">
+                        ₹{report.cashOut || 0}
+                      </td>
+                      <td className="px-4 py-2 text-right font-medium">
+                        ₹{report.totalRevenue}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -7,7 +7,13 @@ import CustomerDetailsDialog from "./CustomerDetailsDialog";
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerClose,
+} from "@/components/ui/drawer";
 
 interface CustomerCardProps {
   customer: Customer;
@@ -15,7 +21,9 @@ interface CustomerCardProps {
 }
 
 export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -32,7 +40,8 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
 
     if (diffDays < 0) return { label: "Checked Out", color: "bg-gray-500" };
     if (diffDays === 0) return { label: "Today", color: "bg-hotel-warning" };
-    if (diffDays <= 2) return { label: `${diffDays} days`, color: "bg-hotel-primary" };
+    if (diffDays <= 2)
+      return { label: `${diffDays} days`, color: "bg-hotel-primary" };
     return { label: `${diffDays} days`, color: "bg-hotel-success" };
   };
 
@@ -63,8 +72,8 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg">{customer.name}</CardTitle>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={handleViewDetails}
             className="flex items-center"
@@ -79,7 +88,7 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
           <div className="text-sm text-gray-500">
             {customer.phone} {customer.email && `• ${customer.email}`}
           </div>
-          
+
           <div className="flex justify-between text-sm items-center">
             <Button
               variant="ghost"
@@ -95,34 +104,38 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
               {checkoutStatus.label}
             </Badge>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
             <div className="p-2 bg-gray-50 rounded border border-gray-100">
               <div className="text-xs text-gray-500">Check-in</div>
-              <div>{format(parseISO(customer.checkInDate), "MMM dd, yyyy")}</div>
+              <div>
+                {format(parseISO(customer.checkInDate), "MMM dd, yyyy")}
+              </div>
             </div>
             <div className="p-2 bg-gray-50 rounded border border-gray-100">
               <div className="text-xs text-gray-500">Check-out</div>
-              <div>{format(parseISO(customer.checkOutDate), "MMM dd, yyyy")}</div>
+              <div>
+                {format(parseISO(customer.checkOutDate), "MMM dd, yyyy")}
+              </div>
             </div>
           </div>
-          
+
           {customer.depositAmount && customer.depositAmount > 0 && (
             <div className="text-sm text-green-600 mt-2 flex items-center">
-              {customer.depositPaymentMethod === 'cash' && (
+              {customer.depositPaymentMethod === "cash" && (
                 <Banknote className="mr-1" size={14} />
               )}
-              {customer.depositPaymentMethod === 'card' && (
+              {customer.depositPaymentMethod === "card" && (
                 <CreditCard className="mr-1" size={14} />
               )}
-              {customer.depositPaymentMethod === 'bank_transfer' && (
+              {customer.depositPaymentMethod === "bank_transfer" && (
                 <CreditCard className="mr-1" size={14} />
               )}
-              Deposit: ${customer.depositAmount}
+              Deposit: ₹{customer.depositAmount}
             </div>
           )}
 
-          <Button 
+          <Button
             className="mt-2 w-full bg-red-600 hover:bg-red-700"
             size="sm"
             onClick={handleCheckoutClick}
@@ -137,18 +150,18 @@ export const CustomerCard = ({ customer, rooms }: CustomerCardProps) => {
         <DrawerContent className="max-h-[90vh] overflow-y-auto">
           <DrawerHeader className="border-b border-gray-200 sticky top-0 bg-white z-10">
             <div className="flex items-center justify-between">
-              <DrawerTitle className="text-xl">
-                Customer Details
-              </DrawerTitle>
+              <DrawerTitle className="text-xl">Customer Details</DrawerTitle>
               <DrawerClose asChild>
-                <Button variant="ghost" size="sm">Close</Button>
+                <Button variant="ghost" size="sm">
+                  Close
+                </Button>
               </DrawerClose>
             </div>
           </DrawerHeader>
           <div className="p-6">
             {selectedCustomer && (
-              <CustomerDetailsDialog 
-                customer={selectedCustomer} 
+              <CustomerDetailsDialog
+                customer={selectedCustomer}
                 getRoomNumber={getRoomNumber}
                 showAsDrawer={true}
                 onClose={handleCloseDrawer}

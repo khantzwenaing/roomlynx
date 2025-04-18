@@ -1,4 +1,3 @@
-
 import React from "react";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,9 +28,11 @@ const RoomCardHeader = ({ room }: RoomCardHeaderProps) => {
       <div className="flex justify-between items-center">
         <CardTitle className="text-2xl">Room {room.roomNumber}</CardTitle>
         <Badge className={`px-3 py-1 text-lg ${getStatusColor(room.status)}`}>
-          {room.status === "vacant" ? "Available" : 
-            room.status === "occupied" ? "Occupied" : 
-            "Needs Cleaning"}
+          {room.status === "vacant"
+            ? "Available"
+            : room.status === "occupied"
+            ? "Occupied"
+            : "Needs Cleaning"}
         </Badge>
       </div>
     </CardHeader>

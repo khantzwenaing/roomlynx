@@ -1,10 +1,9 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Room } from "@/types";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -21,7 +20,12 @@ interface RoomInformationProps {
   setEditedRoom: React.Dispatch<React.SetStateAction<Partial<Room>>>;
 }
 
-const RoomInformation = ({ room, isEditing, editedRoom, setEditedRoom }: RoomInformationProps) => {
+const RoomInformation = ({
+  room,
+  isEditing,
+  editedRoom,
+  setEditedRoom,
+}: RoomInformationProps) => {
   return (
     <Card>
       <CardHeader>
@@ -35,7 +39,9 @@ const RoomInformation = ({ room, isEditing, editedRoom, setEditedRoom }: RoomInf
               <Input
                 id="roomNumber"
                 value={editedRoom.roomNumber || ""}
-                onChange={(e) => setEditedRoom({ ...editedRoom, roomNumber: e.target.value })}
+                onChange={(e) =>
+                  setEditedRoom({ ...editedRoom, roomNumber: e.target.value })
+                }
                 placeholder="Room number"
               />
             ) : (
@@ -48,7 +54,9 @@ const RoomInformation = ({ room, isEditing, editedRoom, setEditedRoom }: RoomInf
             {isEditing ? (
               <Select
                 value={editedRoom.type}
-                onValueChange={(value) => setEditedRoom({ ...editedRoom, type: value as Room["type"] })}
+                onValueChange={(value) =>
+                  setEditedRoom({ ...editedRoom, type: value as Room["type"] })
+                }
               >
                 <SelectTrigger id="type">
                   <SelectValue placeholder="Select a room type" />
@@ -72,14 +80,16 @@ const RoomInformation = ({ room, isEditing, editedRoom, setEditedRoom }: RoomInf
                 id="rate"
                 type="number"
                 value={editedRoom.rate || ""}
-                onChange={(e) => setEditedRoom({ ...editedRoom, rate: Number(e.target.value) })}
+                onChange={(e) =>
+                  setEditedRoom({ ...editedRoom, rate: Number(e.target.value) })
+                }
                 placeholder="Daily rate"
               />
             ) : (
-              <div className="mt-1 text-lg">${room.rate}</div>
+              <div className="mt-1 text-lg">₹{room.rate}</div>
             )}
           </div>
-          
+
           <div>
             <Label htmlFor="hasGas">Gas Available</Label>
             {isEditing ? (
@@ -87,7 +97,9 @@ const RoomInformation = ({ room, isEditing, editedRoom, setEditedRoom }: RoomInf
                 <Switch
                   id="hasGas"
                   checked={editedRoom.hasGas || false}
-                  onCheckedChange={(checked) => setEditedRoom({ ...editedRoom, hasGas: checked })}
+                  onCheckedChange={(checked) =>
+                    setEditedRoom({ ...editedRoom, hasGas: checked })
+                  }
                 />
                 <span>{editedRoom.hasGas ? "Yes" : "No"}</span>
               </div>
@@ -106,7 +118,11 @@ const RoomInformation = ({ room, isEditing, editedRoom, setEditedRoom }: RoomInf
               <Label htmlFor="lastCleaned">Last Cleaned</Label>
               <div className="mt-1">
                 {format(new Date(room.lastCleaned), "PPP")}
-                {room.cleanedBy && <span className="ml-2 text-gray-500">by {room.cleanedBy}</span>}
+                {room.cleanedBy && (
+                  <span className="ml-2 text-gray-500">
+                    by {room.cleanedBy}
+                  </span>
+                )}
               </div>
             </div>
           )}

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Room } from "@/types";
 
@@ -17,14 +16,12 @@ const RoomCardInfo = ({ room }: RoomCardInfoProps) => {
       </div>
       <div className="flex justify-between text-lg">
         <span className="text-gray-600">Rate:</span>
-        <span className="font-medium">${room.rate}/night</span>
+        <span className="font-medium">₹{room.rate}/night</span>
       </div>
       {room.lastCleaned && (
         <div className="flex justify-between text-lg">
           <span className="text-gray-600">Last Cleaned:</span>
-          <span>
-            {new Date(room.lastCleaned).toLocaleDateString()}
-          </span>
+          <span>{new Date(room.lastCleaned).toLocaleDateString()}</span>
         </div>
       )}
       {room.cleanedBy && (

@@ -1,7 +1,6 @@
-
 // Room types
-export type RoomType = 'single' | 'double' | 'suite' | 'deluxe';
-export type RoomStatus = 'vacant' | 'occupied' | 'maintenance' | 'cleaning';
+export type RoomType = "single" | "double" | "suite" | "deluxe";
+export type RoomStatus = "vacant" | "occupied" | "maintenance" | "cleaning";
 
 export interface Room {
   id: string;
@@ -36,10 +35,10 @@ export interface Customer {
 }
 
 // Payment types
-export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'other';
+export type PaymentMethod = "cash" | "card" | "bank_transfer" | "other";
 // Standardize PaymentStatus across the codebase to use these values only
-export type PaymentStatus = 'paid' | 'pending' | 'partial' | 'completed';
-export type PaymentType = 'deposit' | 'rent' | 'refund' | 'checkout' | 'other';
+export type PaymentStatus = "paid" | "pending" | "partial" | "completed";
+export type PaymentType = "deposit" | "rent" | "refund" | "checkout" | "other";
 
 export interface Payment {
   id: string;
@@ -88,14 +87,13 @@ export interface RentReminder {
   customerId: string;
   checkoutDate: string;
   reminderDate: string;
-  status: 'pending' | 'acknowledged' | 'sent';
+  status: "pending" | "acknowledged" | "sent";
 }
 
 // Settings types
 export interface GasSettings {
   id: string;
   pricePerKg: number;
-  freePersonLimit: number;
   extraPersonCharge: number;
   created_at: string;
 }
@@ -104,7 +102,7 @@ export interface GasSettings {
 export interface User {
   id: string;
   email: string;
-  role: 'admin' | 'staff';
+  role: "admin" | "staff";
   name: string;
   created_at: string;
 }

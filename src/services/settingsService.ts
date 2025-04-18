@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { GasSettings, Customer } from "@/types";
 
@@ -12,18 +11,17 @@ export const getGasSettings = async (): Promise<GasSettings | null> => {
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
-    
+
     if (error) {
       console.error("Error fetching gas settings:", error);
       return addDefaultGasSettings();
     }
-    
+
     return {
       id: data.id,
       pricePerKg: data.priceperkg,
-      freePersonLimit: data.freepersonlimit,
       extraPersonCharge: data.extrapersoncharge,
-      created_at: data.created_at
+      created_at: data.created_at,
     };
   } catch (error) {
     console.error("Error in getGasSettings:", error);
@@ -31,31 +29,33 @@ export const getGasSettings = async (): Promise<GasSettings | null> => {
   }
 };
 
-export const updateGasSettings = async (settings: Partial<GasSettings>): Promise<GasSettings | null> => {
+export const updateGasSettings = async (
+  settings: Partial<GasSettings>
+): Promise<GasSettings | null> => {
   try {
-    const updates: any = {};
-    if (settings.pricePerKg !== undefined) updates.priceperkg = settings.pricePerKg;
-    if (settings.freePersonLimit !== undefined) updates.freepersonlimit = settings.freePersonLimit;
-    if (settings.extraPersonCharge !== undefined) updates.extrapersoncharge = settings.extraPersonCharge;
-    
+    const updates: Record<string, number> = {};
+    if (settings.pricePerKg !== undefined)
+      updates.priceperkg = settings.pricePerKg;
+    if (settings.extraPersonCharge !== undefined)
+      updates.extrapersoncharge = settings.extraPersonCharge;
+
     const { data, error } = await supabase
       .from("gas_settings")
       .update(updates)
       .eq("id", settings.id)
       .select()
       .single();
-    
+
     if (error) {
       console.error("Error updating gas settings:", error);
       return null;
     }
-    
+
     return {
       id: data.id,
       pricePerKg: data.priceperkg,
-      freePersonLimit: data.freepersonlimit,
       extraPersonCharge: data.extrapersoncharge,
-      created_at: data.created_at
+      created_at: data.created_at,
     };
   } catch (error) {
     console.error("Error in updateGasSettings:", error);
@@ -69,27 +69,25 @@ export const addDefaultGasSettings = async (): Promise<GasSettings | null> => {
     // Create default settings
     const defaultSettings = {
       priceperkg: 100, // Default price per kg
-      freepersonlimit: 3, // Default free person limit
       extrapersoncharge: 50, // Default extra person charge
     };
-    
+
     const { data, error } = await supabase
       .from("gas_settings")
       .insert(defaultSettings)
       .select()
       .single();
-    
+
     if (error) {
       console.error("Error creating default gas settings:", error);
       return null;
     }
-    
+
     return {
       id: data.id,
       pricePerKg: data.priceperkg,
-      freePersonLimit: data.freepersonlimit,
       extraPersonCharge: data.extrapersoncharge,
-      created_at: data.created_at
+      created_at: data.created_at,
     };
   } catch (error) {
     console.error("Error in addDefaultGasSettings:", error);
@@ -99,43 +97,41 @@ export const addDefaultGasSettings = async (): Promise<GasSettings | null> => {
 
 // Function to save gas settings - wrapper around updateGasSettings or addDefaultGasSettings
 export const saveGasSettings = async (
-  settings: Omit<GasSettings, 'id' | 'created_at'>
+  settings: Omit<GasSettings, "id" | "created_at">
 ): Promise<GasSettings | null> => {
   try {
     // First check if we have settings already
     const existingSettings = await getGasSettings();
-    
+
     if (existingSettings) {
       // Update existing settings
       return updateGasSettings({
         ...settings,
-        id: existingSettings.id
+        id: existingSettings.id,
       });
     } else {
       // Create new settings
       const defaultSettings = {
-        priceperkg: settings.pricePerKg, 
-        freepersonlimit: settings.freePersonLimit,
+        priceperkg: settings.pricePerKg,
         extrapersoncharge: settings.extraPersonCharge,
       };
-      
+
       const { data, error } = await supabase
         .from("gas_settings")
         .insert(defaultSettings)
         .select()
         .single();
-      
+
       if (error) {
         console.error("Error creating gas settings:", error);
         return null;
       }
-      
+
       return {
         id: data.id,
         pricePerKg: data.priceperkg,
-        freePersonLimit: data.freepersonlimit,
         extraPersonCharge: data.extrapersoncharge,
-        created_at: data.created_at
+        created_at: data.created_at,
       };
     }
   } catch (error) {
@@ -146,17 +142,17 @@ export const saveGasSettings = async (
 
 // Calculate gas charge based on usage
 export const calculateGasCharge = async (
-  initialWeight: number, 
+  initialWeight: number,
   finalWeight: number
 ): Promise<number> => {
   try {
     // Get current gas price setting
     const settings = await getGasSettings();
     if (!settings) return 0;
-    
+
     // Calculate weight difference
     const weightUsed = Math.max(0, initialWeight - finalWeight);
-    
+
     // Calculate cost
     return weightUsed * settings.pricePerKg;
   } catch (error) {
@@ -166,20 +162,22 @@ export const calculateGasCharge = async (
 };
 
 // Calculate extra persons charge
-export const calculateExtraPersonCharge = async (customer: Customer): Promise<number> => {
+export const calculateExtraPersonCharge = async (
+  customer: Customer
+): Promise<number> => {
   try {
     // Get current settings
     const settings = await getGasSettings();
     if (!settings) return 0;
-    
-    // If number of persons is less than or equal to the limit, no charge
-    if (customer.numberOfPersons <= settings.freePersonLimit) {
+
+    // If no extra persons (single occupancy), no charge
+    if (customer.numberOfPersons <= 1) {
       return 0;
     }
-    
-    // Calculate extra persons
-    const extraPersons = customer.numberOfPersons - settings.freePersonLimit;
-    
+
+    // Calculate extra persons (subtract 1 for single occupancy)
+    const extraPersons = customer.numberOfPersons - 1;
+
     // Calculate charge
     return extraPersons * settings.extraPersonCharge;
   } catch (error) {
@@ -188,22 +186,13 @@ export const calculateExtraPersonCharge = async (customer: Customer): Promise<nu
   }
 };
 
+// Get extra person charge value
 export const getExtraPersonCharge = async (): Promise<number> => {
   try {
     const settings = await getGasSettings();
     return settings ? settings.extraPersonCharge : 0;
   } catch (error) {
     console.error("Error getting extra person charge:", error);
-    return 0;
-  }
-};
-
-export const getFreePersonLimit = async (): Promise<number> => {
-  try {
-    const settings = await getGasSettings();
-    return settings ? settings.freePersonLimit : 0;
-  } catch (error) {
-    console.error("Error getting free person limit:", error);
     return 0;
   }
 };

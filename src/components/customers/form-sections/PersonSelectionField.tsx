@@ -1,16 +1,23 @@
-
 import React from "react";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+} from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { Control } from "react-hook-form";
 import { CustomerFormValues } from "../schema";
-import { Switch } from "@/components/ui/switch";
 
 interface PersonSelectionFieldProps {
   control: Control<CustomerFormValues>;
 }
 
 const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
+  const [showInput, setShowInput] = React.useState(false);
+
   return (
     <FormField
       control={control}
@@ -20,28 +27,37 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
           <div className="flex items-center justify-between mb-2">
             <FormLabel className="text-base">Extra Persons</FormLabel>
             <Switch
-              checked={field.value > 1}
-              onCheckedChange={(checked) => field.onChange(checked ? 2 : 1)}
+              checked={showInput}
+              onCheckedChange={(checked) => {
+                setShowInput(checked);
+                field.onChange(checked ? 0 : 1);
+              }}
             />
           </div>
           <FormControl>
-            <ToggleGroup
-              type="single"
-              value={field.value.toString()}
-              onValueChange={(value) => field.onChange(parseInt(value) || 1)}
-              className="justify-start"
-              disabled={field.value === 1}
-            >
-              <ToggleGroupItem value="2" aria-label="2 Persons">
-                2
-              </ToggleGroupItem>
-              <ToggleGroupItem value="3" aria-label="3 Persons">
-                3
-              </ToggleGroupItem>
-            </ToggleGroup>
+            {showInput ? (
+              <Input
+                type="number"
+                value={field.value || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "") {
+                    field.onChange(0);
+                  } else {
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue)) {
+                      field.onChange(numValue);
+                    }
+                  }
+                }}
+                className="w-full"
+              />
+            ) : null}
           </FormControl>
           <FormDescription className="text-xs">
-            {field.value > 1 ? "Each additional person costs ₹50" : "Single occupancy selected"}
+            {field.value >= 1
+              ? `Each additional person costs ₹50 per day`
+              : "Single occupancy - Room price per day"}
           </FormDescription>
         </FormItem>
       )}
