@@ -1,3 +1,4 @@
+
 import React from "react";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +33,9 @@ const RoomCardHeader = ({ room }: RoomCardHeaderProps) => {
             ? "Available"
             : room.status === "occupied"
             ? "Occupied"
-            : "Needs Cleaning"}
+            : room.status === "cleaning"
+            ? "Needs Cleaning"
+            : "Maintenance"}
         </Badge>
       </div>
     </CardHeader>
