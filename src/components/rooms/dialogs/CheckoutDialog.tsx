@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Customer, Room } from "@/types";
-import { format, parseISO, isBefore } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
 import { calculateCurrentStayDuration, formatStayDuration, getCurrentISTDate } from "@/utils/date-utils";
 
@@ -41,45 +40,16 @@ const CheckoutDialog = ({
   calculateAmountDue,
   calculateTotalStay
 }: CheckoutDialogProps) => {
-  const [isEarlyCheckout, setIsEarlyCheckout] = useState(false);
-  const [refundAmount, setRefundAmount] = useState(0);
-  const [refundNotes, setRefundNotes] = useState('');
   const [stayDuration, setStayDuration] = useState<number>(0);
-
+  const [refundNotes, setRefundNotes] = useState('');
+  
   useEffect(() => {
     if (customer && isOpen) {
       // Calculate the current stay duration
       const duration = calculateCurrentStayDuration(customer.checkInDate);
       setStayDuration(duration);
-      
-      // Check if it's an early checkout
-      const today = getCurrentISTDate();
-      const plannedCheckout = parseISO(customer.checkOutDate);
-      
-      // Check if today is before the planned checkout date
-      setIsEarlyCheckout(isBefore(today, plannedCheckout));
-      
-      // Calculate refund amount if it's an early checkout
-      if (isBefore(today, plannedCheckout)) {
-        const checkInDate = parseISO(customer.checkInDate);
-        
-        // Calculate days stayed based on today
-        const actualDaysStayed = calculateCurrentStayDuration(customer.checkInDate);
-        
-        // Calculate original planned days
-        const originalDays = Math.ceil(
-          (plannedCheckout.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)
-        );
-        
-        // Calculate days not staying
-        const daysNotStaying = Math.max(0, originalDays - actualDaysStayed);
-        
-        // Calculate refund amount
-        const refundAmount = daysNotStaying * room.rate;
-        setRefundAmount(refundAmount);
-      }
     }
-  }, [customer, isOpen, room.rate]);
+  }, [customer, isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -98,11 +68,9 @@ const CheckoutDialog = ({
               (Total stay: ₹{calculateTotalStay()} - Deposit: ₹{customer?.depositAmount || 0})
             </div>
             
-            {isEarlyCheckout && (
-              <div className="mt-2 text-sm text-blue-600">
-                This is an early checkout. {refundAmount > 0 && `Refund amount: ₹${refundAmount}`}
-              </div>
-            )}
+            <div className="mt-2 text-sm text-blue-600">
+              Checkout date is automatically set to today.
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -159,18 +127,16 @@ const CheckoutDialog = ({
             />
           </div>
           
-          {isEarlyCheckout && refundAmount > 0 && (
-            <div className="space-y-2">
-              <Label htmlFor="refund-notes" className="text-lg">Refund Notes</Label>
-              <Textarea
-                id="refund-notes"
-                placeholder="Add any notes about the refund"
-                value={refundNotes}
-                onChange={(e) => setRefundNotes(e.target.value)}
-                className="text-lg"
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="refund-notes" className="text-lg">Additional Notes</Label>
+            <Textarea
+              id="refund-notes"
+              placeholder="Add any notes about the checkout"
+              value={refundNotes}
+              onChange={(e) => setRefundNotes(e.target.value)}
+              className="text-lg"
+            />
+          </div>
           
           <Button 
             onClick={onCheckout} 

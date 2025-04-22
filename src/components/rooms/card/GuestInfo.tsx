@@ -37,10 +37,6 @@ const GuestInfo = ({ customer }: GuestInfoProps) => {
           <Calendar className="mr-1" size={16} />
           Check-in: {new Date(customer.checkInDate).toLocaleDateString()}
         </div>
-        <div className="text-sm font-semibold text-blue-800 flex items-center">
-          <Calendar className="mr-1" size={16} />
-          Check-out: {new Date(customer.checkOutDate).toLocaleDateString()}
-        </div>
         
         <div className="flex items-center mt-1 text-sm font-medium bg-purple-50 text-purple-800 p-2 rounded-md border border-purple-200">
           <Clock className="mr-2" size={16} />
@@ -52,7 +48,7 @@ const GuestInfo = ({ customer }: GuestInfoProps) => {
           <span>
             {calculateRemainingDays(customer.checkOutDate) === 0 
               ? "Checkout today!" 
-              : `${calculateRemainingDays(customer.checkOutDate)} days until checkout`}
+              : `${calculateRemainingDays(customer.checkOutDate)} days until checkout (auto-extended)`}
           </span>
         </div>
         

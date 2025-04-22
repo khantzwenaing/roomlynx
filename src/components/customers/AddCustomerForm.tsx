@@ -12,6 +12,7 @@ import BookingFields from "./form-sections/BookingFields";
 import DepositFields from "./form-sections/DepositFields";
 import AdditionalChargesFields from "./form-sections/AdditionalChargesFields";
 import FormActions from "./form-sections/FormActions";
+import { getCurrentISTDate } from "@/utils/date-utils";
 
 interface AddCustomerFormProps {
   rooms: Room[];
@@ -25,9 +26,8 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
   const availableRooms = rooms.filter(room => room.status === 'vacant' || (preselectedRoomId && room.id === preselectedRoomId));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Set default check-out date to tomorrow
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  // Set default check-in date to current IST
+  const currentDate = getCurrentISTDate();
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
@@ -38,8 +38,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
       address: "",
       idNumber: "",
       roomId: preselectedRoomId || "",
-      checkInDate: new Date(),
-      checkOutDate: tomorrow,
+      checkInDate: currentDate,
       depositAmount: "",
       depositPaymentMethod: undefined,
       depositCollectedBy: "",
@@ -49,19 +48,6 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
       initialGasWeight: undefined
     }
   });
-
-  // Handle check-in date change to ensure check-out date is always after check-in
-  const handleCheckInDateChange = (date: Date) => {
-    form.setValue("checkInDate", date);
-    
-    // If check-out date is before or equal to new check-in date, update it
-    const currentCheckOut = form.getValues("checkOutDate");
-    if (date >= currentCheckOut) {
-      const newCheckOut = new Date(date);
-      newCheckOut.setDate(date.getDate() + 1);
-      form.setValue("checkOutDate", newCheckOut);
-    }
-  };
 
   const onSubmit = async (data: CustomerFormValues) => {
     try {
@@ -79,6 +65,11 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         return;
       }
       
+      // Set a default "checkout" date 30 days from now
+      // This is just a placeholder and not actually used for calculations
+      const tempCheckoutDate = new Date(data.checkInDate);
+      tempCheckoutDate.setDate(tempCheckoutDate.getDate() + 30);
+      
       const newCustomer = await addCustomer({
         name: data.name,
         phone: data.phone,
@@ -87,7 +78,7 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         idNumber: data.idNumber || undefined,
         roomId: data.roomId,
         checkInDate: data.checkInDate.toISOString().split('T')[0],
-        checkOutDate: data.checkOutDate.toISOString().split('T')[0],
+        checkOutDate: tempCheckoutDate.toISOString().split('T')[0], // Placeholder checkout date
         depositAmount: data.depositAmount ? Number(data.depositAmount) : undefined,
         depositPaymentMethod: data.depositPaymentMethod,
         depositCollectedBy: data.depositCollectedBy,
@@ -130,7 +121,6 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
             control={form.control} 
             availableRooms={availableRooms} 
             preselectedRoomId={preselectedRoomId}
-            handleCheckInDateChange={handleCheckInDateChange}
           />
         </div>
         

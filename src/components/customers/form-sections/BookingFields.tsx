@@ -5,15 +5,15 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Control } from "react-hook-form";
 import { Room } from "@/types";
 import { CustomerFormValues } from "../schema";
+import { getCurrentISTDate } from "@/utils/date-utils";
 
 interface BookingFieldsProps {
   control: Control<CustomerFormValues>;
   availableRooms: Room[];
   preselectedRoomId?: string;
-  handleCheckInDateChange: (date: Date) => void;
 }
 
-const BookingFields = ({ control, availableRooms, preselectedRoomId, handleCheckInDateChange }: BookingFieldsProps) => {
+const BookingFields = ({ control, availableRooms, preselectedRoomId }: BookingFieldsProps) => {
   return (
     <>
       <FormField
@@ -44,40 +44,28 @@ const BookingFields = ({ control, availableRooms, preselectedRoomId, handleCheck
           </FormItem>
         )}
       />
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={control}
-          name="checkInDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <DatePicker 
-                  date={field.value} 
-                  onDateChange={handleCheckInDateChange}
-                  label="Check-in Date"
-                />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="checkOutDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <DatePicker 
-                  date={field.value} 
-                  onDateChange={field.onChange} 
-                  label="Check-out Date"
-                />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-      </div>
+      
+      <FormField
+        control={control}
+        name="checkInDate"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-base">Check-in Date (Today)</FormLabel>
+            <FormControl>
+              <div className="p-2 border rounded-md bg-gray-50 text-gray-700">
+                {getCurrentISTDate().toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </div>
+            </FormControl>
+            <FormMessage className="text-xs" />
+          </FormItem>
+        )}
+      />
     </>
   );
 };
