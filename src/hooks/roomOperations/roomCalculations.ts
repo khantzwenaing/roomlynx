@@ -29,14 +29,21 @@ export const calculateAmountDue = async (
   if (!customer)
     return { totalStay: 0, deposit: 0, extraPersonCharge: 0, amountDue: 0 };
 
-  const totalStay = calculateTotalStay(room, customer);
+  // Calculate base room charge
+  const stayDuration = calculateCurrentStayDuration(customer.checkInDate);
+  
+  // Calculate extra person charge
+  const extraPersonCharge = await calculateExtraPersonsCharge(customer);
+  
+  // Apply extra person charge to the daily rate
+  const effectiveDailyRate = room.rate + (extraPersonCharge / stayDuration);
+  
+  // Calculate total stay amount with the effective rate
+  const totalStay = Math.max(0.5, stayDuration) * effectiveDailyRate;
   const depositAmount = customer.depositAmount || 0;
 
-  // Calculate extra person charge if applicable
-  const extraPersonCharge = await calculateExtraPersonsCharge(customer);
-
   // Calculate total amount due
-  const amountDue = Math.max(0, totalStay + extraPersonCharge - depositAmount);
+  const amountDue = Math.max(0, totalStay - depositAmount);
 
   return {
     totalStay,
@@ -50,7 +57,7 @@ export const calculateAmountDue = async (
 export const calculateExtraPersonsCharge = async (
   customer: Customer
 ): Promise<number> => {
-  if (!customer.numberOfPersons || customer.numberOfPersons <= 0) return 0;
+  if (!customer.numberOfPersons || customer.numberOfPersons <= 1) return 0;
 
   // Get settings from database or default settings
   const settings = await getGasSettings();
@@ -60,5 +67,10 @@ export const calculateExtraPersonsCharge = async (
 
   // Calculate extra persons (if any)
   const extraPersons = Math.max(0, customer.numberOfPersons - 1);
-  return extraPersons * extraPersonCharge;
+  
+  // Calculate the duration for total charge
+  const stayDuration = calculateCurrentStayDuration(customer.checkInDate);
+  
+  // Total extra person charge for the entire stay
+  return extraPersons * extraPersonCharge * stayDuration;
 };

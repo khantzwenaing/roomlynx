@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { User, Clock, Calendar } from "lucide-react";
+import { User, Clock, Calendar, Users } from "lucide-react";
 import { Customer, Room } from "@/types";
 import { calculateRemainingDays, calculateCurrentStayDuration, formatStayDuration } from "@/utils/date-utils";
 
@@ -43,14 +43,12 @@ const GuestInfo = ({ customer }: GuestInfoProps) => {
           <span>Current stay: {formatStayDuration(stayDuration)}</span>
         </div>
         
-        <div className="flex items-center mt-1 text-sm font-medium bg-yellow-50 text-yellow-800 p-2 rounded-md border border-yellow-200">
-          <Clock className="mr-2" size={16} />
-          <span>
-            {calculateRemainingDays(customer.checkOutDate) === 0 
-              ? "Checkout today!" 
-              : `${calculateRemainingDays(customer.checkOutDate)} days until checkout (auto-extended)`}
-          </span>
-        </div>
+        {customer.numberOfPersons > 1 && (
+          <div className="flex items-center mt-1 text-sm font-medium bg-green-50 text-green-800 p-2 rounded-md border border-green-200">
+            <Users className="mr-2" size={16} />
+            <span>{customer.numberOfPersons} persons ({customer.numberOfPersons - 1} extra)</span>
+          </div>
+        )}
         
         <Link 
           to={`/customers?id=${customer.id}`} 

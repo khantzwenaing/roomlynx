@@ -1,7 +1,6 @@
 
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
 import { Control } from "react-hook-form";
 import { Room } from "@/types";
 import { CustomerFormValues } from "../schema";
@@ -35,7 +34,7 @@ const BookingFields = ({ control, availableRooms, preselectedRoomId }: BookingFi
               <SelectContent className="text-base bg-white z-50">
                 {availableRooms.map((room) => (
                   <SelectItem key={room.id} value={room.id} className="text-base py-2">
-                    Room {room.roomNumber} ({room.type})
+                    Room {room.roomNumber} ({room.type}) - ₹{room.rate}/day
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -1,22 +1,38 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import {
   FormField,
   FormItem,
   FormLabel,
   FormControl,
   FormDescription,
+  FormMessage,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Control } from "react-hook-form";
 import { CustomerFormValues } from "../schema";
+import { getGasSettings } from "@/services/settingsService";
 
 interface PersonSelectionFieldProps {
   control: Control<CustomerFormValues>;
 }
 
 const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
-  const [showInput, setShowInput] = React.useState(false);
+  const [showInput, setShowInput] = useState(false);
+  const [extraPersonCharge, setExtraPersonCharge] = useState(50); // Default value
+
+  useEffect(() => {
+    // Load the extra person charge from settings
+    const loadSettings = async () => {
+      const settings = await getGasSettings();
+      if (settings) {
+        setExtraPersonCharge(settings.extraPersonCharge);
+      }
+    };
+    
+    loadSettings();
+  }, []);
 
   return (
     <FormField
@@ -30,7 +46,7 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
               checked={showInput}
               onCheckedChange={(checked) => {
                 setShowInput(checked);
-                field.onChange(checked ? 0 : 1);
+                field.onChange(checked ? 2 : 1); // Default to 2 persons when enabling
               }}
             />
           </div>
@@ -42,10 +58,10 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value === "") {
-                    field.onChange(0);
+                    field.onChange(1);
                   } else {
                     const numValue = parseInt(value);
-                    if (!isNaN(numValue)) {
+                    if (!isNaN(numValue) && numValue >= 1) {
                       field.onChange(numValue);
                     }
                   }
@@ -55,10 +71,11 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
             ) : null}
           </FormControl>
           <FormDescription className="text-xs">
-            {field.value >= 1
-              ? `Each additional person costs ₹50 per day`
+            {field.value > 1
+              ? `${field.value - 1} extra ${field.value === 2 ? 'person' : 'persons'} (₹${extraPersonCharge} per person per day)`
               : "Single occupancy - Room price per day"}
           </FormDescription>
+          <FormMessage />
         </FormItem>
       )}
     />

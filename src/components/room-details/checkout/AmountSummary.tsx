@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Room, Customer } from "@/types";
-import { format, parseISO, isBefore } from "date-fns";
-import { calculateExtraPersonCharge } from "@/services/settingsService";
+import { format, parseISO } from "date-fns";
+import { getGasSettings } from "@/services/settingsService";
 import { calculateCurrentStayDuration, formatStayDuration } from "@/utils/date-utils";
 
 interface AmountSummaryProps {
@@ -15,6 +15,7 @@ interface AmountSummaryProps {
 
 const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharge = 0 }: AmountSummaryProps) => {
   const [extraPersonCharge, setExtraPersonCharge] = useState(0);
+  const [extraPersonChargePerDay, setExtraPersonChargePerDay] = useState(0);
   const [stayDuration, setStayDuration] = useState<number>(0);
   
   useEffect(() => {
@@ -24,19 +25,32 @@ const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharg
       setStayDuration(duration);
       
       // Calculate extra person charges
-      const personCharge = await calculateExtraPersonCharge(customer);
-      setExtraPersonCharge(personCharge);
+      if (customer.numberOfPersons > 1) {
+        const settings = await getGasSettings();
+        if (settings) {
+          const extraPersons = Math.max(0, customer.numberOfPersons - 1);
+          const chargePerDay = extraPersons * settings.extraPersonCharge;
+          setExtraPersonChargePerDay(chargePerDay);
+          setExtraPersonCharge(chargePerDay * duration);
+        }
+      }
     };
     
     loadData();
     
     // Update stay duration every minute
     const interval = setInterval(() => {
-      setStayDuration(calculateCurrentStayDuration(customer.checkInDate));
+      const newDuration = calculateCurrentStayDuration(customer.checkInDate);
+      setStayDuration(newDuration);
+      
+      // Update total extra person charge based on new duration
+      if (extraPersonChargePerDay > 0) {
+        setExtraPersonCharge(extraPersonChargePerDay * newDuration);
+      }
     }, 60000);
     
     return () => clearInterval(interval);
-  }, [customer]);
+  }, [customer, extraPersonChargePerDay]);
 
   const calculateTotalStay = (): number => {
     return stayDuration * room.rate;
@@ -50,11 +64,9 @@ const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharg
 
   // Calculate total with all charges
   const totalWithAllCharges = calculateTotalStay() + extraPersonCharge + gasCharge;
-
-  // Check if early checkout and show original checkout date
-  const originalCheckOut = parseISO(customer.checkOutDate);
-  const today = new Date();
-  const isEarlyCheckoutPossible = isBefore(today, originalCheckOut);
+  
+  // Calculate effective daily rate including extra person charges
+  const effectiveDailyRate = room.rate + (customer.numberOfPersons > 1 ? extraPersonChargePerDay : 0);
 
   return (
     <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
@@ -67,9 +79,9 @@ const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharg
           Room charge: ₹{calculateTotalStay()} ({formatStayDuration(stayDuration)} @ ₹{room.rate}/day)
         </div>
         
-        {extraPersonCharge > 0 && (
+        {customer.numberOfPersons > 1 && (
           <div className="text-sm text-gray-600">
-            Extra person charge: ₹{extraPersonCharge}
+            Extra person charge: ₹{extraPersonCharge} ({customer.numberOfPersons - 1} extra {customer.numberOfPersons - 1 === 1 ? 'person' : 'persons'} @ ₹{extraPersonChargePerDay}/day)
           </div>
         )}
         
@@ -88,17 +100,15 @@ const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharg
         </div>
       </div>
       
-      {isEarlyCheckoutPossible && (
-        <div className="mt-2 text-sm text-blue-600">
-          Early checkout available. Original checkout: {format(originalCheckOut, 'PPP')}
+      {customer.numberOfPersons > 1 && (
+        <div className="mt-2 text-sm bg-blue-50 p-2 rounded border border-blue-100">
+          Effective daily rate: ₹{effectiveDailyRate}/day (Room: ₹{room.rate}/day + Extra persons: ₹{extraPersonChargePerDay}/day)
         </div>
       )}
       
-      {customer.numberOfPersons > 0 && (
-        <div className="mt-2 text-sm">
-          Number of persons: {customer.numberOfPersons}
-        </div>
-      )}
+      <div className="mt-2 text-sm">
+        Number of persons: {customer.numberOfPersons}
+      </div>
     </div>
   );
 };

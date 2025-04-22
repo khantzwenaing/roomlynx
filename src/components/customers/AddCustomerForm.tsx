@@ -65,8 +65,8 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         return;
       }
       
-      // Set a default "checkout" date 30 days from now
-      // This is just a placeholder and not actually used for calculations
+      // Set a default "checkout" date 30 days from now as a placeholder
+      // This is just for database compatibility and not used for calculations
       const tempCheckoutDate = new Date(data.checkInDate);
       tempCheckoutDate.setDate(tempCheckoutDate.getDate() + 30);
       
@@ -77,8 +77,8 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
         address: data.address || undefined,
         idNumber: data.idNumber || undefined,
         roomId: data.roomId,
-        checkInDate: data.checkInDate.toISOString().split('T')[0],
-        checkOutDate: tempCheckoutDate.toISOString().split('T')[0], // Placeholder checkout date
+        checkInDate: data.checkInDate.toISOString(),
+        checkOutDate: tempCheckoutDate.toISOString(), // Placeholder checkout date
         depositAmount: data.depositAmount ? Number(data.depositAmount) : undefined,
         depositPaymentMethod: data.depositPaymentMethod,
         depositCollectedBy: data.depositCollectedBy,
@@ -97,6 +97,8 @@ const AddCustomerForm = ({ rooms, onCustomerAdded, onClose, preselectedRoomId }:
           title: "Success",
           description: `Customer ${newCustomer.name} has been added successfully`,
         });
+        
+        onClose();
       } else {
         throw new Error("Failed to add customer");
       }
