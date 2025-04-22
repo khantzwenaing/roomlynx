@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Room, Customer } from "@/types";
 import { format, parseISO, isBefore } from "date-fns";
 import { calculateExtraPersonCharge } from "@/services/settingsService";
+import { calculateCurrentStayDuration, formatStayDuration } from "@/utils/date-utils";
 
 interface AmountSummaryProps {
   room: Room;
@@ -14,22 +15,31 @@ interface AmountSummaryProps {
 
 const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharge = 0 }: AmountSummaryProps) => {
   const [extraPersonCharge, setExtraPersonCharge] = useState(0);
+  const [stayDuration, setStayDuration] = useState<number>(0);
   
   useEffect(() => {
-    const loadExtraCharges = async () => {
+    const loadData = async () => {
+      // Calculate current stay duration
+      const duration = calculateCurrentStayDuration(customer.checkInDate);
+      setStayDuration(duration);
+      
+      // Calculate extra person charges
       const personCharge = await calculateExtraPersonCharge(customer);
       setExtraPersonCharge(personCharge);
     };
     
-    loadExtraCharges();
+    loadData();
+    
+    // Update stay duration every minute
+    const interval = setInterval(() => {
+      setStayDuration(calculateCurrentStayDuration(customer.checkInDate));
+    }, 60000);
+    
+    return () => clearInterval(interval);
   }, [customer]);
 
   const calculateTotalStay = (): number => {
-    const checkInDate = new Date(customer.checkInDate);
-    const checkOutDateValue = new Date(customer.checkOutDate);
-    const timeDiff = checkOutDateValue.getTime() - checkInDate.getTime();
-    const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    return Math.max(1, days) * room.rate;
+    return stayDuration * room.rate;
   };
 
   const calculateAmountDue = (): number => {
@@ -48,10 +58,13 @@ const AmountSummary = ({ room, customer, isEarlyCheckout, checkOutDate, gasCharg
 
   return (
     <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
+      <div className="text-lg font-medium mb-1">
+        Stay Duration: {formatStayDuration(stayDuration)}
+      </div>
       <div className="text-lg font-medium">Amount Due: ₹{calculateAmountDue()}</div>
       <div className="space-y-1 mt-1">
         <div className="text-sm text-gray-600">
-          Room charge: ₹{calculateTotalStay()}
+          Room charge: ₹{calculateTotalStay()} ({formatStayDuration(stayDuration)} @ ₹{room.rate}/day)
         </div>
         
         {extraPersonCharge > 0 && (

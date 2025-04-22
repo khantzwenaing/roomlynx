@@ -1,8 +1,10 @@
+
 import { Room, Customer } from "@/types";
 import {
   calculateExtraPersonCharge,
   getGasSettings,
 } from "@/services/settingsService";
+import { calculateCurrentStayDuration, calculateDays } from "@/utils/date-utils";
 
 export const calculateTotalStay = (
   room: Room,
@@ -10,11 +12,9 @@ export const calculateTotalStay = (
 ): number => {
   if (!customer) return 0;
 
-  const checkInDate = new Date(customer.checkInDate);
-  const checkOutDate = new Date(customer.checkOutDate);
-  const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
-  const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
-  return Math.max(1, days) * room.rate;
+  // Calculate based on current stay duration for actual billing
+  const days = calculateCurrentStayDuration(customer.checkInDate);
+  return Math.max(0.5, days) * room.rate; // Minimum 0.5 day stay
 };
 
 export const calculateAmountDue = async (

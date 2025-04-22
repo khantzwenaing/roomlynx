@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Customer, Room } from "@/types";
 import { format, parseISO, isBefore } from "date-fns";
-import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
+import { calculateCurrentStayDuration, formatStayDuration, getCurrentISTDate } from "@/utils/date-utils";
 
 interface CheckoutDialogProps {
   isOpen: boolean;
@@ -42,13 +42,18 @@ const CheckoutDialog = ({
   calculateTotalStay
 }: CheckoutDialogProps) => {
   const [isEarlyCheckout, setIsEarlyCheckout] = useState(false);
-  const [checkoutDate, setCheckoutDate] = useState<Date>(new Date());
   const [refundAmount, setRefundAmount] = useState(0);
   const [refundNotes, setRefundNotes] = useState('');
+  const [stayDuration, setStayDuration] = useState<number>(0);
 
   useEffect(() => {
     if (customer && isOpen) {
-      const today = new Date();
+      // Calculate the current stay duration
+      const duration = calculateCurrentStayDuration(customer.checkInDate);
+      setStayDuration(duration);
+      
+      // Check if it's an early checkout
+      const today = getCurrentISTDate();
       const plannedCheckout = parseISO(customer.checkOutDate);
       
       // Check if today is before the planned checkout date
@@ -59,9 +64,7 @@ const CheckoutDialog = ({
         const checkInDate = parseISO(customer.checkInDate);
         
         // Calculate days stayed based on today
-        const actualDaysStayed = Math.ceil(
-          (today.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24)
-        );
+        const actualDaysStayed = calculateCurrentStayDuration(customer.checkInDate);
         
         // Calculate original planned days
         const originalDays = Math.ceil(
@@ -89,6 +92,7 @@ const CheckoutDialog = ({
         </DialogHeader>
         <div className="space-y-6 py-6">
           <div className="p-4 bg-yellow-50 rounded-md border border-yellow-200">
+            <div className="text-lg font-medium mb-1">Stay Duration: {formatStayDuration(stayDuration)}</div>
             <div className="text-lg font-medium">Amount Due: ₹{calculateAmountDue()}</div>
             <div className="text-sm text-gray-600">
               (Total stay: ₹{calculateTotalStay()} - Deposit: ₹{customer?.depositAmount || 0})
