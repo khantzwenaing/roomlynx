@@ -19,15 +19,23 @@ export const calculateTotalStay = (
 
 export const calculateAmountDue = async (
   room: Room,
-  customer: Customer | null
+  customer: Customer | null,
+  finalGasWeight?: number
 ): Promise<{
   totalStay: number;
   deposit: number;
   extraPersonCharge: number;
+  gasCharge: number;
   amountDue: number;
 }> => {
   if (!customer)
-    return { totalStay: 0, deposit: 0, extraPersonCharge: 0, amountDue: 0 };
+    return { 
+      totalStay: 0, 
+      deposit: 0, 
+      extraPersonCharge: 0, 
+      gasCharge: 0, 
+      amountDue: 0 
+    };
 
   // Calculate base room charge
   const stayDuration = calculateCurrentStayDuration(customer.checkInDate);
@@ -42,13 +50,24 @@ export const calculateAmountDue = async (
   const totalStay = Math.max(0.5, stayDuration) * effectiveDailyRate;
   const depositAmount = customer.depositAmount || 0;
 
+  // Calculate gas charge if applicable
+  let gasCharge = 0;
+  if (customer.hasGas && customer.initialGasWeight && finalGasWeight !== undefined) {
+    const gasSettings = await getGasSettings();
+    if (gasSettings) {
+      const gasUsed = Math.max(0, customer.initialGasWeight - finalGasWeight);
+      gasCharge = gasUsed * gasSettings.pricePerKg;
+    }
+  }
+
   // Calculate total amount due
-  const amountDue = Math.max(0, totalStay - depositAmount);
+  const amountDue = Math.max(0, totalStay + gasCharge - depositAmount);
 
   return {
     totalStay,
     deposit: depositAmount,
     extraPersonCharge,
+    gasCharge,
     amountDue,
   };
 };

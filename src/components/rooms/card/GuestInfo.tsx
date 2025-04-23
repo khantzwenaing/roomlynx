@@ -46,7 +46,7 @@ const GuestInfo = ({ customer }: GuestInfoProps) => {
         {customer.numberOfPersons > 1 && (
           <div className="flex items-center mt-1 text-sm font-medium bg-green-50 text-green-800 p-2 rounded-md border border-green-200">
             <Users className="mr-2" size={16} />
-            <span>{customer.numberOfPersons} persons ({customer.numberOfPersons - 1} extra)</span>
+            <span>{customer.numberOfPersons - 1} extra {customer.numberOfPersons - 1 === 1 ? 'person' : 'persons'}</span>
           </div>
         )}
         
