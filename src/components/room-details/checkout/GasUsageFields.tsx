@@ -38,6 +38,7 @@ const GasUsageFields = ({
   disabled = false,
 }: GasUsageFieldsProps) => {
   const [calculatedCharge, setCalculatedCharge] = useState<number | null>(null);
+  const [gasUsed, setGasUsed] = useState<number>(0);
 
   const form = useForm<GasUsageFormValues>({
     resolver: zodResolver(gasUsageSchema),
@@ -58,6 +59,8 @@ const GasUsageFields = ({
       }
 
       const charge = await calculateGasCharge(initialWeight, finalWeight);
+      const used = initialWeight - finalWeight;
+      setGasUsed(used);
       setCalculatedCharge(charge);
       onGasChargeCalculated(charge, finalWeight);
     } catch (error) {
@@ -100,7 +103,7 @@ const GasUsageFields = ({
                   />
                 </FormControl>
                 <FormDescription>
-                  Weight of gas cylinder at checkout
+                  Current weight of gas cylinder at checkout
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -112,11 +115,8 @@ const GasUsageFields = ({
           </Button>
 
           {calculatedCharge !== null && (
-            <div className="mt-2 p-2 bg-green-100 border border-green-300 rounded-md">
-              <div className="text-sm">
-                Gas Usage:{" "}
-                {(initialWeight - form.getValues().finalWeight).toFixed(2)} kg
-              </div>
+            <div className="mt-2 p-2 bg-green-100 border border-green-300 rounded-md space-y-1">
+              <div className="text-sm">Gas Usage: {gasUsed.toFixed(2)} kg</div>
               <div className="text-lg font-bold">
                 Gas Charge: ₹{calculatedCharge.toFixed(2)}
               </div>

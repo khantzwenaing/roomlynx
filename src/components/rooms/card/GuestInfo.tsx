@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { User, Clock, Calendar, Users } from "lucide-react";
-import { Customer, Room } from "@/types";
-import { calculateRemainingDays, calculateCurrentStayDuration, formatStayDuration } from "@/utils/date-utils";
+import { Customer } from "@/types";
+import { calculateCurrentStayDuration, formatStayDuration } from "@/utils/date-utils";
 
 interface GuestInfoProps {
   customer: Customer;
@@ -49,13 +48,12 @@ const GuestInfo = ({ customer }: GuestInfoProps) => {
             <span>{customer.numberOfPersons - 1} extra {customer.numberOfPersons - 1 === 1 ? 'person' : 'persons'}</span>
           </div>
         )}
-        
-        <Link 
-          to={`/customers?id=${customer.id}`} 
-          className="text-blue-600 hover:underline block text-lg font-medium mt-2"
-        >
-          View Customer Details
-        </Link>
+
+        {customer.hasGas && customer.initialGasWeight && (
+          <div className="mt-1 text-sm bg-orange-50 text-orange-800 p-2 rounded-md border border-orange-200">
+            Initial Gas Weight: {customer.initialGasWeight} kg
+          </div>
+        )}
       </div>
     </div>
   );
