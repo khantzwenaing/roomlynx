@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { Customer, Room, Payment } from "@/types";
+import { Customer, Room, Payment, PaymentStatus, PaymentMethod } from "@/types";
 
 export const getCustomers = async (): Promise<Customer[]> => {
   const { data, error } = await supabase
@@ -194,4 +195,7 @@ export { loadCustomersForRooms } from "./roomsService";
 export { updateRoom } from "./roomsService";
 export { getPayments, addPayment } from "./paymentsService";
 export { generateDailyReport } from "./reportsService";
-export { processCheckout, processEarlyCheckout } from "./rooms/roomCheckout";
+
+// Remove the duplicate export of processEarlyCheckout
+// export { processCheckout, processEarlyCheckout } from "./rooms/roomCheckout";
+export { processCheckout } from "./rooms/roomCheckout";
