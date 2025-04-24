@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Customer, Room, Payment, PaymentStatus, PaymentMethod } from "@/types";
 
@@ -109,6 +108,57 @@ export const addCustomer = async (customer: Omit<Customer, 'id'>): Promise<Custo
   }
 };
 
+export const addPayment = async (payment: Omit<Payment, "id">): Promise<Payment | null> => {
+  let paymentType = payment.paymentType || 'checkout';
+  let notes = payment.notes || '';
+  
+  if (!notes.toLowerCase().includes(paymentType.toLowerCase())) {
+    notes = `${paymentType}: ${notes}`.trim();
+  }
+  
+  const newPayment = {
+    customerid: payment.customerId,
+    roomid: payment.roomId,
+    amount: payment.amount,
+    date: payment.date,
+    method: payment.method,
+    collectedby: payment.collectedBy,
+    status: payment.status,
+    notes: notes,
+    isrefund: payment.isRefund || false,
+    gasusagecharge: payment.gasUsageCharge || 0,
+    extrapersonscharge: payment.extraPersonsCharge || 0
+  };
+  
+  const { data, error } = await supabase
+    .from('payments')
+    .insert(newPayment)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding payment:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    customerId: data.customerid,
+    roomId: data.roomid,
+    amount: Number(data.amount),
+    date: data.date,
+    method: data.method as 'cash' | 'bank_transfer' | 'other',
+    collectedBy: data.collectedby,
+    status: data.status as PaymentStatus,
+    notes: data.notes || '',
+    paymentType: data.notes?.toLowerCase().includes('deposit') ? 'deposit' : 
+                data.notes?.toLowerCase().includes('refund') || data.isrefund ? 'refund' : 'checkout',
+    isRefund: data.isrefund || false,
+    gasUsageCharge: data.gasusagecharge,
+    extraPersonsCharge: data.extrapersonscharge
+  };
+};
+
 export const processEarlyCheckout = async (
   roomId: string, 
   customerId: string, 
@@ -122,7 +172,6 @@ export const processEarlyCheckout = async (
   }
 ): Promise<boolean> => {
   try {
-    // 1. Create a refund payment record
     if (refundAmount > 0) {
       const refundPayment = {
         customerId,
@@ -141,12 +190,11 @@ export const processEarlyCheckout = async (
       if (!payment) return false;
     }
     
-    // 2. Update customer's checkout date and NULLIFY roomid to mark that they have checked out
     const { error: customerError } = await supabase
       .from('customers')
       .update({ 
         checkoutdate: actualCheckoutDate,
-        roomid: null // Nullify roomid to allow room deletion
+        roomid: null
       })
       .eq('id', customerId);
       
@@ -155,7 +203,6 @@ export const processEarlyCheckout = async (
       return false;
     }
     
-    // 3. Update room status to cleaning
     const { error: roomError } = await supabase
       .from('rooms')
       .update({ status: 'cleaning' })
@@ -166,7 +213,6 @@ export const processEarlyCheckout = async (
       return false;
     }
     
-    // 4. Update or delete the checkout reminder
     const reminderResult = await supabase
       .from('rent_reminders')
       .update({ 
@@ -177,7 +223,6 @@ export const processEarlyCheckout = async (
     
     if (reminderResult.error) {
       console.error('Error updating checkout reminder:', reminderResult.error);
-      // Don't fail the whole operation if this part fails
     }
     
     return true;
@@ -193,9 +238,6 @@ export { getDailyReports } from "./reportsService";
 export { getCheckoutReminders } from "./remindersService";
 export { loadCustomersForRooms } from "./roomsService";
 export { updateRoom } from "./roomsService";
-export { getPayments, addPayment } from "./paymentsService";
+export { getPayments } from "./paymentsService";
 export { generateDailyReport } from "./reportsService";
-
-// Remove the duplicate export of processEarlyCheckout
-// export { processCheckout, processEarlyCheckout } from "./rooms/roomCheckout";
 export { processCheckout } from "./rooms/roomCheckout";
