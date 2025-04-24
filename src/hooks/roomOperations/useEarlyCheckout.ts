@@ -17,12 +17,20 @@ export const useEarlyCheckout = (room: Room, customer: Customer | null, onSucces
     setIsProcessing(true);
 
     try {
+      // Ensure we have all required properties for the API call
+      const processedRefundDetails = {
+        method: refundDetails.method,
+        collectedBy: refundDetails.collectedBy,
+        notes: refundDetails.notes || '',
+        bankRefNo: refundDetails.bankRefNo
+      };
+
       const success = await processEarlyCheckout(
         room.id,
         customer.id,
         actualCheckoutDate,
         refundAmount,
-        refundDetails
+        processedRefundDetails
       );
 
       if (success) {

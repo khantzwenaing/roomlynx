@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Customer, Room, Payment } from "@/types";
 
@@ -109,7 +108,84 @@ export const addCustomer = async (customer: Omit<Customer, 'id'>): Promise<Custo
   }
 };
 
-// Re-export functions from other services
+export const processEarlyCheckout = async (
+  roomId: string, 
+  customerId: string, 
+  actualCheckoutDate: string, 
+  refundAmount: number,
+  refundDetails: {
+    method: 'cash' | 'bank_transfer' | 'other',
+    collectedBy: string,
+    notes?: string,
+    bankRefNo?: string
+  }
+): Promise<boolean> => {
+  try {
+    // 1. Create a refund payment record
+    if (refundAmount > 0) {
+      const refundPayment = {
+        customerId,
+        roomId,
+        amount: refundAmount,
+        date: new Date().toISOString(),
+        method: refundDetails.method,
+        collectedBy: refundDetails.collectedBy,
+        status: 'completed' as PaymentStatus, 
+        notes: `Refund for early checkout: ${refundDetails.notes || ''}`,
+        paymentType: 'refund' as 'refund',
+        isRefund: true
+      };
+      
+      const payment = await addPayment(refundPayment);
+      if (!payment) return false;
+    }
+    
+    // 2. Update customer's checkout date and NULLIFY roomid to mark that they have checked out
+    const { error: customerError } = await supabase
+      .from('customers')
+      .update({ 
+        checkoutdate: actualCheckoutDate,
+        roomid: null // Nullify roomid to allow room deletion
+      })
+      .eq('id', customerId);
+      
+    if (customerError) {
+      console.error('Error updating customer checkout date:', customerError);
+      return false;
+    }
+    
+    // 3. Update room status to cleaning
+    const { error: roomError } = await supabase
+      .from('rooms')
+      .update({ status: 'cleaning' })
+      .eq('id', roomId);
+      
+    if (roomError) {
+      console.error('Error updating room status:', roomError);
+      return false;
+    }
+    
+    // 4. Update or delete the checkout reminder
+    const reminderResult = await supabase
+      .from('rent_reminders')
+      .update({ 
+        status: 'acknowledged', 
+        checkoutdate: actualCheckoutDate 
+      })
+      .eq('customerid', customerId);
+    
+    if (reminderResult.error) {
+      console.error('Error updating checkout reminder:', reminderResult.error);
+      // Don't fail the whole operation if this part fails
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error processing early checkout:', error);
+    return false;
+  }
+};
+
 export { resetDatabase } from "./utilityService";
 export { deleteCheckoutReminder } from "./remindersService";
 export { getDailyReports } from "./reportsService";
