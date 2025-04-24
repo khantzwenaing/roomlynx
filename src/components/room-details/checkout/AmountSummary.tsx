@@ -7,13 +7,15 @@ interface AmountSummaryProps {
   customer: Customer;
   gasCharge: number;
   extraPersonCharge?: number;
+  finalGasWeight?: number;
 }
 
 const AmountSummary = ({ 
   room, 
   customer, 
   gasCharge, 
-  extraPersonCharge = 0 
+  extraPersonCharge = 0,
+  finalGasWeight
 }: AmountSummaryProps) => {
   const calculateTotal = () => {
     const checkInDate = new Date(customer.checkInDate);
@@ -47,10 +49,24 @@ const AmountSummary = ({
         </div>
       )}
 
-      {gasCharge > 0 && (
-        <div className="flex justify-between items-center text-sm">
-          <span>Gas Usage Charge:</span>
-          <span>₹{gasCharge.toFixed(2)}</span>
+      {customer.hasGas && (
+        <div className="space-y-2 border-t pt-2">
+          <div className="flex justify-between items-center text-sm">
+            <span>Initial Gas Weight:</span>
+            <span>{customer.initialGasWeight} kg</span>
+          </div>
+          {finalGasWeight !== undefined && (
+            <div className="flex justify-between items-center text-sm">
+              <span>Final Gas Weight:</span>
+              <span>{finalGasWeight} kg</span>
+            </div>
+          )}
+          {gasCharge > 0 && (
+            <div className="flex justify-between items-center text-sm">
+              <span>Gas Usage Charge:</span>
+              <span>₹{gasCharge.toFixed(2)}</span>
+            </div>
+          )}
         </div>
       )}
 

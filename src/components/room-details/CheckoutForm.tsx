@@ -10,7 +10,6 @@ import CheckoutActions from "./checkout/CheckoutActions";
 import GasUsageFields from "./checkout/GasUsageFields";
 import AmountSummary from "./checkout/AmountSummary";
 import { calculateExtraPersonCharge } from "@/services/settingsService";
-import { isBefore, parseISO } from "date-fns";
 
 interface CheckoutFormProps {
   checkoutDetails: {
@@ -18,16 +17,12 @@ interface CheckoutFormProps {
     bankRefNo: string;
     collectedBy: string;
     showCheckoutForm: boolean;
-    gasCharge?: number;
-    finalGasWeight?: number;
   };
   setCheckoutDetails: React.Dispatch<React.SetStateAction<{
     paymentMethod: string;
     bankRefNo: string;
     collectedBy: string;
     showCheckoutForm: boolean;
-    gasCharge?: number;
-    finalGasWeight?: number;
   }>>;
   customer: Customer;
   room: Room;
@@ -54,7 +49,7 @@ const CheckoutForm = ({
   const { toast } = useToast();
   const [showEarlyCheckoutDialog, setShowEarlyCheckoutDialog] = useState(false);
   const [gasCharge, setGasCharge] = useState(0);
-  const [finalGasWeight, setFinalGasWeight] = useState(0);
+  const [finalGasWeight, setFinalGasWeight] = useState<number | undefined>();
   const [extraPersonCharge, setExtraPersonCharge] = useState(0);
   
   useEffect(() => {
@@ -87,8 +82,8 @@ const CheckoutForm = ({
       return;
     }
     
-    // If gas is being used but no final weight entered, show an error
-    if (customer.hasGas && customer.initialGasWeight && gasCharge === 0) {
+    // If gas is being used but no final weight entered, show error
+    if (customer.hasGas && customer.initialGasWeight && !finalGasWeight) {
       toast({
         title: "Error",
         description: "Please calculate gas usage charge before checking out",
@@ -103,13 +98,6 @@ const CheckoutForm = ({
   const handleGasChargeCalculated = (charge: number, weight: number) => {
     setGasCharge(charge);
     setFinalGasWeight(weight);
-    
-    // Update the checkout details with gas usage information
-    setCheckoutDetails(prev => ({
-      ...prev,
-      gasCharge: charge,
-      finalGasWeight: weight
-    }));
   };
 
   return (
@@ -120,6 +108,8 @@ const CheckoutForm = ({
         room={room} 
         customer={customer}
         gasCharge={gasCharge}
+        extraPersonCharge={extraPersonCharge}
+        finalGasWeight={finalGasWeight}
       />
       
       {/* Show gas usage calculation if applicable */}
@@ -150,10 +140,9 @@ const CheckoutForm = ({
       <CheckoutActions 
         onCompleteCheckout={handleCompleteCheckout}
         onEarlyCheckoutClick={() => setShowEarlyCheckoutDialog(true)}
-        isEarlyCheckoutAvailable={isBefore(new Date(), parseISO(customer.checkOutDate)) && !!onEarlyCheckout}
+        isEarlyCheckoutAvailable={true}
       />
       
-      {/* Early Checkout Dialog */}
       {onEarlyCheckout && (
         <EarlyCheckoutDialog
           open={showEarlyCheckoutDialog}
