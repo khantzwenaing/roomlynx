@@ -6,6 +6,7 @@ import { useCheckoutValidation } from "./useCheckoutValidation";
 import { useEarlyCheckout } from "./useEarlyCheckout";
 import { calculateTotalStay, calculateAmountDue } from "./roomCalculations";
 import { isBefore, parseISO } from "date-fns";
+import type { RefundDetailsFormData } from "@/components/room-details/checkout/early-checkout/RefundDetailsFormSchema";
 
 export const useRoomCheckout = (room: Room, customer: Customer | null) => {
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
@@ -50,14 +51,17 @@ export const useRoomCheckout = (room: Room, customer: Customer | null) => {
         const refundAmount = Math.max(0, depositAmount - totalCharges);
 
         if (refundAmount > 0) {
+          const refundDetails: RefundDetailsFormData = {
+            method: checkoutDetails.paymentMethod as 'cash' | 'bank_transfer' | 'other',
+            collectedBy: checkoutDetails.collectedBy,
+            notes: `Gas: ${checkoutDetails.gasCharge}, Extra persons: ${checkoutDetails.extraPersonCharge}`,
+            bankRefNo: checkoutDetails.bankRefNo || ''
+          };
+          
           await handleEarlyCheckout(
             today.toISOString(),
             refundAmount,
-            {
-              method: checkoutDetails.paymentMethod as 'cash' | 'bank_transfer' | 'other',
-              collectedBy: checkoutDetails.collectedBy,
-              notes: `Gas: ${checkoutDetails.gasCharge}, Extra persons: ${checkoutDetails.extraPersonCharge}`
-            }
+            refundDetails
           );
         }
       }

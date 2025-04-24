@@ -9,6 +9,7 @@ import RoomInfoSection from "./room-details/RoomInfoSection";
 import GuestInfoSection from "./room-details/GuestInfoSection";
 import CheckoutForm from "./room-details/CheckoutForm";
 import RoomEditForm from "./room-details/RoomEditForm";
+import type { RefundDetailsFormData } from "./room-details/checkout/early-checkout/RefundDetailsFormSchema";
 
 interface RoomDetailsDialogProps {
   room: Room | null;
@@ -20,11 +21,7 @@ interface RoomDetailsDialogProps {
   onEarlyCheckout?: (
     actualCheckoutDate: string, 
     refundAmount: number, 
-    refundDetails: {
-      method: 'cash' | 'bank_transfer' | 'other',
-      collectedBy: string,
-      notes?: string
-    }
+    refundDetails: RefundDetailsFormData
   ) => Promise<void>;
 }
 

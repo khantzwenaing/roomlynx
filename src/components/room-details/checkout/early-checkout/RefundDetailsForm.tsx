@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { refundDetailsSchema, type RefundDetailsFormData } from "./RefundDetailsFormSchema";
 
 interface RefundDetailsFormProps {
@@ -136,6 +137,12 @@ const RefundDetailsForm = ({
             </FormItem>
           )}
         />
+
+        <div className="pt-4">
+          <Button type="submit" disabled={disabled} className="w-full">
+            Process Early Checkout
+          </Button>
+        </div>
       </form>
     </Form>
   );
