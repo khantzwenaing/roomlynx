@@ -1,5 +1,5 @@
 
-export { getCustomers, addCustomer } from './customers/customerRetrieval';
+export { getCustomers, addCustomer } from './customers/customerManipulation';
 export { getRooms } from './roomsService';
 export { resetDatabase } from "./utilityService";
 export { deleteCheckoutReminder } from "./remindersService";
