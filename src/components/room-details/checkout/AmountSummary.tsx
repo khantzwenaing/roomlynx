@@ -16,7 +16,9 @@ const AmountSummary = ({
   extraPersonCharge = 0 
 }: AmountSummaryProps) => {
   const calculateTotal = () => {
-    const stayDuration = calculateDays(customer.checkInDate, new Date());
+    const checkInDate = new Date(customer.checkInDate);
+    const currentDate = new Date();
+    const stayDuration = calculateDays(checkInDate, currentDate);
     const baseRoomCharge = room.rate * stayDuration;
     const totalCharges = baseRoomCharge + gasCharge + extraPersonCharge;
     const depositAmount = customer.depositAmount || 0;
@@ -35,7 +37,7 @@ const AmountSummary = ({
     <div className="p-4 bg-white rounded-lg border border-gray-200 space-y-2">
       <div className="flex justify-between items-center text-sm">
         <span>Room Charges:</span>
-        <span>₹{(room.rate * calculateDays(customer.checkInDate, new Date())).toFixed(2)}</span>
+        <span>₹{(room.rate * calculateDays(new Date(customer.checkInDate), new Date())).toFixed(2)}</span>
       </div>
 
       {extraPersonCharge > 0 && (
