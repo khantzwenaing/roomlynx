@@ -9,7 +9,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Control } from "react-hook-form";
 import { CustomerFormValues } from "../schema";
 import { getGasSettings } from "@/services/settingsService";
@@ -52,22 +58,23 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
           </div>
           <FormControl>
             {showInput ? (
-              <Input
-                type="number"
-                value={field.value || ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "") {
-                    field.onChange(1);
-                  } else {
-                    const numValue = parseInt(value);
-                    if (!isNaN(numValue) && numValue >= 1) {
-                      field.onChange(numValue);
-                    }
-                  }
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(Number(value));
                 }}
-                className="w-full"
-              />
+                value={field.value.toString()}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select number of persons" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[2, 3, 4, 5, 6].map((num) => (
+                    <SelectItem key={num} value={num.toString()}>
+                      {num} Persons
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : null}
           </FormControl>
           <FormDescription className="text-xs">
@@ -83,3 +90,4 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
 };
 
 export default PersonSelectionField;
+
