@@ -86,4 +86,3 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
 };
 
 export default PersonSelectionField;
-

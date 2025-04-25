@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 export const customerSchema = z.object({
@@ -15,7 +14,7 @@ export const customerSchema = z.object({
   depositPaymentMethod: z.enum(['cash', 'card', 'bank_transfer', 'other']).optional(),
   depositCollectedBy: z.string().optional(),
   bankRefNo: z.string().optional(),
-  numberOfPersons: z.number().min(1, "Number of persons is required").default(1),
+  numberOfPersons: z.number().min(0, "Number of persons must be at least 0").default(0),
   hasGas: z.boolean().default(false),
   initialGasWeight: z.number().optional(),
 }).refine(data => {
