@@ -25,7 +25,6 @@ interface PersonSelectionFieldProps {
 }
 
 const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
-  const [showInput, setShowInput] = useState(false);
   const [extraPersonCharge, setExtraPersonCharge] = useState(50); // Default value
 
   useEffect(() => {
@@ -47,11 +46,11 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
       render={({ field }) => (
         <FormItem>
           <div className="flex items-center justify-between mb-2">
-            <FormLabel className="text-base">Persons</FormLabel>
+            <FormLabel className="text-base">Extra Persons</FormLabel>
             <Switch
-              checked={field.value > 1}
+              checked={field.value > 0}
               onCheckedChange={(checked) => {
-                field.onChange(checked ? 2 : 1);
+                field.onChange(checked ? 1 : 0);
               }}
             />
           </div>
@@ -63,7 +62,7 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
               value={field.value.toString()}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select number of persons" />
+                <SelectValue placeholder="Select number of extra persons" />
               </SelectTrigger>
               <SelectContent>
                 {[1, 2, 3, 4, 5, 6].map((num) => (
@@ -75,9 +74,9 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
             </Select>
           </FormControl>
           <FormDescription className="text-xs">
-            {field.value > 1
-              ? `${field.value - 1} extra ${field.value === 2 ? 'person' : 'persons'} (₹${extraPersonCharge} per person per day)`
-              : "Single occupancy - Room price per day"}
+            {field.value > 0
+              ? `${field.value} extra ${field.value === 1 ? 'person' : 'persons'} (₹${extraPersonCharge} per person per day)`
+              : "No extra persons"}
           </FormDescription>
           <FormMessage />
         </FormItem>
@@ -87,3 +86,4 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
 };
 
 export default PersonSelectionField;
+
