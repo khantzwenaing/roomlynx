@@ -47,35 +47,32 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
       render={({ field }) => (
         <FormItem>
           <div className="flex items-center justify-between mb-2">
-            <FormLabel className="text-base">Extra Persons</FormLabel>
+            <FormLabel className="text-base">Persons</FormLabel>
             <Switch
-              checked={showInput}
+              checked={field.value > 1}
               onCheckedChange={(checked) => {
-                setShowInput(checked);
-                field.onChange(checked ? 2 : 1); // Default to 2 persons when enabling
+                field.onChange(checked ? 2 : 1);
               }}
             />
           </div>
           <FormControl>
-            {showInput ? (
-              <Select
-                onValueChange={(value) => {
-                  field.onChange(Number(value));
-                }}
-                value={field.value.toString()}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select number of persons" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[2, 3, 4, 5, 6].map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num} Persons
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : null}
+            <Select
+              onValueChange={(value) => {
+                field.onChange(Number(value));
+              }}
+              value={field.value.toString()}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select number of persons" />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 2, 3, 4, 5, 6].map((num) => (
+                  <SelectItem key={num} value={num.toString()}>
+                    {num} {num === 1 ? 'Person' : 'Persons'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FormControl>
           <FormDescription className="text-xs">
             {field.value > 1
@@ -90,4 +87,3 @@ const PersonSelectionField = ({ control }: PersonSelectionFieldProps) => {
 };
 
 export default PersonSelectionField;
-
