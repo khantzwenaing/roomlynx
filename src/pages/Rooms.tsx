@@ -10,6 +10,7 @@ import AddCustomerSidebar from "@/components/customers/AddCustomerSidebar";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Room } from "@/types";
+import TodoList from "@/components/todos/TodoList";
 
 const Rooms = () => {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
@@ -95,13 +96,21 @@ const Rooms = () => {
         setStatusFilter={setStatusFilter}
       />
 
-      <RoomGrid 
-        rooms={filteredRooms}
-        isLoading={isLoading}
-        roomCustomers={roomCustomers}
-        onRoomClick={handleRoomClick}
-        onCustomerAdded={handleDataRefresh}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <RoomGrid 
+            rooms={filteredRooms}
+            isLoading={isLoading}
+            roomCustomers={roomCustomers}
+            onRoomClick={handleRoomClick}
+            onCustomerAdded={handleDataRefresh}
+          />
+        </div>
+        
+        <div className="lg:col-span-1">
+          <TodoList />
+        </div>
+      </div>
 
       <AddRoomForm 
         isOpen={isAddRoomOpen} 

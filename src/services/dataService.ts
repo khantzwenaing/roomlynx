@@ -13,3 +13,6 @@ export { generateDailyReport } from "./reportsService";
 export { processCheckout } from "./rooms/roomCheckout";
 export { processEarlyCheckout } from "./checkout/earlyCheckout";
 export { addPayment } from "./payments/paymentCreation";
+
+// Todo list exports
+export { getTodos, addTodo, completeTodo } from "./todoService";
