@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { getTodos, addTodo, completeTodo, Todo } from "@/services/todoService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Check, ListTodo } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -111,90 +110,87 @@ const TodoList = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ListTodo className="h-5 w-5" /> 
-          Todo List
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleAddTask} className="flex gap-2 mb-4">
-          <Input
-            placeholder="Add a new task..."
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button type="submit" disabled={isLoading || !newTask.trim()}>
-            Add Task
-          </Button>
-        </form>
+    <div className="w-full px-2">
+      <form onSubmit={handleAddTask} className="flex gap-2 mb-4">
+        <Input
+          placeholder="Add a new task..."
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          disabled={isLoading}
+          className="flex-1 h-8"
+          size={1}
+        />
+        <Button 
+          type="submit" 
+          disabled={isLoading || !newTask.trim()}
+          size="sm"
+        >
+          Add
+        </Button>
+      </form>
 
-        <div className="space-y-2">
-          {isLoading && todos.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">Loading tasks...</p>
-          ) : todos.length > 0 ? (
-            todos.map((todo) => (
-              <div key={todo.id} className="group">
-                <div className="flex items-center justify-between gap-2 py-2">
-                  <div className="flex-1">
-                    <p className={`${todo.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-                      {todo.task}
+      <div className="space-y-1 max-h-[60vh] overflow-y-auto pr-2">
+        {isLoading && todos.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4 text-sm">Loading tasks...</p>
+        ) : todos.length > 0 ? (
+          todos.map((todo) => (
+            <div key={todo.id} className="group">
+              <div className="flex items-center justify-between gap-2 py-1">
+                <div className="flex-1">
+                  <p className={`${todo.isCompleted ? 'line-through text-muted-foreground' : ''} text-sm`}>
+                    {todo.task}
+                  </p>
+                  {todo.isCompleted && todo.completedBy && (
+                    <p className="text-xs text-muted-foreground">
+                      By: {todo.completedBy}
                     </p>
-                    {todo.isCompleted && todo.completedBy && (
-                      <p className="text-xs text-muted-foreground">
-                        Completed by: {todo.completedBy}
-                      </p>
-                    )}
-                  </div>
-                  {!todo.isCompleted && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => openCompleteDialog(todo.id)}
-                    >
-                      <Check className="h-4 w-4 mr-1" />
-                      Done
-                    </Button>
                   )}
                 </div>
-                <Separator />
+                {!todo.isCompleted && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => openCompleteDialog(todo.id)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
-            ))
-          ) : (
-            <p className="text-center text-muted-foreground py-4">No tasks yet. Add a task to get started.</p>
-          )}
-        </div>
-
-        <Dialog open={!!selectedTodoId} onOpenChange={(open) => !open && closeCompleteDialog()}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Mark Task as Completed</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <label className="text-sm font-medium">Completed by:</label>
-              <Textarea 
-                value={completedBy}
-                onChange={(e) => setCompletedBy(e.target.value)}
-                placeholder="Enter your name or notes about who completed this task"
-                className="mt-1"
-              />
+              <Separator className="my-1" />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={closeCompleteDialog}>Cancel</Button>
-              <Button 
-                onClick={handleCompleteTask}
-                disabled={isCompletingTask || !completedBy.trim()}
-              >
-                Mark as Completed
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </CardContent>
-    </Card>
+          ))
+        ) : (
+          <p className="text-center text-muted-foreground py-4 text-xs">No tasks yet</p>
+        )}
+      </div>
+
+      <Dialog open={!!selectedTodoId} onOpenChange={(open) => !open && closeCompleteDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark Task as Completed</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium">Completed by:</label>
+            <Textarea 
+              value={completedBy}
+              onChange={(e) => setCompletedBy(e.target.value)}
+              placeholder="Enter your name or notes about who completed this task"
+              className="mt-1"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeCompleteDialog}>Cancel</Button>
+            <Button 
+              onClick={handleCompleteTask}
+              disabled={isCompletingTask || !completedBy.trim()}
+            >
+              Mark as Completed
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

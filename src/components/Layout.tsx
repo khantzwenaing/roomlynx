@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +15,8 @@ import {
   X
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/sidebar/AppSidebar";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -53,77 +56,82 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-hotel-background flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={toggleSidebar}
-            >
-              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </Button>
-            <Link to="/dashboard" className="flex items-center">
-              <span className="text-xl font-bold text-hotel-primary">Sebin</span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            {user && (
-              <>
-                <div className="hidden md:flex items-center gap-2">
-                  <span className="text-sm text-gray-600">{user.name}</span>
-                  <div className="h-8 w-8 rounded-full bg-hotel-primary text-white flex items-center justify-center">
-                    {user.name.charAt(0)}
-                  </div>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={handleLogout}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <LogOut size={20} />
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside
-          className={`bg-white border-r border-gray-200 transition-all duration-300 ${
-            sidebarOpen ? "w-64" : "w-0 -ml-64"
-          } md:ml-0 ${sidebarOpen ? "md:w-64" : "md:w-64"} flex-shrink-0 overflow-y-auto`}
-        >
-          <nav className="p-4 space-y-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive(item.path)
-                    ? "bg-hotel-primary text-white"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
+    <SidebarProvider>
+      <div className="min-h-screen bg-hotel-background flex flex-col w-full">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 shadow-sm z-10">
+          <div className="px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={toggleSidebar}
               >
-                {item.icon}
-                <span>{item.label}</span>
+                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              </Button>
+              <Link to="/dashboard" className="flex items-center">
+                <span className="text-xl font-bold text-hotel-primary">Sebin</span>
               </Link>
-            ))}
-          </nav>
-        </aside>
+            </div>
+            <div className="flex items-center gap-4">
+              {user && (
+                <>
+                  <div className="hidden md:flex items-center gap-2">
+                    <span className="text-sm text-gray-600">{user.name}</span>
+                    <div className="h-8 w-8 rounded-full bg-hotel-primary text-white flex items-center justify-center">
+                      {user.name.charAt(0)}
+                    </div>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={handleLogout}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <LogOut size={20} />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </header>
 
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <div className="flex flex-1 overflow-hidden">
+          {/* App Sidebar with Todo List */}
+          <AppSidebar />
+
+          {/* Main navigation sidebar */}
+          <aside
+            className={`bg-white border-r border-gray-200 transition-all duration-300 ${
+              sidebarOpen ? "w-64" : "w-0 -ml-64"
+            } md:ml-0 ${sidebarOpen ? "md:w-64" : "md:w-64"} flex-shrink-0 overflow-y-auto`}
+          >
+            <nav className="p-4 space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive(item.path)
+                      ? "bg-hotel-primary text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </aside>
+
+          {/* Main content */}
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
