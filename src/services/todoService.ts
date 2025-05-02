@@ -11,20 +11,32 @@ export interface Todo {
   completedBy?: string;
 }
 
+// Map database schema names to our interface names
+function mapDbToTodo(dbTodo: any): Todo {
+  return {
+    id: dbTodo.id,
+    task: dbTodo.task,
+    isCompleted: dbTodo.iscompleted,
+    createdAt: dbTodo.createdat,
+    completedAt: dbTodo.completedat,
+    completedBy: dbTodo.completedby
+  };
+}
+
 export async function getTodos(): Promise<Todo[]> {
   try {
     const { data, error } = await supabase
       .from("todos")
       .select("*")
-      .order("isCompleted", { ascending: true })
-      .order("createdAt", { ascending: false });
+      .order("iscompleted", { ascending: true })
+      .order("createdat", { ascending: false });
     
     if (error) {
       console.error("Error fetching todos:", error);
       return [];
     }
     
-    return data as Todo[] || [];
+    return data ? data.map(mapDbToTodo) : [];
   } catch (error) {
     console.error("Error in getTodos:", error);
     return [];
@@ -36,8 +48,8 @@ export async function addTodo(task: string): Promise<Todo | null> {
     const newTodo = {
       id: uuidv4(),
       task,
-      isCompleted: false,
-      createdAt: new Date().toISOString(),
+      iscompleted: false,
+      createdat: new Date().toISOString(),
     };
     
     const { data, error } = await supabase
@@ -50,7 +62,7 @@ export async function addTodo(task: string): Promise<Todo | null> {
       return null;
     }
     
-    return data?.[0] as Todo || null;
+    return data && data.length > 0 ? mapDbToTodo(data[0]) : null;
   } catch (error) {
     console.error("Error in addTodo:", error);
     return null;
@@ -62,9 +74,9 @@ export async function completeTodo(id: string, completedBy: string): Promise<boo
     const { error } = await supabase
       .from("todos")
       .update({
-        isCompleted: true,
-        completedAt: new Date().toISOString(),
-        completedBy
+        iscompleted: true,
+        completedat: new Date().toISOString(),
+        completedby: completedBy
       })
       .eq("id", id);
     
