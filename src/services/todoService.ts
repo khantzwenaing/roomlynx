@@ -24,7 +24,7 @@ export async function getTodos(): Promise<Todo[]> {
       return [];
     }
     
-    return data || [];
+    return data as Todo[] || [];
   } catch (error) {
     console.error("Error in getTodos:", error);
     return [];
@@ -43,15 +43,14 @@ export async function addTodo(task: string): Promise<Todo | null> {
     const { data, error } = await supabase
       .from("todos")
       .insert([newTodo])
-      .select()
-      .single();
+      .select();
     
     if (error) {
       console.error("Error adding todo:", error);
       return null;
     }
     
-    return data;
+    return data?.[0] as Todo || null;
   } catch (error) {
     console.error("Error in addTodo:", error);
     return null;

@@ -331,6 +331,33 @@ export type Database = {
         }
         Relationships: []
       }
+      todos: {
+        Row: {
+          completedat: string | null
+          completedby: string | null
+          createdat: string
+          id: string
+          iscompleted: boolean
+          task: string
+        }
+        Insert: {
+          completedat?: string | null
+          completedby?: string | null
+          createdat?: string
+          id?: string
+          iscompleted?: boolean
+          task: string
+        }
+        Update: {
+          completedat?: string | null
+          completedby?: string | null
+          createdat?: string
+          id?: string
+          iscompleted?: boolean
+          task?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
