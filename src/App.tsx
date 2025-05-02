@@ -15,7 +15,8 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Customers from "./pages/Customers";
-import RoomDetailsPage from "./pages/RoomDetailsPage"; // Import new page
+import RoomDetailsPage from "./pages/RoomDetailsPage";
+import Todos from "./pages/Todos"; // Import the new Todos page
 
 // Components
 import Layout from "./components/Layout";
@@ -52,6 +53,15 @@ const AppRoutes = () => {
         <ProtectedRoute>
           <Layout>
             <Dashboard />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Add the Todo List route */}
+      <Route path="/todos" element={
+        <ProtectedRoute>
+          <Layout>
+            <Todos />
           </Layout>
         </ProtectedRoute>
       } />
@@ -96,7 +106,6 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      {/* Add Room Details Page route */}
       <Route path="/room-details" element={
         <ProtectedRoute>
           <Layout>

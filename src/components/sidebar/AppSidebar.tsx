@@ -19,7 +19,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {/* We've moved the TodoList to the main sidebar */}
+        {/* We don't need any content here */}
       </SidebarContent>
       <SidebarFooter>
         <div className="text-xs text-muted-foreground text-center p-2">

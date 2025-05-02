@@ -18,7 +18,6 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/AppSidebar";
-import TodoList from "@/components/todos/TodoList";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,7 +30,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-  const [todoListOpen, setTodoListOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -50,13 +48,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const toggleTodoList = () => {
-    setTodoListOpen(!todoListOpen);
-  };
-
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <Home size={20} /> },
-    { path: "#", label: "Todo List", icon: <ListTodo size={20} />, action: toggleTodoList },
+    { path: "/todos", label: "Todo List", icon: <ListTodo size={20} /> },
     { path: "/rooms", label: "Rooms", icon: <Calendar size={20} /> },
     { path: "/payments", label: "Payments", icon: <DollarSign size={20} /> },
     { path: "/reports", label: "Reports", icon: <FileText size={20} /> },
@@ -106,7 +100,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* App Sidebar with Todo List */}
+          {/* App Sidebar */}
           <AppSidebar />
 
           {/* Main navigation sidebar */}
@@ -117,45 +111,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <nav className="p-4 space-y-1">
               {navItems.map((item) => (
-                <div key={item.path}>
-                  {item.action ? (
-                    <button
-                      onClick={item.action}
-                      className={`flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        todoListOpen && item.label === "Todo List"
-                          ? "bg-hotel-primary text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </button>
-                  ) : (
-                    <Link
-                      to={item.path}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        isActive(item.path)
-                          ? "bg-hotel-primary text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </Link>
-                  )}
-                </div>
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive(item.path)
+                      ? "bg-hotel-primary text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
               ))}
             </nav>
-
-            {/* Todo List display when toggled */}
-            {todoListOpen && (
-              <div className="px-4 pb-4">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <h3 className="text-sm font-medium mb-2 text-gray-700">Todo List</h3>
-                  <TodoList />
-                </div>
-              </div>
-            )}
           </aside>
 
           {/* Main content */}
