@@ -4,12 +4,9 @@ import {
   Sidebar, 
   SidebarContent, 
   SidebarFooter, 
-  SidebarGroup, 
-  SidebarGroupLabel, 
   SidebarHeader,
   SidebarTrigger
 } from "@/components/ui/sidebar";
-import TodoList from "@/components/todos/TodoList";
 import { ListTodo } from "lucide-react";
 
 export function AppSidebar() {
@@ -22,10 +19,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Tasks</SidebarGroupLabel>
-          <TodoList />
-        </SidebarGroup>
+        {/* We've moved the TodoList to the main sidebar */}
       </SidebarContent>
       <SidebarFooter>
         <div className="text-xs text-muted-foreground text-center p-2">
