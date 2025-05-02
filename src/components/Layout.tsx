@@ -1,19 +1,18 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Home, 
-  LogOut, 
-  Settings, 
-  Calendar, 
-  DollarSign, 
-  FileText, 
-  Menu, 
+import {
+  Home,
+  LogOut,
+  Settings,
+  Calendar,
+  DollarSign,
+  FileText,
+  Menu,
   X,
-  ListTodo
+  ListTodo,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -73,7 +72,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </Button>
               <Link to="/dashboard" className="flex items-center">
-                <span className="text-xl font-bold text-hotel-primary">Sebin</span>
+                <span className="text-xl font-bold text-hotel-primary">
+                  Sebin
+                </span>
               </Link>
             </div>
             <div className="flex items-center gap-4">
@@ -85,9 +86,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       {user.name.charAt(0)}
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={handleLogout}
                     className="text-gray-500 hover:text-gray-700"
                   >
@@ -100,14 +101,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* App Sidebar */}
-          <AppSidebar />
+          {/* App Sidebar removed */}
 
           {/* Main navigation sidebar */}
           <aside
             className={`bg-white border-r border-gray-200 transition-all duration-300 ${
               sidebarOpen ? "w-64" : "w-0 -ml-64"
-            } md:ml-0 ${sidebarOpen ? "md:w-64" : "md:w-64"} flex-shrink-0 overflow-y-auto`}
+            } md:ml-0 ${
+              sidebarOpen ? "md:w-64" : "md:w-64"
+            } flex-shrink-0 overflow-y-auto`}
           >
             <nav className="p-4 space-y-1">
               {navItems.map((item) => (

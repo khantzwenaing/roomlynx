@@ -48,15 +48,6 @@ const OccupiedRoomWithGuest = ({
               </div>
             </div>
           </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleViewPayments}
-            className="text-blue-600 border-blue-600"
-          >
-            View All Payments
-          </Button>
         </div>
       </div>
     </div>

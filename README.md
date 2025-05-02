@@ -1,69 +1,94 @@
-# Welcome to your Lovable project
+# RoomLynx - Hotel Management System
 
-## Project info
+RoomLynx is a comprehensive hotel management system designed to streamline room operations, guest management, and billing processes.
 
-**URL**: https://lovable.dev/projects/987f9bd8-b33d-40e4-aa0a-3dbda0856c73
+## Features
 
-## How can I edit this code?
+### Room Management
 
-There are several ways of editing your application.
+- Room status tracking (Occupied/Vacant)
+- Room rate management
+- Room type categorization
+- Real-time availability updates
 
-**Use Lovable**
+### Guest Management
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/987f9bd8-b33d-40e4-aa0a-3dbda0856c73) and start prompting.
+- Guest check-in/check-out
+- Guest information storage
+- Contact details management
+- Stay duration tracking
 
-Changes made via Lovable will be committed automatically to this repo.
+### Billing System
 
-**Use your preferred IDE**
+- Automated charge calculations
+- Multiple payment methods
+- Deposit management
+- Refund processing
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Calculations
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Room Charges
 
-Follow these steps:
+   - Base room rate × stay duration
+   - Minimum 0.5 day stay
+   - Daily rate calculations
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Extra Person Charges
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+   - Per extra person beyond single occupancy
+   - Applied to daily rate
+   - Prorated for early checkouts
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Gas Usage Charges
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+   - Initial and final gas weight tracking
+   - Price per kg calculation
+   - Optional service
 
-**Edit a file directly in GitHub**
+4. Deposit Handling
+   - Deposit deduction from total
+   - Refund calculations
+   - Minimum amount due tracking
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Checkout System
 
-**Use GitHub Codespaces**
+1. Regular Checkout
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+   - Automatic checkout date
+   - Multiple payment methods
+   - Bank transfer support
+   - Gas usage calculation
 
-## What technologies are used for this project?
+2. Early Checkout
+   - Custom checkout date
+   - Prorated refunds
+   - Refund details tracking
+   - Charge adjustments
 
-This project is built with .
+## Technology Stack
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- Frontend: React with TypeScript
+- UI Components: Custom components with modern design
+- State Management: React Hooks
+- Date Handling: date-fns
+- Form Management: React Hook Form with Zod validation
 
-## How can I deploy this project?
+## Getting Started
 
-Simply open [Lovable](https://lovable.dev/projects/987f9bd8-b33d-40e4-aa0a-3dbda0856c73) and click on Share -> Publish.
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## I want to use a custom domain - is that possible?
+## Contributing
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+Please read CONTRIBUTING.md for details on our code of conduct and the process for submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE.md file for details

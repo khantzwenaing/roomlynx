@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Room, Customer } from "@/types";
 import { User, Clock } from "lucide-react";
@@ -12,7 +11,10 @@ interface GuestInfoSectionProps {
 }
 
 const GuestInfoSection = ({ customer, room }: GuestInfoSectionProps) => {
-  const calculateTotalStay = (currentRoom: Room, currentCustomer: Customer): number => {
+  const calculateTotalStay = (
+    currentRoom: Room,
+    currentCustomer: Customer
+  ): number => {
     const checkInDate = new Date(currentCustomer.checkInDate);
     const checkOutDate = new Date(currentCustomer.checkOutDate);
     const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
@@ -31,13 +33,15 @@ const GuestInfoSection = ({ customer, room }: GuestInfoSectionProps) => {
           <h4 className="text-sm text-blue-600 font-medium">Guest Name</h4>
           <p className="text-lg font-semibold mt-1">{customer.name}</p>
         </div>
-        
+
         <div className="p-3 bg-white rounded-lg border border-blue-100">
           <h4 className="text-sm text-blue-600 font-medium">Contact</h4>
           <p className="text-lg font-medium mt-1">{customer.phone}</p>
-          {customer.email && <p className="text-sm text-gray-500">{customer.email}</p>}
+          {customer.email && (
+            <p className="text-sm text-gray-500">{customer.email}</p>
+          )}
         </div>
-        
+
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-white rounded-lg border border-blue-100">
             <h4 className="text-sm text-blue-600 font-medium">Check-in</h4>
@@ -45,7 +49,7 @@ const GuestInfoSection = ({ customer, room }: GuestInfoSectionProps) => {
               {format(new Date(customer.checkInDate), "MMM dd, yyyy")}
             </p>
           </div>
-          
+
           <div className="p-3 bg-white rounded-lg border border-blue-100">
             <h4 className="text-sm text-blue-600 font-medium">Check-out</h4>
             <p className="text-lg font-medium mt-1 text-blue-800">
@@ -53,16 +57,18 @@ const GuestInfoSection = ({ customer, room }: GuestInfoSectionProps) => {
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center p-3 text-lg font-medium bg-yellow-50 text-yellow-800 rounded-md border border-yellow-200">
           <Clock className="mr-2" size={20} />
           <span>
-            {calculateRemainingDays(customer.checkOutDate) === 0 
-              ? "Checkout today!" 
-              : `${calculateRemainingDays(customer.checkOutDate)} days until checkout`}
+            {calculateRemainingDays(customer.checkOutDate) === 0
+              ? "Checkout today!"
+              : `${calculateRemainingDays(
+                  customer.checkOutDate
+                )} days until checkout`}
           </span>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-white rounded-lg border border-blue-100">
             <h4 className="text-sm text-blue-600 font-medium">Total Stay</h4>
@@ -70,7 +76,7 @@ const GuestInfoSection = ({ customer, room }: GuestInfoSectionProps) => {
               ${calculateTotalStay(room, customer)}
             </p>
           </div>
-          
+
           {customer.depositAmount && (
             <div className="p-3 bg-white rounded-lg border border-blue-100">
               <h4 className="text-sm text-blue-600 font-medium">Deposit</h4>
@@ -80,13 +86,6 @@ const GuestInfoSection = ({ customer, room }: GuestInfoSectionProps) => {
             </div>
           )}
         </div>
-        
-        <Link 
-          to={`/customers?id=${customer.id}`}
-          className="text-blue-600 hover:underline block text-xl font-medium mt-1 p-2"
-        >
-          View Customer Details
-        </Link>
       </div>
     </>
   );
