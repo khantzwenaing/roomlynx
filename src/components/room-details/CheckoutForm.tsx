@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Room, Customer } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -18,40 +17,42 @@ interface CheckoutFormProps {
     collectedBy: string;
     showCheckoutForm: boolean;
   };
-  setCheckoutDetails: React.Dispatch<React.SetStateAction<{
-    paymentMethod: string;
-    bankRefNo: string;
-    collectedBy: string;
-    showCheckoutForm: boolean;
-  }>>;
+  setCheckoutDetails: React.Dispatch<
+    React.SetStateAction<{
+      paymentMethod: string;
+      bankRefNo: string;
+      collectedBy: string;
+      showCheckoutForm: boolean;
+    }>
+  >;
   customer: Customer;
   room: Room;
   onCompleteCheckout: () => void;
   onEarlyCheckout?: (
-    actualCheckoutDate: string, 
-    refundAmount: number, 
+    actualCheckoutDate: string,
+    refundAmount: number,
     refundDetails: {
-      method: 'cash' | 'bank_transfer' | 'other',
-      collectedBy: string,
-      notes?: string
+      method: "cash" | "bank_transfer" | "other";
+      collectedBy: string;
+      notes?: string;
     }
   ) => Promise<void>;
 }
 
-const CheckoutForm = ({ 
-  checkoutDetails, 
-  setCheckoutDetails, 
-  customer, 
+const CheckoutForm = ({
+  checkoutDetails,
+  setCheckoutDetails,
+  customer,
   room,
   onCompleteCheckout,
-  onEarlyCheckout
+  onEarlyCheckout,
 }: CheckoutFormProps) => {
   const { toast } = useToast();
   const [showEarlyCheckoutDialog, setShowEarlyCheckoutDialog] = useState(false);
   const [gasCharge, setGasCharge] = useState(0);
   const [finalGasWeight, setFinalGasWeight] = useState<number | undefined>();
   const [extraPersonCharge, setExtraPersonCharge] = useState(0);
-  
+
   useEffect(() => {
     const loadExtraCharges = async () => {
       if (customer) {
@@ -59,7 +60,7 @@ const CheckoutForm = ({
         setExtraPersonCharge(personCharge);
       }
     };
-    
+
     loadExtraCharges();
   }, [customer]);
 
@@ -68,26 +69,29 @@ const CheckoutForm = ({
       toast({
         title: "Error",
         description: "Please enter who collected the payment",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
-    if (checkoutDetails.paymentMethod === "bank_transfer" && !checkoutDetails.bankRefNo) {
+    if (
+      checkoutDetails.paymentMethod === "bank_transfer" &&
+      !checkoutDetails.bankRefNo
+    ) {
       toast({
         title: "Error",
         description: "Please enter bank reference number",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-    
+
     // If gas is being used but no final weight entered, show error
     if (customer.hasGas && customer.initialGasWeight && !finalGasWeight) {
       toast({
         title: "Error",
         description: "Please calculate gas usage charge before checking out",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -103,15 +107,15 @@ const CheckoutForm = ({
   return (
     <div className="mt-6 space-y-4 bg-white p-5 rounded-lg border border-gray-200">
       <h4 className="text-xl font-semibold text-gray-800">Checkout Details</h4>
-      
-      <AmountSummary 
-        room={room} 
+
+      <AmountSummary
+        room={room}
         customer={customer}
         gasCharge={gasCharge}
         extraPersonCharge={extraPersonCharge}
         finalGasWeight={finalGasWeight}
       />
-      
+
       {/* Show gas usage calculation if applicable */}
       {customer.hasGas && customer.initialGasWeight && (
         <GasUsageFields
@@ -119,30 +123,42 @@ const CheckoutForm = ({
           onGasChargeCalculated={handleGasChargeCalculated}
         />
       )}
-      
-      <PaymentMethodSelector 
+
+      <PaymentMethodSelector
         paymentMethod={checkoutDetails.paymentMethod}
-        onPaymentMethodChange={(value) => setCheckoutDetails({...checkoutDetails, paymentMethod: value})}
+        onPaymentMethodChange={(value) =>
+          setCheckoutDetails({ ...checkoutDetails, paymentMethod: value })
+        }
       />
-      
+
       {checkoutDetails.paymentMethod === "bank_transfer" && (
-        <BankReferenceInput 
+        <BankReferenceInput
           bankRefNo={checkoutDetails.bankRefNo}
-          onBankRefNoChange={(value) => setCheckoutDetails({...checkoutDetails, bankRefNo: value})}
+          onBankRefNoChange={(value) =>
+            setCheckoutDetails({ ...checkoutDetails, bankRefNo: value })
+          }
         />
       )}
-      
-      <CollectedByInput 
+
+      <CollectedByInput
         collectedBy={checkoutDetails.collectedBy}
-        onCollectedByChange={(value) => setCheckoutDetails({...checkoutDetails, collectedBy: value})}
+        onCollectedByChange={(value) =>
+          setCheckoutDetails({ ...checkoutDetails, collectedBy: value })
+        }
       />
-      
-      <CheckoutActions 
+
+      <CheckoutActions
         onCompleteCheckout={handleCompleteCheckout}
         onEarlyCheckoutClick={() => setShowEarlyCheckoutDialog(true)}
         isEarlyCheckoutAvailable={true}
+        disabled={
+          (customer.hasGas && customer.initialGasWeight && !finalGasWeight) ||
+          !checkoutDetails.collectedBy ||
+          (checkoutDetails.paymentMethod === "bank_transfer" &&
+            !checkoutDetails.bankRefNo)
+        }
       />
-      
+
       {onEarlyCheckout && (
         <EarlyCheckoutDialog
           open={showEarlyCheckoutDialog}
