@@ -37,7 +37,7 @@ const RoomDetailsDialog = ({
   const [editing, setEditing] = useState(false);
   const [editedRoom, setEditedRoom] = useState<Partial<Room>>({});
   const [checkoutDetails, setCheckoutDetails] = useState({
-    paymentMethod: "cash",
+    paymentMethod: "cash" as "cash" | "bank_transfer" | "other",
     bankRefNo: "",
     collectedBy: "",
     showCheckoutForm: false

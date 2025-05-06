@@ -9,33 +9,45 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { calculateExtraPersonCharge, calculateGasCharge } from "@/services/settingsService";
 import { formatCurrency } from "@/utils/date-utils";
+import PaymentMethodSelector from "./checkout/PaymentMethodSelector";
+import BankReferenceInput from "./checkout/BankReferenceInput";
+import CollectedByInput from "./checkout/CollectedByInput";
+import CheckoutActions from "./checkout/CheckoutActions";
+import AmountSummary from "./checkout/AmountSummary";
+import EarlyCheckoutDialog from "./checkout/EarlyCheckoutDialog";
+import type { RefundDetailsFormData } from "./checkout/early-checkout/RefundDetailsFormSchema";
 
 interface CheckoutFormProps {
+  checkoutDetails: {
+    paymentMethod: "cash" | "bank_transfer" | "other";
+    bankRefNo: string;
+    collectedBy: string;
+    showCheckoutForm: boolean;
+  };
+  setCheckoutDetails: React.Dispatch<React.SetStateAction<{
+    paymentMethod: "cash" | "bank_transfer" | "other";
+    bankRefNo: string;
+    collectedBy: string;
+    showCheckoutForm: boolean;
+  }>>;
   customer: Customer;
   room: Room;
   onCompleteCheckout: () => void;
   onEarlyCheckout?: (
     actualCheckoutDate: string,
     refundAmount: number,
-    refundDetails: {
-      method: "cash" | "bank_transfer" | "other";
-      collectedBy: string;
-      notes?: string;
-    }
+    refundDetails: RefundDetailsFormData
   ) => Promise<void>;
 }
 
 const CheckoutForm = ({
   customer,
   room,
+  checkoutDetails,
+  setCheckoutDetails,
   onCompleteCheckout,
   onEarlyCheckout,
 }: CheckoutFormProps) => {
-  // Payment details state
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "bank_transfer" | "other">("cash");
-  const [bankRefNo, setBankRefNo] = useState("");
-  const [collectedBy, setCollectedBy] = useState("");
-  
   // Gas usage state
   const [finalGasWeight, setFinalGasWeight] = useState<number | undefined>();
   const [gasCharge, setGasCharge] = useState(0);
@@ -103,12 +115,12 @@ const CheckoutForm = ({
 
   const handleCompleteCheckout = () => {
     // Validation
-    if (!collectedBy) {
+    if (!checkoutDetails.collectedBy) {
       toast.error("Please enter who collected the payment");
       return;
     }
 
-    if (paymentMethod === "bank_transfer" && !bankRefNo) {
+    if (checkoutDetails.paymentMethod === "bank_transfer" && !checkoutDetails.bankRefNo) {
       toast.error("Please enter bank reference number");
       return;
     }
@@ -238,83 +250,56 @@ const CheckoutForm = ({
       )}
 
       {/* Payment Method Selection */}
-      <div className="space-y-2">
-        <Label className="text-base font-medium">Payment Method</Label>
-        <RadioGroup
-          value={paymentMethod}
-          onValueChange={(value) => setPaymentMethod(value as "cash" | "bank_transfer" | "other")}
-          className="flex flex-col space-y-2"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="cash" id="payment-cash" />
-            <Label htmlFor="payment-cash" className="cursor-pointer">Cash</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="bank_transfer" id="payment-bank" />
-            <Label htmlFor="payment-bank" className="cursor-pointer">Bank Transfer</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="other" id="payment-other" />
-            <Label htmlFor="payment-other" className="cursor-pointer">Other</Label>
-          </div>
-        </RadioGroup>
-      </div>
+      <PaymentMethodSelector
+        paymentMethod={checkoutDetails.paymentMethod}
+        onPaymentMethodChange={(value) => setCheckoutDetails({
+          ...checkoutDetails,
+          paymentMethod: value as "cash" | "bank_transfer" | "other"
+        })}
+      />
 
       {/* Bank Reference Number */}
-      {paymentMethod === "bank_transfer" && (
-        <div className="space-y-2">
-          <Label htmlFor="bank-ref" className="text-base font-medium">
-            Bank Reference Number
-          </Label>
-          <Input
-            id="bank-ref"
-            placeholder="Enter transaction reference"
-            value={bankRefNo}
-            onChange={(e) => setBankRefNo(e.target.value)}
-            className="h-10"
-          />
-        </div>
+      {checkoutDetails.paymentMethod === "bank_transfer" && (
+        <BankReferenceInput
+          bankRefNo={checkoutDetails.bankRefNo}
+          onBankRefNoChange={(value) => setCheckoutDetails({
+            ...checkoutDetails,
+            bankRefNo: value
+          })}
+        />
       )}
 
       {/* Collected By */}
-      <div className="space-y-2">
-        <Label htmlFor="collected-by" className="text-base font-medium">
-          Collected By
-        </Label>
-        <Input
-          id="collected-by"
-          placeholder="Enter staff name"
-          value={collectedBy}
-          onChange={(e) => setCollectedBy(e.target.value)}
-          className="h-10"
-        />
-      </div>
+      <CollectedByInput
+        collectedBy={checkoutDetails.collectedBy}
+        onCollectedByChange={(value) => setCheckoutDetails({
+          ...checkoutDetails,
+          collectedBy: value
+        })}
+      />
 
       {/* Action Buttons */}
-      <div className="space-y-3">
-        <Button 
-          onClick={handleCompleteCheckout} 
-          className="w-full py-6 text-xl bg-red-600 hover:bg-red-700"
-          disabled={(customer.hasGas && customer.initialGasWeight && finalGasWeight === undefined) ||
-                   !collectedBy ||
-                   (paymentMethod === "bank_transfer" && !bankRefNo)}
-        >
-          Complete Checkout
-        </Button>
-        
-        {onEarlyCheckout && (
-          <Button 
-            onClick={() => setShowEarlyCheckoutDialog(true)}
-            variant="outline" 
-            className="w-full"
-          >
-            Process Early Checkout
-          </Button>
-        )}
-      </div>
+      <CheckoutActions
+        onCompleteCheckout={handleCompleteCheckout}
+        onEarlyCheckoutClick={onEarlyCheckout ? () => setShowEarlyCheckoutDialog(true) : undefined}
+        isEarlyCheckoutAvailable={!!onEarlyCheckout}
+        disabled={(customer.hasGas && customer.initialGasWeight && finalGasWeight === undefined) ||
+                 !checkoutDetails.collectedBy ||
+                 (checkoutDetails.paymentMethod === "bank_transfer" && !checkoutDetails.bankRefNo)}
+      />
 
-      {/* The EarlyCheckoutDialog component would be imported and used here */}
-      {/* For simplicity, we're not implementing it in this initial version */}
+      {/* Early Checkout Dialog */}
+      {onEarlyCheckout && showEarlyCheckoutDialog && (
+        <EarlyCheckoutDialog
+          open={showEarlyCheckoutDialog}
+          onOpenChange={setShowEarlyCheckoutDialog}
+          room={room}
+          customer={customer}
+          onEarlyCheckout={onEarlyCheckout}
+          gasCharge={gasCharge}
+          extraPersonCharge={extraPersonCharge}
+        />
+      )}
     </div>
   );
 };

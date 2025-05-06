@@ -66,3 +66,10 @@ export const formatStayDuration = (days: number): string => {
     ? `${days} ${dayText}` 
     : `${days.toFixed(1)} ${dayText}`;
 };
+
+/**
+ * Format a currency value to Indian Rupees format
+ */
+export const formatCurrency = (amount: number): string => {
+  return `₹${amount.toFixed(2)}`;
+};
