@@ -163,7 +163,7 @@ const Todos = () => {
               </div>
             ) : todos.length > 0 ? (
               todos.map((todo) => (
-                <div key={todo.id} className="group bg-gray-50 p-3 rounded-md">
+                <div key={todo.id} className={`group p-3 rounded-md ${!todo.isCompleted ? 'bg-[#FBDB93]' : 'bg-gray-50'}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1">
                       <p className={`${todo.isCompleted ? 'line-through text-muted-foreground' : ''}`}>

@@ -135,7 +135,7 @@ const TodoList = () => {
         ) : todos.length > 0 ? (
           todos.map((todo) => (
             <div key={todo.id} className="group">
-              <div className="flex items-center justify-between gap-2 py-1">
+              <div className={`flex items-center justify-between gap-2 py-1 px-2 rounded ${!todo.isCompleted ? 'bg-[#FBDB93]' : ''}`}>
                 <div className="flex-1">
                   <p className={`${todo.isCompleted ? 'line-through text-muted-foreground' : ''} text-sm`}>
                     {todo.task}
