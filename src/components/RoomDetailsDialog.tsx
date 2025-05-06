@@ -36,12 +36,7 @@ const RoomDetailsDialog = ({
 }: RoomDetailsDialogProps) => {
   const [editing, setEditing] = useState(false);
   const [editedRoom, setEditedRoom] = useState<Partial<Room>>({});
-  const [checkoutDetails, setCheckoutDetails] = useState({
-    paymentMethod: "cash" as "cash" | "bank_transfer" | "other",
-    bankRefNo: "",
-    collectedBy: "",
-    showCheckoutForm: false
-  });
+  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
 
   // Early return if room is null
   if (!room) return null;
@@ -64,10 +59,7 @@ const RoomDetailsDialog = ({
 
   const handleCheckoutClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Stop event propagation
-    setCheckoutDetails({
-      ...checkoutDetails,
-      showCheckoutForm: true
-    });
+    setShowCheckoutForm(true);
   };
 
   const handleCompleteCheckout = () => {
@@ -111,7 +103,7 @@ const RoomDetailsDialog = ({
                 room={room} 
               />
 
-              {!checkoutDetails.showCheckoutForm ? (
+              {!showCheckoutForm ? (
                 <Button 
                   className="w-full mt-6 py-6 text-xl bg-red-600 hover:bg-red-700"
                   onClick={handleCheckoutClick}
@@ -120,10 +112,8 @@ const RoomDetailsDialog = ({
                 </Button>
               ) : (
                 <CheckoutForm 
-                  checkoutDetails={checkoutDetails}
-                  setCheckoutDetails={setCheckoutDetails}
-                  customer={customer}
                   room={room}
+                  customer={customer}
                   onCompleteCheckout={handleCompleteCheckout}
                   onEarlyCheckout={onEarlyCheckout}
                 />
