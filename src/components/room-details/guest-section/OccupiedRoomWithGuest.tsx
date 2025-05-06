@@ -1,6 +1,6 @@
+
 import React from "react";
 import { Room, Customer } from "@/types";
-import { User } from "lucide-react";
 import GuestInfoSection from "@/components/room-details/GuestInfoSection";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -48,6 +48,14 @@ const OccupiedRoomWithGuest = ({
               </div>
             </div>
           </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleViewPayments}
+            className="w-full"
+          >
+            View Payments
+          </Button>
         </div>
       </div>
     </div>
