@@ -114,6 +114,10 @@ const TodosContainer = () => {
     setCompletedBy("");
   };
 
+  // Separate todos into incomplete and completed
+  const incompleteTodos = todos.filter(todo => !todo.isCompleted);
+  const completedTodos = todos.filter(todo => todo.isCompleted);
+
   return (
     <div className="space-y-6">
       <TodoHeader onRefresh={handleDataRefresh} isRefreshing={isRefreshing} />
@@ -121,29 +125,47 @@ const TodosContainer = () => {
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <AddTodoForm onAddTask={handleAddTask} isLoading={isLoading} />
 
-        <div className="space-y-3">
-          <h2 className="text-lg font-medium">Tasks</h2>
-          
-          <div className="space-y-2">
-            {isLoading && todos.length === 0 ? (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-muted-foreground">Loading tasks...</p>
+        <div className="space-y-5">
+          {isLoading && todos.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-muted-foreground">Loading tasks...</p>
+            </div>
+          ) : (
+            <>
+              {/* Incomplete Tasks Section */}
+              <div>
+                <h2 className="text-lg font-medium mb-3">Tasks To Do</h2>
+                <div className="space-y-2">
+                  {incompleteTodos.length > 0 ? (
+                    incompleteTodos.map((todo) => (
+                      <TodoItem 
+                        key={todo.id} 
+                        todo={todo} 
+                        onComplete={openCompleteDialog} 
+                      />
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                      <p className="text-muted-foreground">No pending tasks</p>
+                      <p className="text-sm text-muted-foreground mt-1">All caught up!</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            ) : todos.length > 0 ? (
-              todos.map((todo) => (
-                <TodoItem 
-                  key={todo.id} 
-                  todo={todo} 
-                  onComplete={openCompleteDialog} 
-                />
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="text-muted-foreground">No tasks yet</p>
-                <p className="text-sm text-muted-foreground mt-1">Add a new task to get started</p>
-              </div>
-            )}
-          </div>
+              
+              {/* Completed Tasks Section */}
+              {completedTodos.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h2 className="text-lg font-medium mb-3">Completed Tasks</h2>
+                  <div className="space-y-2">
+                    {completedTodos.map((todo) => (
+                      <TodoItem key={todo.id} todo={todo} onComplete={openCompleteDialog} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
