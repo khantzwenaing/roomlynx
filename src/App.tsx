@@ -16,7 +16,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Customers from "./pages/Customers";
 import RoomDetailsPage from "./pages/RoomDetailsPage";
-import Todos from "./pages/Todos"; // Import the new Todos page
+import Todos from "./pages/Todos"; // Import the Todo page
 
 // Components
 import Layout from "./components/Layout";
@@ -27,19 +27,24 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
+  console.log("ProtectedRoute check - isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
+
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
   if (!isAuthenticated) {
+    console.log("User not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
 
+  console.log("User authenticated, rendering protected content");
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();
+  console.log("AppRoutes rendered - isAuthenticated:", isAuthenticated);
 
   return (
     <Routes>
@@ -47,6 +52,7 @@ const AppRoutes = () => {
         isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
       } />
       
+      {/* Explicitly ensure root path redirects to dashboard */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       
       <Route path="/dashboard" element={
@@ -57,7 +63,6 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      {/* Add the Todo List route */}
       <Route path="/todos" element={
         <ProtectedRoute>
           <Layout>
@@ -119,18 +124,21 @@ const AppRoutes = () => {
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log("App component rendered");
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
